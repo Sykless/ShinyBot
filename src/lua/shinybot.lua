@@ -57,6 +57,7 @@ decryptBlockA()
 decryptBlockB()
 decryptBlockC()
 decryptBlockD()
+decryptStats()
 
 -- Display Pokemon stats
 console.log(pokemon)

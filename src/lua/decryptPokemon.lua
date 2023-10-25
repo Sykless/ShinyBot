@@ -285,19 +285,52 @@ function decryptBlockD()
     -- pokemon["PokeballHGSS"] = getBits(decryptData(pidAddr + BlockDoffset + START + 30), 0, 8)
 end
 
--- function decryptStats()
---     -- -- Current stats
---     -- prng = pid
---     -- prng = nextRecursivePrng(prng)
---     -- statusConditions = getBits(memory.read_u8(pidAddr + 0x88) ~ getUpper16Bits(prng), 0, 8)
---     -- prng = nextRecursivePrng(prng)
---     -- prng = nextRecursivePrng(prng)
---     -- level = getBits((memory.read_u16_le(pidAddr + 0x8C) ~ getUpper16Bits(prng)),0,8)
---     -- prng = nextRecursivePrng(prng)
---     -- hpstat = (memory.read_u16_le(pidAddr + 0x8E) ~ getUpper16Bits(prng))
---     -- prng = nextRecursivePrng(prng)
---     -- maxhpstat = (memory.read_u16_le(pidAddr + 0x90) ~ getUpper16Bits(prng))
+function decryptStats()
+    -- Seed PRNG with PID
+    prng = pid
 
---     -- console.log("level : " .. level)
---     -- console.log("maxhpstat : " .. maxhpstat) 
--- end
+    -- Status (0x88)
+    status = getBits(decryptData(pidAddr + 0x88),0,8)
+
+    pokemon["Asleep"] = getBits(status,3,0) -- 3 bits to keep track of sleep rounds (0-7)
+    pokemon["Poisoned"] = getBits(status,1,3)
+    pokemon["Burned"] = getBits(status,1,4)
+    pokemon["Frozen"] = getBits(status,1,5)
+    pokemon["Paralyzed"] = getBits(status,1,6)
+    pokemon["Toxic"] = getBits(status,1,7)
+
+    -- Unknown (0x8A-0x8B)
+    prng = nextRecursivePrng(prng) -- Still need to update PRNG if we miss data
+
+    -- Level - Capsule Index (Seals) (0x8C-0x8D)
+    levelCapsule = decryptData(pidAddr + 0x8C)
+    pokemon["Level"] = getBits(levelCapsule, 0, 8)
+    pokemon["Capsule"] = getBits(levelCapsule, 8, 8)
+
+    -- Current HP (0x8E-0x8F)
+    pokemon["HPCurrent"] = decryptData(pidAddr + 0x8E)
+
+    -- Max HP (0x90-0x91)
+    pokemon["HPMax"] = decryptData(pidAddr + 0x90)
+
+    -- Attack (0x92-0x93)
+    pokemon["Attack"] = decryptData(pidAddr + 0x92)
+
+    -- Defense (0x94-0x95)
+    pokemon["Defense"] = decryptData(pidAddr + 0x94)
+
+    -- Speed (0x96-0x97)
+    pokemon["Speed"] = decryptData(pidAddr + 0x96)
+
+    -- Special Attack (0x98-0x99)
+    pokemon["SpecialAttack"] = decryptData(pidAddr + 0x98)
+
+    -- Special Defense (0x9A-0x9B)
+    pokemon["SpecialDefense"] = decryptData(pidAddr + 0x9A)
+
+    -- Unknown - Contains Trash Data (0x9C-0xD3)
+    for i = 1, 28 do prng = nextRecursivePrng(prng) end -- Still need to update PRNG if we miss data
+
+    -- Seal Coordinates (0xD4-0xEB)
+    pokemon["SealCoordinates"] = decryptData(pidAddr + 0xD4)
+end
