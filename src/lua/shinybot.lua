@@ -8,12 +8,6 @@ console.log("\nShinybot started\n")
 -- Pokemon object
 pokemon = {}
 
--- Block order dependening on the shift value (0-23)
-BlockA = {1,1,1,1,1,1,2,2,3,4,3,4,2,2,3,4,3,4,2,2,3,4,3,4}
-BlockB = {2,2,3,4,3,4,1,1,1,1,1,1,3,4,2,2,4,3,3,4,2,2,4,3}
-BlockC = {3,4,2,2,4,3,3,4,2,2,4,3,1,1,1,1,1,1,4,3,4,3,2,2}
-BlockD = {4,3,4,3,2,2,4,3,4,3,2,2,4,3,4,3,2,2,1,1,1,1,1,1}
-
 platinumWrongAddress = 0x02101D2C
 platinumAddress = 0x02101F0C
 
@@ -28,36 +22,10 @@ console.log("Ally PID : 0x" .. getHexValue(memory.read_u32_le(allyPidAddress)))
 console.log("Opposing PID : 0x" .. getHexValue(memory.read_u32_le(opposingPidAddress)))
 
 -- Select the PID address to use
-pidAddr = allyPidAddress
+pidAddressToUse = allyPidAddress
 
--- Retrieve PID and checksum from RAM
-pid = memory.read_u32_le(pidAddr)
-checksum = memory.read_u16_le(pidAddr + 6)
-
--- Calculate Shift value used for block shuffling - see decryptPokemon.lua
-shiftValue = ((pid & 0x3E000) >> 0xD) % 24
-console.log("shiftValue : " .. shiftValue .. " -> " 
-    .. BlockA[shiftValue + 1]
-    .. BlockB[shiftValue + 1]
-    .. BlockC[shiftValue + 1]
-    .. BlockD[shiftValue + 1]
-    .. "\n"
-)
-
--- Each block is shift by a certain offset, calculated with Block{A-B-C-D}
-BlockAoffset = (BlockA[shiftValue + 1] - 1) * 32
-BlockBoffset = (BlockB[shiftValue + 1] - 1) * 32
-BlockCoffset = (BlockC[shiftValue + 1] - 1) * 32
-BlockDoffset = (BlockD[shiftValue + 1] - 1) * 32
-
--- Each parameter must be decrypted using PRNG (pseudorandom number generator)
--- PRNG decryption covers two bytes at the time, so to get adjacent 1-byte values,
--- We need to retrieve the 2-byte block, and then split the two values
-decryptBlockA()
-decryptBlockB()
-decryptBlockC()
-decryptBlockD()
-decryptStats()
+-- Get Pokemon encrypted data from PID address
+decryptPokemonData(pidAddressToUse)
 
 -- Display Pokemon stats
 console.log(pokemon)
