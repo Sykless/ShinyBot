@@ -1,3 +1,5 @@
+-- Not actually used, but can be useful to find a memory address
+
 function lineToHexAddress(line,column)
     local hexValue = getHexValue(line-1)
     local columnId = {"0", "4", "8", "C"}

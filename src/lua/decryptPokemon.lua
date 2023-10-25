@@ -8,6 +8,9 @@
 -- • https://github.com/kwsch/PKHeX/tree/master
 -- • https://tasvideos.org/UserFiles/Info/45747701013813013 by FractalFusion
 
+-- Address of the first parameter
+START = 0x08
+
 function decryptBlockA()
     -- Seed PRNG with checksum
     prng = checksum
@@ -18,95 +21,72 @@ function decryptBlockA()
         for j = 1, 16 do prng = nextRecursivePrng(prng) end
     end
 
-    -- National Pokédex ID (0x08-0x09)
-    prng = nextRecursivePrng(prng)
-    pokemon["PokedexID"] = memory.read_u16_le(pidAddr + BlockAoffset + 8) ~ getUpper16Bits(prng)
+    -- National Pokédex ID (START-0x09)
+    pokemon["PokedexID"] = decryptData(pidAddr + BlockAoffset + START)
     pokemon[" Name "] = POKEMON_NAMES[pokemon["PokedexID"]]
 
     -- Held Item (0x0A-0x0B)
-    prng = nextRecursivePrng(prng)
-    pokemon["HeldItem"] = memory.read_u16_le(pidAddr + BlockAoffset + 8 + 2) ~ getUpper16Bits(prng)
+    pokemon["HeldItem"] = decryptData(pidAddr + BlockAoffset + START + 2)
 
     -- OT ID (0x0C-0x0D)
-    prng = nextRecursivePrng(prng)
-    pokemon["OT"] = memory.read_u16_le(pidAddr + BlockAoffset + 8 + 4) ~ getUpper16Bits(prng)
+    pokemon["OT"] = decryptData(pidAddr + BlockAoffset + START + 4)
 
     -- OT Secret ID (0x0E-0x0F)
-    prng = nextRecursivePrng(prng)
-    pokemon["OTSecretID"] = memory.read_u16_le(pidAddr + BlockAoffset + 8 + 6) ~ getUpper16Bits(prng)
+    pokemon["OTSecretID"] = decryptData(pidAddr + BlockAoffset + START + 6)
 
     -- Experience points (0x10-0x13)
-    prng = nextRecursivePrng(prng)
-    pokemon["Experience"] = memory.read_u16_le(pidAddr + BlockAoffset + 8 + 8) ~ getUpper16Bits(prng)
+    pokemon["Experience"] = decryptData(pidAddr + BlockAoffset + START + 8)
 
     -- Remaining two bytes from Experience points (0x12-0x13)
     -- Should I retrieve the last 2 bytes of Experience ?
-    -- console.log("Missing experience : " .. (memory.read_u16_le(pidAddr + BlockAoffset + 8 + 10) ~ getUpper16Bits(prng)))
-    prng = nextRecursivePrng(prng)
+    -- console.log("Missing experience : " .. (decryptData(pidAddr + BlockAoffset + START + 10)))
+    prng = nextRecursivePrng(prng)  -- Still need to update PRNG if we miss data
 
     -- Friendship/Steps to Hatch - Ability (0x14-0x15)
-    prng = nextRecursivePrng(prng)
-    friendship_ability = memory.read_u16_le(pidAddr + BlockAoffset + 8 + 12) ~ getUpper16Bits(prng)
-
+    friendship_ability = decryptData(pidAddr + BlockAoffset + START + 12)
     pokemon["Friendship"] = getBits(friendship_ability, 0, 8)
     pokemon["Ability"] = ABILITY_LIST[getBits(friendship_ability, 8, 8)]
 
     -- Markings - Original Language (0x16-0x17)
-    prng = nextRecursivePrng(prng)
-    markings_originalLanguage = memory.read_u16_le(pidAddr + BlockAoffset + 8 + 14) ~ getUpper16Bits(prng)
-
+    markings_originalLanguage = decryptData(pidAddr + BlockAoffset + START + 14)
     pokemon["Markings"] = getBits(markings_originalLanguage, 0, 8)
     pokemon["OriginalLanguage"] = LANGUAGE_LIST[getBits(markings_originalLanguage, 8, 8)]
 
     -- HP Effort Value - Attack Effort Value (0x18-0x19)
-    prng = nextRecursivePrng(prng)
-    HpEv_AtkEv = memory.read_u16_le(pidAddr + BlockAoffset + 8 + 16) ~ getUpper16Bits(prng)
-
+    HpEv_AtkEv = decryptData(pidAddr + BlockAoffset + START + 16)
     pokemon["EV-HP"] = getBits(HpEv_AtkEv, 0, 8)
     pokemon["EV-ATQ"] = getBits(HpEv_AtkEv, 8, 8)
 
     -- Defense Effort Value - Speed Effort Value (0x1A-0x1B)
-    prng = nextRecursivePrng(prng)
-    DefEv_SpeEv = memory.read_u16_le(pidAddr + BlockAoffset + 8 + 18) ~ getUpper16Bits(prng)
-
+    DefEv_SpeEv = decryptData(pidAddr + BlockAoffset + START + 18)
     pokemon["EV-DEF"] = getBits(DefEv_SpeEv, 0, 8)
     pokemon["EV-SPE"] = getBits(DefEv_SpeEv, 8, 8)
 
     -- SP Attack Effort Value - SP Defense Effort Value (0x1C-0x1D)
-    prng = nextRecursivePrng(prng)
-    SpaEv_SpdEv = memory.read_u16_le(pidAddr + BlockAoffset + 8 + 20) ~ getUpper16Bits(prng)
-
+    SpaEv_SpdEv = decryptData(pidAddr + BlockAoffset + START + 20)
     pokemon["EV-SPA"] = getBits(SpaEv_SpdEv, 0, 8)
     pokemon["EV-SPD"] = getBits(SpaEv_SpdEv, 8, 8)
 
     -- Cool/Beauty Contest Value (0x1E-0x1F)
-    prng = nextRecursivePrng(prng)
-    coolBeautyContest = memory.read_u16_le(pidAddr + BlockAoffset + 8 + 22) ~ getUpper16Bits(prng)
-
+    coolBeautyContest = decryptData(pidAddr + BlockAoffset + START + 22)
     pokemon["ContestCool"] = getBits(coolBeautyContest, 0, 8)
     pokemon["ContestBeauty"] = getBits(coolBeautyContest, 8, 8)
 
     -- Cute/Smart Contest Value (0x20-0x21)
-    prng = nextRecursivePrng(prng)
-    cuteSmartContest = memory.read_u16_le(pidAddr + BlockAoffset + 8 + 24) ~ getUpper16Bits(prng)
-    
+    cuteSmartContest = decryptData(pidAddr + BlockAoffset + START + 24)
     pokemon["ContestCute"] = getBits(cuteSmartContest, 0, 8)
     pokemon["ContestSmart"] = getBits(cuteSmartContest, 8, 8)
 
     -- Tough/Sheen Contest Value (0x22-0x23)
-    prng = nextRecursivePrng(prng)
-    toughSheenContest = memory.read_u16_le(pidAddr + BlockAoffset + 8 + 26) ~ getUpper16Bits(prng)
-
+    toughSheenContest = decryptData(pidAddr + BlockAoffset + START + 26)
     pokemon["ContestTouch"] = getBits(toughSheenContest, 0, 8)
     pokemon["ContestSheen"] = getBits(toughSheenContest, 8, 8)
 
     -- Sinnoh Ribbon Set 1 (0x24-0x25)
-    prng = nextRecursivePrng(prng)
-    pokemon["SinnohRibbon3"] = memory.read_u16_le(pidAddr + BlockAoffset + 8 + 28) ~ getUpper16Bits(prng)
+    pokemon["SinnohRibbon3"] = decryptData(pidAddr + BlockAoffset + START + 28)
 
     -- Sinnoh Ribbon Set 2 (0x26-0x27)
-    prng = nextRecursivePrng(prng)
-    pokemon["SinnohRibbon4"] = memory.read_u16_le(pidAddr + BlockAoffset + 8 + 30) ~ getUpper16Bits(prng)
+    pokemon["SinnohRibbon4"] = decryptData(pidAddr + BlockAoffset + START + 30)
 end
 
 function decryptBlockB()
@@ -120,50 +100,38 @@ function decryptBlockB()
     end
 
     -- Move 1 ID (0x28-0x29)
-    prng = nextRecursivePrng(prng)
-    pokemon["Move1"] = MOVE_NAMES[memory.read_u16_le(pidAddr + BlockBoffset + 8) ~ getUpper16Bits(prng)]
+    pokemon["Move1"] = MOVE_NAMES[decryptData(pidAddr + BlockBoffset + START)]
 
     -- Move 2 ID (0x2A-0x2B)
-    prng = nextRecursivePrng(prng)
-    pokemon["Move2"] = MOVE_NAMES[memory.read_u16_le(pidAddr + BlockBoffset + 8 + 2) ~ getUpper16Bits(prng)]
+    pokemon["Move2"] = MOVE_NAMES[decryptData(pidAddr + BlockBoffset + START + 2)]
 
     -- Move 3 ID (0x2C-0x2D)
-    prng = nextRecursivePrng(prng)
-    pokemon["Move3"] = MOVE_NAMES[memory.read_u16_le(pidAddr + BlockBoffset + 8 + 4) ~ getUpper16Bits(prng)]
+    pokemon["Move3"] = MOVE_NAMES[decryptData(pidAddr + BlockBoffset + START + 4)]
 
     -- Move 4 ID (0x2E-0x2F)
-    prng = nextRecursivePrng(prng)
-    pokemon["Move4"] = MOVE_NAMES[memory.read_u16_le(pidAddr + BlockBoffset + 8 + 6) ~ getUpper16Bits(prng)]
+    pokemon["Move4"] = MOVE_NAMES[decryptData(pidAddr + BlockBoffset + START + 6)]
 
     -- Move 1-2 Current PP (0x30-0x31)
-    prng = nextRecursivePrng(prng)
-    move12pp = memory.read_u16_le(pidAddr + BlockBoffset + 8 + 8) ~ getUpper16Bits(prng)
-
+    move12pp = decryptData(pidAddr + BlockBoffset + START + 8)
     pokemon["Move1PP"] = getBits(move12pp, 0, 8)
     pokemon["Move2PP"] = getBits(move12pp, 8, 8)
 
     -- Move 3-4 Current PP (0x32-0x33)
-    prng = nextRecursivePrng(prng)
-    move34pp = memory.read_u16_le(pidAddr + BlockBoffset + 8 + 10) ~ getUpper16Bits(prng)
-
+    move34pp = decryptData(pidAddr + BlockBoffset + START + 10)
     pokemon["Move3PP"] = getBits(move34pp, 0, 8)
     pokemon["Move4PP"] = getBits(move34pp, 8, 8)
 
     -- Move PP Ups (0x34-0x37)
-    prng = nextRecursivePrng(prng)
-    ppUp = memory.read_u16_le(pidAddr + BlockBoffset + 8 + 12) ~ getUpper16Bits(prng)
-    pokemon["MovePPUps"] = getBits(ppUp, 0, 4)
+    pokemon["MovePPUps"] = decryptData(pidAddr + BlockBoffset + START + 12)
 
     -- Remaining two bytes from Move PP Ups (0x36-0x37)
-    prng = nextRecursivePrng(prng)
+    prng = nextRecursivePrng(prng) -- Still need to update PRNG if we miss data
 
     -- First two bytes of Individual Values (0x38-0x39)
-    prng = nextRecursivePrng(prng)
-    IVpart1 = memory.read_u16_le(pidAddr + BlockBoffset + 8 + 16) ~ getUpper16Bits(prng)
+    IVpart1 = decryptData(pidAddr + BlockBoffset + START + 16)
 
     -- Last two bytes of Individual Values (0x3A-0x3B)
-    prng = nextRecursivePrng(prng)
-    IVpart2 = memory.read_u16_le(pidAddr + BlockBoffset + 8 + 18) ~ getUpper16Bits(prng)
+    IVpart2 = decryptData(pidAddr + BlockBoffset + START + 18)
     
     IV = IVpart1 + (IVpart2 << 16)
     pokemon["IV-HP"] = getBits(IV,0,5)
@@ -176,31 +144,25 @@ function decryptBlockB()
     pokemon["IsNicknamed"] = getBits(IV,31,1)
 
     -- Hoenn Ribbon Set 1 (0x3C-0x3D)
-    prng = nextRecursivePrng(prng)
-    pokemon["HoennRibbon1"] = memory.read_u16_le(pidAddr + BlockBoffset + 8 + 20) ~ getUpper16Bits(prng)
+    pokemon["HoennRibbon1"] = decryptData(pidAddr + BlockBoffset + START + 20)
 
     -- Hoenn Ribbon Set 2 (0x3E-0x3F)
-    prng = nextRecursivePrng(prng)
-    pokemon["HoennRibbon2"] = memory.read_u16_le(pidAddr + BlockBoffset + 8 + 22) ~ getUpper16Bits(prng)
+    pokemon["HoennRibbon2"] = decryptData(pidAddr + BlockBoffset + START + 22)
 
     -- Gender - Alternate Forms (0x40-0x41)
-    prng = nextRecursivePrng(prng)
-    data = memory.read_u16_le(pidAddr + BlockBoffset + 8 + 24) ~ getUpper16Bits(prng)
-
+    data = decryptData(pidAddr + BlockBoffset + START + 24)
     pokemon["Female"] = getBits(data,1,1)
     pokemon["Genderless"] = getBits(data,2,1)
     pokemon["AlternateForms"] = getBits(data,3,5)
 
     -- Unused (0x42-0x43)
-    prng = nextRecursivePrng(prng)
+    prng = nextRecursivePrng(prng) -- Still need to update PRNG if we miss data
 
     -- Egg Location (0x44-0x45)
-    prng = nextRecursivePrng(prng)
-    pokemon["EggLocation"] = memory.read_u16_le(pidAddr + BlockBoffset + 8 + 28) ~ getUpper16Bits(prng)
+    pokemon["EggLocation"] = decryptData(pidAddr + BlockBoffset + START + 28)
 
     -- Met at Location (0x46-0x47)
-    prng = nextRecursivePrng(prng)
-    pokemon["MetLocation"] = memory.read_u16_le(pidAddr + BlockBoffset + 8 + 30) ~ getUpper16Bits(prng)
+    pokemon["MetLocation"] = decryptData(pidAddr + BlockBoffset + START + 30)
 end
 
 function decryptBlockC()
@@ -218,35 +180,31 @@ function decryptBlockC()
     
     -- Nickname (0x48-0x5D)
     for i = 0, 10 do
-        prng = nextRecursivePrng(prng)
-
         -- Keep adding letters until we find 0xFFFF (end of nickname)
         if (searchNickname) then
-            nicknameLetter = memory.read_u16_le(pidAddr + BlockCoffset + 8 + (i*2)) ~ getUpper16Bits(prng)
+            nicknameLetter = decryptData(pidAddr + BlockCoffset + START + (i*2))
 
             if (nicknameLetter < 0xFFFF) then
                 pokemon["Nickname"] = pokemon["Nickname"] .. CHARACTER_LIST[nicknameLetter - CHARACTER_LIST_OFFSET]
             else
                 searchNickname = false
             end
+        else
+            prng = nextRecursivePrng(prng) -- Still need to update PRNG if we miss data
         end
     end
 
-    -- Unused - OriginGame (0x5E-0x5F)
-    prng = nextRecursivePrng(prng)
-    pokemon["OriginGame"] = getBits(memory.read_u16_le(pidAddr + BlockCoffset + 8 + 22) ~ getUpper16Bits(prng), 8, 8)
+    -- Unused - Origin Game (0x5E-0x5F)
+    pokemon["OriginGame"] = getBits(decryptData(pidAddr + BlockCoffset + START + 22), 8, 8)
 
     -- Sinnoh Ribbon Set 3 (0x60-0x61)
-    prng = nextRecursivePrng(prng)
-    pokemon["SinnohRibbon3"] = memory.read_u16_le(pidAddr + BlockCoffset + 8 + 24) ~ getUpper16Bits(prng)
+    pokemon["SinnohRibbon3"] = decryptData(pidAddr + BlockCoffset + START + 24)
 
     -- Sinnoh Ribbon Set 4 (0x62-0x63)
-    prng = nextRecursivePrng(prng)
-    pokemon["SinnohRibbon4"] = memory.read_u16_le(pidAddr + BlockCoffset + 8 + 26) ~ getUpper16Bits(prng)
+    pokemon["SinnohRibbon4"] = decryptData(pidAddr + BlockCoffset + START + 26)
 
-    -- Unused (0x62-0x63)
-    -- prng = nextRecursivePrng(prng)
-    -- console.log(memory.read_u16_le(pidAddr + BlockCoffset + 8 + 28) ~ getUpper16Bits(prng))
+    -- Unused (0x64-0x67)
+    -- data = decryptData(pidAddr + BlockCoffset + START + 28)
 end
 
 function decryptBlockD()
@@ -264,31 +222,28 @@ function decryptBlockD()
     
     -- OT Name (0x68-0x77)
     for i = 0, 7 do
-        prng = nextRecursivePrng(prng)
-
         -- Keep adding letters until we find 0xFFFF (end of name)
         if (searchOTName) then
-            nameLetter = memory.read_u16_le(pidAddr + BlockDoffset + 8 + (i*2)) ~ getUpper16Bits(prng)
+            nameLetter = decryptData(pidAddr + BlockDoffset + START + (i*2))
 
             if (nameLetter < 0xFFFF) then
                 pokemon["OTName"] = pokemon["OTName"] .. CHARACTER_LIST[nameLetter - CHARACTER_LIST_OFFSET]
             else
                 searchOTName = false
             end
-        end
+        else
+            prng = nextRecursivePrng(prng) -- Still need to update PRNG if we miss data
+        end 
     end
 
     -- Date Egg Received (0x78-0x7A)
-    prng = nextRecursivePrng(prng)
-    yearMonth_Egg = memory.read_u16_le(pidAddr + BlockDoffset + 8 + 16) ~ getUpper16Bits(prng)
+    yearMonth_Egg = decryptData(pidAddr + BlockDoffset + START + 16)
 
     -- Remaining byte of Date Egg Received and first byte of Date Met (0x7A-0x7B)
-    prng = nextRecursivePrng(prng)
-    dayEgg_yearMet = memory.read_u16_le(pidAddr + BlockDoffset + 8 + 18) ~ getUpper16Bits(prng)
+    dayEgg_yearMet = decryptData(pidAddr + BlockDoffset + START + 18)
 
     -- Date Met (0x7B-0x7D)
-    prng = nextRecursivePrng(prng)
-    monthDay_Met = memory.read_u16_le(pidAddr + BlockDoffset + 8 + 20) ~ getUpper16Bits(prng)
+    monthDay_Met = decryptData(pidAddr + BlockDoffset + START + 20)
 
     yearEgg = getBits(yearMonth_Egg,0,8)
     monthEgg = getBits(yearMonth_Egg,8,8)
@@ -311,30 +266,23 @@ function decryptBlockD()
         .. "/20" .. (yearMet < 10 and "0" or "") .. yearMet
 
     -- Egg Location (Diamond/Pearl) (0x7E-0x7F)
-    prng = nextRecursivePrng(prng)
-    -- pokemon["EggLocation"] = memory.read_u16_le(pidAddr + BlockDoffset + 8 + 22) ~ getUpper16Bits(prng)
+    pokemon["EggLocationDP"] = decryptData(pidAddr + BlockDoffset + START + 22)
 
     -- Met Location (Diamond/Pearl) (0x80-0x81)
-    prng = nextRecursivePrng(prng)
-    -- pokemon["MetLocation"] = memory.read_u16_le(pidAddr + BlockDoffset + 8 + 24) ~ getUpper16Bits(prng)
+    pokemon["MetLocationDP"] = decryptData(pidAddr + BlockDoffset + START + 24)
 
     -- Pokérus - Poké Ball (0x82-0x83)
-    prng = nextRecursivePrng(prng)
-    pokerusPokeball = memory.read_u16_le(pidAddr + BlockDoffset + 8 + 26) ~ getUpper16Bits(prng)
-
+    pokerusPokeball = decryptData(pidAddr + BlockDoffset + START + 26)
     pokemon["Pokerus"] = getBits(pokerusPokeball, 0, 8)
     pokemon["Pokeball"] = ITEM_NAMES[getBits(pokerusPokeball, 8, 8)]
 
     -- Met At Level - Female OT Gender (0x84-0x85)
-    prng = nextRecursivePrng(prng)
-    metLevelFemaleOT = memory.read_u16_le(pidAddr + BlockDoffset + 8 + 28) ~ getUpper16Bits(prng)
-
+    metLevelFemaleOT = decryptData(pidAddr + BlockDoffset + START + 28)
     pokemon["MetLevel"] = getBits(metLevelFemaleOT, 0, 7)
     pokemon["OTFemale"] = getBits(metLevelFemaleOT, 7, 1)
 
     -- HGSS Poké Ball - Unused (0x86-0x87)
-    -- prng = nextRecursivePrng(prng)
-    -- pokemon["Pokeball"] = getBits(memory.read_u16_le(pidAddr + BlockDoffset + 8 + 30) ~ getUpper16Bits(prng), 0, 8)
+    -- pokemon["PokeballHGSS"] = getBits(decryptData(pidAddr + BlockDoffset + START + 30), 0, 8)
 end
 
 -- function decryptStats()

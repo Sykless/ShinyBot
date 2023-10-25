@@ -1,7 +1,3 @@
-function getHexValue(intValue)
-    return string.format("%x", intValue)
-end
-
 -- 32 bits multiplication, see http://www.sunshine2k.de/coding/c/mul32x32.html
 function multiply32(a,b) -- 
     local upper16BitsA = (a >> 16) & 0xFFFF
@@ -15,23 +11,30 @@ function multiply32(a,b) --
     local multiplyLowerUpper = (upper16BitsB << 16) * lower16BitsA
     local multiplyLowerLower = lower16BitsA * lower16BitsB
 
-    local result = multiplyUpperUpper + multiplyUpperLower + multiplyLowerUpper + multiplyLowerLower
-
-    return result
+    return multiplyUpperUpper + multiplyUpperLower + multiplyLowerUpper + multiplyLowerLower
 end
 
 -- PRNG is calculated using this formula : X[n+1] = (0x41C64E6D * X[n] + 0x6073)
 function nextRecursivePrng(prngValue)
     -- Make sure to restrain result within 32 bits at each step of the process
     -- Since lua does not do this automatically
-    local mul = (0x41C64E6D * prngValue) & 0xFFFFFFFF
-    local sum = (mul + 0x6073) & 0xFFFFFFFF
+    local product = (0x41C64E6D * prngValue) & 0xFFFFFFFF
+    local sum = (product + 0x6073) & 0xFFFFFFFF
 
     return sum
 end
 
-function getUpper16Bits(a)
-    return a >> 16
+-- Decryption is performed using this formula : data = encrypted xor (PNRG >> 16)
+function decryptData(address)
+    prng = nextRecursivePrng(prng) -- Update PRNG before each decryption
+    encryptedData = memory.read_u16_le(address) -- Retrieve encrypted data from RAM
+    decryptedData = encryptedData ~ (prng >> 16) -- Decrypt data using above formula
+
+    return decryptedData
+end
+
+function getHexValue(intValue)
+    return string.format("%x", intValue)
 end
 
 function getBits(a,b,d)
