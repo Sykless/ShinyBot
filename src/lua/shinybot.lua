@@ -16,6 +16,16 @@ function formatNumber(number)
     end
 end
 
+function fillFramesArray(directionCoefficient)
+    local framesArray = {}
+
+    for i = 0, NUM_OF_FRAMES_PER_PRESS - 1 do
+        framesArray[MODULO * directionCoefficient + i] = true
+    end
+
+    return framesArray
+end
+
 function displayPokemonInfo()
     if pokemon["Move1"] ~= nil then
         console.log(
@@ -80,32 +90,21 @@ NUM_OF_POSITIONS = 4
 
 MODULO = NUM_OF_POSITIONS * RELEASE_TIME
 
+UP_FRAMES = fillFramesArray(0)
+RIGHT_FRAMES = fillFramesArray(0.25)
+DOWN_FRAMES = fillFramesArray(0.5)
+LEFT_FRAMES = fillFramesArray(0.75)
+
 while loopPlayer do
     -- Loop player to encounter wild Pokemon
-    if emu.framecount() % MODULO == 0
-        or emu.framecount() % MODULO == 1
-        or emu.framecount() % MODULO == 2
-        or emu.framecount() % MODULO == 3
-        or emu.framecount() % MODULO == 4 then
+    if UP_FRAMES[emu.framecount() % MODULO] then
         joypad.set({["Up"] = "True"})
-    elseif emu.framecount() % MODULO == MODULO * 0.75
-        or emu.framecount() % MODULO == MODULO * 0.75 + 1
-        or emu.framecount() % MODULO == MODULO * 0.75 + 2
-        or emu.framecount() % MODULO == MODULO * 0.75 + 3
-        or emu.framecount() % MODULO == MODULO * 0.75 + 4 then
-        joypad.set({["Left"] = "True"})
-    elseif emu.framecount() % MODULO == MODULO * 0.5
-        or emu.framecount() % MODULO == MODULO * 0.5 + 1
-        or emu.framecount() % MODULO == MODULO * 0.5 + 2
-        or emu.framecount() % MODULO == MODULO * 0.5 + 3
-        or emu.framecount() % MODULO == MODULO * 0.5 + 4 then
+    elseif RIGHT_FRAMES[emu.framecount() % MODULO] then
         joypad.set({["Right"] = "True"})
-    elseif emu.framecount() % MODULO == MODULO * 0.25
-        or emu.framecount() % MODULO == MODULO * 0.25 + 1
-        or emu.framecount() % MODULO == MODULO * 0.25 + 2
-        or emu.framecount() % MODULO == MODULO * 0.25 + 3
-        or emu.framecount() % MODULO == MODULO * 0.25 + 4 then
+    elseif DOWN_FRAMES[emu.framecount() % MODULO] then
         joypad.set({["Down"] = "True"})
+    elseif LEFT_FRAMES[emu.framecount() % MODULO] then
+        joypad.set({["Left"] = "True"})
     end
 
     -- Check every second if a new wild Pokemon has been found
