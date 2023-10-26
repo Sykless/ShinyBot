@@ -72,7 +72,7 @@ displayPokemonInfo() -- Display Pokemon stats
 pidAddress = opposingPidAddress
 wildPidValue = memory.read_u32_le(opposingPidAddress)
 
-runInCircles = true
+loopPlayer = true
 
 NUM_OF_FRAMES_PER_PRESS = 5
 RELEASE_TIME = 2 * NUM_OF_FRAMES_PER_PRESS
@@ -80,11 +80,36 @@ NUM_OF_POSITIONS = 4
 
 MODULO = NUM_OF_POSITIONS * RELEASE_TIME
 
-while runInCircles do
-    if emu.framecount() % MODULO == 0 then
+while loopPlayer do
+    -- Loop player to encounter wild Pokemon
+    if emu.framecount() % MODULO == 0
+        or emu.framecount() % MODULO == 1
+        or emu.framecount() % MODULO == 2
+        or emu.framecount() % MODULO == 3
+        or emu.framecount() % MODULO == 4 then
         joypad.set({["Up"] = "True"})
+    elseif emu.framecount() % MODULO == MODULO * 0.75
+        or emu.framecount() % MODULO == MODULO * 0.75 + 1
+        or emu.framecount() % MODULO == MODULO * 0.75 + 2
+        or emu.framecount() % MODULO == MODULO * 0.75 + 3
+        or emu.framecount() % MODULO == MODULO * 0.75 + 4 then
+        joypad.set({["Left"] = "True"})
+    elseif emu.framecount() % MODULO == MODULO * 0.5
+        or emu.framecount() % MODULO == MODULO * 0.5 + 1
+        or emu.framecount() % MODULO == MODULO * 0.5 + 2
+        or emu.framecount() % MODULO == MODULO * 0.5 + 3
+        or emu.framecount() % MODULO == MODULO * 0.5 + 4 then
+        joypad.set({["Right"] = "True"})
+    elseif emu.framecount() % MODULO == MODULO * 0.25
+        or emu.framecount() % MODULO == MODULO * 0.25 + 1
+        or emu.framecount() % MODULO == MODULO * 0.25 + 2
+        or emu.framecount() % MODULO == MODULO * 0.25 + 3
+        or emu.framecount() % MODULO == MODULO * 0.25 + 4 then
+        joypad.set({["Down"] = "True"})
+    end
 
-        -- Check every few frames if a new wild Pokemon has been found
+    -- Check every second if a new wild Pokemon has been found
+    if emu.framecount() % 60 == 0 then
         newWildPidValue = memory.read_u32_le(opposingPidAddress)
 
         if (newWildPidValue ~= 0 and newWildPidValue ~= wildPidValue) then
@@ -94,19 +119,8 @@ while runInCircles do
 
             wildPidValue = newWildPidValue
         end
-
-    elseif emu.framecount() % MODULO == MODULO * 0.75 then
-        joypad.set({["Left"] = "True"})
-    elseif emu.framecount() % MODULO == MODULO * 0.5 then
-        joypad.set({["Right"] = "True"})
-    elseif emu.framecount() % MODULO == MODULO * 0.25 then
-        joypad.set({["Down"] = "True"})
     end
 
-    -- Log message every second
-    if emu.framecount() % 60 == 0 then
-        console.log("Running...")
-    end
-
+    -- Next frame
     emu.frameadvance()
 end
