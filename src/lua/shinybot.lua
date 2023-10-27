@@ -29,7 +29,7 @@ end
 function displayPokemonInfo()
     if pokemon["Move1"] ~= nil then
         console.log(
-            pokemon[" Name "] .. " " .. (pokemon["Female"] == "0" and "♀" or "♂")
+            pokemon[" Name "] .. " " .. (pokemon["Female"] == 0 and "♂" or "♀")
             .. " level " .. pokemon["Level"] .. " (" .. pokemon["Ability"] .. ")\n"
             .. " - " .. pokemon["Move1"] .. " (" .. pokemon["Move1PP"] .."/".. pokemon["Move1PP"] .. ")\n"
             .. (pokemon["Move2"] and (" - " .. pokemon["Move2"] .. " (" .. pokemon["Move2PP"] .."/".. pokemon["Move2PP"] .. ")\n") or "")
