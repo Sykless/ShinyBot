@@ -48,12 +48,15 @@ function displayPokemonInfo()
             .. " = EV    = ".. formatNumber(pokemon["EV-HP"]) .." = ".. formatNumber(pokemon["EV-ATQ"]) .." = ".. formatNumber(pokemon["EV-DEF"]) .." = ".. formatNumber(pokemon["EV-SPA"]) .." = ".. formatNumber(pokemon["EV-SPD"]) .." = ".. formatNumber(pokemon["EV-SPE"]) .." =\n"
             .. " =============================================\n"
         )
+    elseif (pidAddress == 0) then
+        console.log("Frère tu me donnes un pidAddress égal à 0")
     else
         console.log("Frère j'ai cherché là j'ai pas trouvé : 0x" .. getHexValue(pidAddress) .. "("..addressToLine(pidAddress)..")")
         console.log(pokemon)
     end
 end
 
+-- opposingPidAddress may vary so we must refresh its value from time to time
 function refreshPID()
     -- Pointer : Reference address
     pointer = memory.read_u32_le(platinumAddress) -- 0x2271404
@@ -61,6 +64,7 @@ function refreshPID()
     -- PID : Pokemon unique ID
     allyPidAddress = pointer + 0xD094
     opposingPidAddress = memory.read_u32_le(pointer + 0x352F4) + 0x7A0
+    pidAddress = opposingPidAddress
 end
 
 -- Pokemon object
@@ -71,18 +75,15 @@ platinumAddress = 0x02101F0C
 refreshPID()
 
 console.log("pointer : 0x" .. getHexValue(pointer))
+console.log("Ally PID address : 0x" .. getHexValue(allyPidAddress))
 console.log("Ally PID : 0x" .. getHexValue(memory.read_u32_le(allyPidAddress)))
+console.log("Opposing PID address : 0x" .. getHexValue(opposingPidAddress))
 console.log("Opposing PID : 0x" .. getHexValue(memory.read_u32_le(opposingPidAddress)))
 
--- Display info of first Pokemon in the team
-pidAddress = allyPidAddress -- Select the PID address to use
-decryptPokemonData() -- Get Pokemon encrypted data from PID address
-displayPokemonInfo() -- Display Pokemon stats
-
-pidAddress = opposingPidAddress
 wildPidValue = memory.read_u32_le(opposingPidAddress)
 
-loopPlayer = true
+overworld = true
+battleStarted = false
 
 NUM_OF_FRAMES_PER_PRESS = 5
 RELEASE_TIME = 2 * NUM_OF_FRAMES_PER_PRESS
@@ -95,28 +96,63 @@ RIGHT_FRAMES = fillFramesArray(0.25)
 DOWN_FRAMES = fillFramesArray(0.5)
 LEFT_FRAMES = fillFramesArray(0.75)
 
-while loopPlayer do
-    -- Loop player to encounter wild Pokemon
-    if UP_FRAMES[emu.framecount() % MODULO] then
-        joypad.set({["Up"] = "True"})
-    elseif RIGHT_FRAMES[emu.framecount() % MODULO] then
-        joypad.set({["Right"] = "True"})
-    elseif DOWN_FRAMES[emu.framecount() % MODULO] then
-        joypad.set({["Down"] = "True"})
-    elseif LEFT_FRAMES[emu.framecount() % MODULO] then
-        joypad.set({["Left"] = "True"})
-    end
+magicAddress = 0x022DCFA0
+FRAMES_TO_WAIT = 16
+framedWaited = 0
 
+while true do
     -- Check every second if a new wild Pokemon has been found
     if emu.framecount() % 60 == 0 then
-        newWildPidValue = memory.read_u32_le(opposingPidAddress)
+        refreshPID()
+        wildPidValue = memory.read_u32_le(opposingPidAddress)
+    end
 
-        if (newWildPidValue ~= 0 and newWildPidValue ~= wildPidValue) then
-            console.log("Wild Pokemon !")
-            decryptPokemonData() -- Get Pokemon encrypted data from PID address
-            displayPokemonInfo() -- Display Pokemon stats
+    -- Wild PID = 0, we're in overworld
+    if (wildPidValue == 0) then
+        -- Loop player to encounter wild Pokemon
+        if UP_FRAMES[emu.framecount() % MODULO] then
+            joypad.set({["Up"] = "True"})
+        elseif RIGHT_FRAMES[emu.framecount() % MODULO] then
+            joypad.set({["Right"] = "True"})
+        elseif DOWN_FRAMES[emu.framecount() % MODULO] then
+            joypad.set({["Down"] = "True"})
+        elseif LEFT_FRAMES[emu.framecount() % MODULO] then
+            joypad.set({["Left"] = "True"})
+        end
 
-            wildPidValue = newWildPidValue
+    -- Wild PID different than 0 while in overworld, new battle, process wild Pokemon data
+    elseif (overworld) then
+        overworld = false
+        framedWaited = 0
+        
+        console.log("Wild Pokemon !")
+        decryptPokemonData() -- Get Pokemon encrypted data from PID address
+        displayPokemonInfo() -- Display Pokemon stats
+
+    -- Battle is starting, wait for the magic bit to update
+    elseif (memory.read_u32_le(magicAddress) == 0 and battleStarted == false) then
+        -- DO NOTHING
+
+    -- Pokemon have been sent
+    elseif (memory.read_u32_le(magicAddress) ~= 0) then
+        battleStarted = true
+
+    -- Wait for menu to be displayed then run away
+    elseif (memory.read_u32_le(magicAddress) == 0) then
+        framedWaited = framedWaited + 1
+
+        if (framedWaited > FRAMES_TO_WAIT and framedWaited <= FRAMES_TO_WAIT + 5) then
+            joypad.set({["Down"] = "True"})
+        elseif (framedWaited > FRAMES_TO_WAIT + 10 and framedWaited <= FRAMES_TO_WAIT + 15) then
+            joypad.set({["Down"] = "True"})
+        elseif (framedWaited > FRAMES_TO_WAIT + 20 and framedWaited <= FRAMES_TO_WAIT + 25) then
+            joypad.set({["Right"] = "True"})
+        elseif (framedWaited > FRAMES_TO_WAIT + 30 and framedWaited <= FRAMES_TO_WAIT + 35) then
+            joypad.set({["A"] = "True"})
+        elseif (framedWaited > FRAMES_TO_WAIT + 35) then
+            framedWaited = 0
+            overworld = true
+            battleStarted = false
         end
     end
 
