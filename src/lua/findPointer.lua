@@ -1,22 +1,13 @@
 -- Not actually used, but can be useful to find a memory address
-
-function addressToLine(address)
-    stringAddress = getHexValue(address)
-    line = tonumber(string.sub(stringAddress,2,6)) + 1
-    column = tonumber(string.sub(stringAddress,7,7),16) / 4
-
-    return "Ligne " .. line .. ", Colonne " .. column
-end
-
 function lineToHexAddress(line,column)
     local hexValue = getHexValue(line-1)
-    local columnId = {"0", "4", "8", "C"}
+    local COLUMN_ID = {"0", "4", "8", "C"}
 
     while string.len(hexValue) < 5 do
         hexValue = "0" .. hexValue
     end
 
-    return "02" .. hexValue .. columnId[column] 
+    return "02" .. hexValue .. COLUMN_ID[column] 
 end
 
 function lineToNumberAddress(line,column)
