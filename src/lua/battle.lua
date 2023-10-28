@@ -1,8 +1,17 @@
+function isShiny(pokemon)
+    xorPid = getBits(pokemon["PID"],0,16) ~ getBits(pokemon["PID"],16,16)
+    xorOT = pokemon["OT"] ~ pokemon["OTSecretID"]
+    shinyValue = xorPid ~ xorOT
+
+    return shinyValue < 255
+end
+
 -- Reset battle parameters to overworld values 
 function resetBattle()
     framedWaited = 0
     overworld = true
     battleStarted = false
+    shinyPokemon = false
 end
 
 -- opposingPidAddress may vary so we must refresh its value from time to time

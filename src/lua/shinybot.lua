@@ -2,7 +2,6 @@ dofile "data.lua"
 dofile "utils.lua"
 dofile "battle.lua"
 dofile "memory.lua"
--- dofile "findPointer.lua"
 dofile "decryptPokemon.lua"
 
 console.clear()
@@ -71,6 +70,8 @@ while true do
         pokemon = decryptPokemonData(opposingPidAddress) -- Get Pokemon encrypted data from PID address
         displayPokemonInfo(pokemon, opposingPidAddress) -- Display Pokemon stats
 
+        shinyPokemon = isShiny(pokemon)
+
     -- Battle is starting, wait for the magic bit to update
     elseif (memory.read_u32_le(MAGIC_ADDRESS) == 0 and battleStarted == false) then
         -- DO NOTHING
@@ -78,6 +79,9 @@ while true do
     -- Pokemon have been sent
     elseif (memory.read_u32_le(MAGIC_ADDRESS) ~= 0) then
         battleStarted = true
+
+    elseif (shinyPokemon) then
+        -- TODO : CATCH POKEMON
 
     -- Wait for menu to be displayed then run away
     elseif (memory.read_u32_le(MAGIC_ADDRESS) == 0) then

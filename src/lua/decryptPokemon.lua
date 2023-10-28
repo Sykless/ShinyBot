@@ -19,12 +19,12 @@ START = 0x08
 
 function decryptPokemonData(selectedPidAddress)
 
-    -- Pokemon object to store decrypted data
-    local pokemonData = {}
-
     -- Retrieve PID and checksum from RAM
     local pid = memory.read_u32_le(selectedPidAddress)
     local checksum = memory.read_u16_le(selectedPidAddress + 0x06)
+
+    -- Initialize Pokemon object to store decrypted data
+    local pokemonData = {["PID"] = pid}
 
     -- Calculate Shift value used for block shuffling
     local shiftValue = ((pid & 0x3E000) >> 0xD) % 24
@@ -36,7 +36,7 @@ function decryptPokemonData(selectedPidAddress)
     decryptBlockB(pokemonData, selectedPidAddress, shiftValue, checksum)
     decryptBlockC(pokemonData, selectedPidAddress, shiftValue, checksum)
     decryptBlockD(pokemonData, selectedPidAddress, shiftValue, checksum)
-    decryptStats(pokemonData, selectedPidAddress, shiftValue, pid)
+    decryptStats(pokemonData, selectedPidAddress, shiftValue)
 
     return pokemonData
 end
@@ -326,9 +326,9 @@ function decryptBlockD(pokemonData, pidAddress, shiftValue, checksum)
     -- pokemonData["PokeballHGSS"] = getBits(decryptData(pidAddress + BlockDoffset + START + 30), 0, 8)
 end
 
-function decryptStats(pokemonData, pidAddress, shiftValue, pid)
+function decryptStats(pokemonData, pidAddress, shiftValue)
     -- Seed PRNG with PID
-    prng = pid
+    prng = pokemonData["PID"]
 
     -- Status (0x88)
     local status = getBits(decryptData(pidAddress + 0x88),0,8)
