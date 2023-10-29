@@ -1,6 +1,6 @@
 function isShiny(pokemon)
-    xorPid = getBits(pokemon["PID"],0,16) ~ getBits(pokemon["PID"],16,16)
-    xorOT = pokemon["OT"] ~ pokemon["OTSecretID"]
+    xorPid = getBits(pokemon["pid"],0,16) ~ getBits(pokemon["pid"],16,16)
+    xorOT = pokemon["OT"]["ID"] ~ pokemon["OT"]["secretID"]
     shinyValue = xorPid ~ xorOT
 
     return shinyValue < 255
@@ -19,7 +19,7 @@ function refreshPID()
     -- Pointer : Reference address
     pointer = memory.read_u32_le(PLATINUM_ADDRESS) -- Is value always 0x2271404 ?
     if (pointer ~= 0x2271404) then
-        -- console.log("## UPDATE ##\nPointer is actually 0x" .. getHexValue(pointer))
+        console.log("## UPDATE ##\nPointer is actually 0x" .. getHexValue(pointer) .. "\n")
     end 
 
     -- PID : Pokemon unique ID

@@ -68,7 +68,7 @@ while true do
         
         console.log("Wild Pokemon !")
         pokemon = decryptPokemonData(opposingPidAddress) -- Get Pokemon encrypted data from PID address
-        displayPokemonInfo(pokemon, opposingPidAddress) -- Display Pokemon stats
+        console.log(pokemon)
 
         shinyPokemon = isShiny(pokemon)
 
