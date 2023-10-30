@@ -8,7 +8,7 @@ console.clear()
 console.log("\nShinybot started\n")
 
 PLATINUM_ADDRESS = 0x02101F0C
-MAGIC_ADDRESS = 0x022DCFA0
+MAGIC_ADDRESS = 0x022DCFA0 -- Does not work for every pointer value
 
 NUM_OF_FRAMES_PER_PRESS = 5
 RELEASE_TIME = 2 * NUM_OF_FRAMES_PER_PRESS
@@ -40,7 +40,15 @@ currentWildPid = wildPidValue
 
 resetBattle()
 
+-- Set screenshot memory file name
+comm.mmfWrite("screenshot", string.rep("\x00", 30486))
+comm.mmfSetFilename("screenshot")
+
 while true do
+
+    -- Save a screenshot in memory file every frame
+    comm.mmfScreenshot()
+
     -- Check every second if a new wild Pokemon has been found
     if emu.framecount() % 60 == 0 then
         refreshPID()
@@ -66,10 +74,7 @@ while true do
         framedWaited = 0
         currentWildPid = wildPidValue
         
-        console.log("Wild Pokemon !")
         pokemon = decryptPokemonData(opposingPidAddress) -- Get Pokemon encrypted data from PID address
-        console.log(pokemon)
-
         shinyPokemon = isShiny(pokemon)
 
     -- Battle is starting, wait for the magic bit to update
