@@ -16,6 +16,22 @@ NUM_OF_POSITIONS = 4
 
 MODULO = NUM_OF_POSITIONS * RELEASE_TIME
 
+BUTTON_MAPPING = {
+    ["A"] = {["A"] = "True"},
+    ["B"] = {["B"] = "True"},
+    ["X"] = {["X"] = "True"},
+    ["Y"] = {["Y"] = "True"},
+    ["L"] = {["L"] = "True"},
+    ["R"] = {["R"] = "True"},
+    ["d"] = {["Down"] = "True"},
+    ["l"] = {["Left"] = "True"},
+    ["u"] = {["Up"] = "True"},
+    ["r"] = {["Right"] = "True"},
+    ["s"] = {["Select"] = "True"},
+    ["S"] = {["Start"] = "True"},
+    ["@"] = {}
+}
+
 UP_FRAMES = fillFramesArray(0)
 RIGHT_FRAMES = fillFramesArray(0.25)
 DOWN_FRAMES = fillFramesArray(0.5)
@@ -35,74 +51,34 @@ console.log("Ally PID : 0x" .. getHexValue(memory.read_u32_le(allyPidAddress)))
 console.log("Opposing PID address : 0x" .. getHexValue(opposingPidAddress))
 console.log("Opposing PID : 0x" .. getHexValue(memory.read_u32_le(opposingPidAddress)))
 
-wildPidValue = memory.read_u32_le(opposingPidAddress)
-currentWildPid = wildPidValue
-
-resetBattle()
+-- Fill memory files with null values to only retrieve our data when needed
+comm.mmfWrite("joypad", string.rep("\x00", 4096))
 
 -- Set screenshot memory file name
 comm.mmfWrite("screenshot", string.rep("\x00", 30486))
 comm.mmfSetFilename("screenshot")
 
 while true do
-
     -- Save a screenshot in memory file every frame
     comm.mmfScreenshot()
 
     -- Check every second if a new wild Pokemon has been found
     if emu.framecount() % 60 == 0 then
         refreshPID()
-        wildPidValue = memory.read_u32_le(opposingPidAddress)
+        pokemon = decryptPokemonData(opposingPidAddress) -- Get Pokemon encrypted data from PID address
     end
 
-    -- Wild PID = 0 or same as before in the overworld, start spinning
-    if (overworld and (wildPidValue == 0 or wildPidValue == currentWildPid)) then
-        -- Spin to encounter wild Pokemon
-        if UP_FRAMES[emu.framecount() % MODULO] then
-            joypad.set({["Up"] = "True"})
-        elseif RIGHT_FRAMES[emu.framecount() % MODULO] then
-            joypad.set({["Right"] = "True"})
-        elseif DOWN_FRAMES[emu.framecount() % MODULO] then
-            joypad.set({["Down"] = "True"})
-        elseif LEFT_FRAMES[emu.framecount() % MODULO] then
-            joypad.set({["Left"] = "True"})
-        end
+    local mmfJoypad = comm.mmfRead("joypad", 4096)
+    local joypadInput = string.match(mmfJoypad, "[^\x00]+") -- Get everything before the first null \x00 character
 
-    -- New wild PID while in overworld, new battle, process wild Pokemon data
-    elseif (overworld) then
-        overworld = false
-        framedWaited = 0
-        currentWildPid = wildPidValue
-        
-        pokemon = decryptPokemonData(opposingPidAddress) -- Get Pokemon encrypted data from PID address
-        shinyPokemon = isShiny(pokemon)
+    if (joypadInput) then
+        local buttonPress = string.sub(joypadInput,1,1)
+        local remainingInputs = string.sub(joypadInput, 2, string.len(joypadInput))
 
-    -- Battle is starting, wait for the magic bit to update
-    elseif (memory.read_u32_le(MAGIC_ADDRESS) == 0 and battleStarted == false) then
-        -- DO NOTHING
-
-    -- Pokemon have been sent
-    elseif (memory.read_u32_le(MAGIC_ADDRESS) ~= 0) then
-        battleStarted = true
-
-    elseif (shinyPokemon) then
-        -- TODO : CATCH POKEMON
-
-    -- Wait for menu to be displayed then run away
-    elseif (memory.read_u32_le(MAGIC_ADDRESS) == 0) then
-        framedWaited = framedWaited + 1
-
-        if (framedWaited > FRAMES_TO_WAIT and framedWaited <= FRAMES_TO_WAIT + 5) then
-            joypad.set({["Down"] = "True"})
-        elseif (framedWaited > FRAMES_TO_WAIT + 10 and framedWaited <= FRAMES_TO_WAIT + 15) then
-            joypad.set({["Down"] = "True"})
-        elseif (framedWaited > FRAMES_TO_WAIT + 20 and framedWaited <= FRAMES_TO_WAIT + 25) then
-            joypad.set({["Right"] = "True"})
-        elseif (framedWaited > FRAMES_TO_WAIT + 30 and framedWaited <= FRAMES_TO_WAIT + 35) then
-            joypad.set({["A"] = "True"})
-        elseif (framedWaited > FRAMES_TO_WAIT + 35) then
-            resetBattle()
-        end
+        joypad.set(BUTTON_MAPPING[buttonPress])
+    
+        -- Erase first input with \x00 null character and shift the rest to the left
+        comm.mmfWrite("joypad", remainingInputs .. "\x00")
     end
 
     -- Next frame

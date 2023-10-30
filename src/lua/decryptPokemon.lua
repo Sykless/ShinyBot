@@ -45,7 +45,7 @@ function decryptPokemonData(selectedPidAddress)
     decryptStats(pokemonData, selectedPidAddress, shiftValue)
 
     -- Write Pokemon data in memory
-    comm.mmfWrite("testfile", json.encode({["pokemonData"] = pokemonData}) .. "\x00")
+    comm.mmfWrite("pokemonData", json.encode({["pokemonData"] = pokemonData}) .. "\x00")
 
     return pokemonData
 end

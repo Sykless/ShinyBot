@@ -1,3 +1,4 @@
+-- Poke address 0x075EF0 to FF2801D2 instead of 082801D2
 function isShiny(pokemon)
     xorPid = getBits(pokemon["pid"],0,16) ~ getBits(pokemon["pid"],16,16)
     xorOT = pokemon["OT"]["ID"] ~ pokemon["OT"]["secretID"]
@@ -6,21 +7,10 @@ function isShiny(pokemon)
     return shinyValue < 255
 end
 
--- Reset battle parameters to overworld values 
-function resetBattle()
-    framedWaited = 0
-    overworld = true
-    battleStarted = false
-    shinyPokemon = false
-end
-
 -- opposingPidAddress may vary so we must refresh its value from time to time
 function refreshPID()
     -- Pointer : Reference address
-    pointer = memory.read_u32_le(PLATINUM_ADDRESS) -- Is value always 0x2271404 ?
-    if (pointer ~= 0x2271404) then
-        console.log("## UPDATE ##\nPointer is actually 0x" .. getHexValue(pointer) .. "\n")
-    end 
+    pointer = memory.read_u32_le(PLATINUM_ADDRESS)
 
     -- PID : Pokemon unique ID
     allyPidAddress = pointer + 0xD094
