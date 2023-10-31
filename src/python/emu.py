@@ -1,5 +1,6 @@
 
 from pokemon import Pokemon
+from utils import isShiny
 
 import io
 import json
@@ -9,6 +10,7 @@ import img
 import joypad
 
 loadedPokemonPid = 0
+pokemon = 0
         
 while True:
     mmapData = mmap.mmap(0, 4096, "pokemonData")
@@ -41,5 +43,7 @@ while True:
             joypad.writeInput("rrrrr@@@@@") # Input right for 5 frames and release for 5 frames
         elif (img.isBattleTouchscreenAvailable(screenshot)):
             joypad.writeInput("BBBBB@@@@@") # Mash B to skip dialogue
+        elif (isShiny(pokemon)):
+            pass # TODO : Catch Pokemon
         elif (img.isRunAwayAvailable(screenshot)):
             joypad.writeInput("lllll@@@@@lllll@@@@@rrrrr@@@@@AAAAA@@@@@") # Runaway sequence

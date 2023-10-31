@@ -1,12 +1,3 @@
--- Poke address 0x075EF0 to FF2801D2 instead of 082801D2
-function isShiny(pokemon)
-    xorPid = getBits(pokemon["pid"],0,16) ~ getBits(pokemon["pid"],16,16)
-    xorOT = pokemon["OT"]["ID"] ~ pokemon["OT"]["secretID"]
-    shinyValue = xorPid ~ xorOT
-
-    return shinyValue < 255
-end
-
 -- opposingPidAddress may vary so we must refresh its value from time to time
 function refreshPID()
     -- Pointer : Reference address
