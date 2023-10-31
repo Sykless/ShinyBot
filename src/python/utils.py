@@ -20,4 +20,4 @@ def getShinyValue(pid, OTId, OtSecretId):
     return shinyValue
 
 def isShiny(pokemon):
-    return hasattr(pokemon, 'isShiny') and pokemon.isShiny < 255
+    return hasattr(pokemon, 'shinyValue') and pokemon.shinyValue < 255

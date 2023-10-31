@@ -111,7 +111,7 @@ class Pokemon:
         self.shinyValue = getShinyValue(pid, self.OT.ID, self.OT.secretID)
 
     def __str__(self):
-        return ("\n" + str(self.name) + " " + ("♀" if self.female else "♂")
+        return (str(self.name) + " " + ("♀" if self.female else "♂")
                 + " level " + str(self.level) + " (" + self.ability + ")" + " - PID = " + str(hex(self.pid)) + " - Shiny value : " + str(self.shinyValue)  + "\n"
                 + " - " + self.moves[0].name + " (" + str(self.moves[0].PP) + ")\n"
                 + (" - " + self.moves[1].name + " (" + str(self.moves[1].PP) + ")\n" if len(self.moves) == 2 else "")
