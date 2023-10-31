@@ -2,48 +2,26 @@
 from pokemon import Pokemon
 from utils import isShiny
 
-import io
-import json
-import mmap
 import time
 
 import img
 import joypad
 import memory
 
-loadedPokemonPid = 0
 pokemon = 0
+loadedPokemonPid = 0
         
 while True:
-    mmapData = mmap.mmap(0, 4096, "pokemonData")
-    mmapByes = io.BytesIO(mmapData).read()
+    # Read JSON Pokemon data from memory file
+    jsonPokemonData = memory.readPokemonData()
 
-    try:
-        pokemonData = mmapByes.decode("utf-8").split("\x00")[0]
+    # Convert JSON data to Pokemon object
+    if (jsonPokemonData and jsonPokemonData["pid"] not in [0, loadedPokemonPid]):
+        pokemon = Pokemon(**jsonPokemonData)
+        loadedPokemonPid = pokemon.pid
 
-        if (pokemonData):
-            try:
-                jsonPokemonData = json.loads(pokemonData)["pokemonData"]
-
-                if (jsonPokemonData["pid"] not in [0, loadedPokemonPid]):
-                    pokemon = Pokemon(**jsonPokemonData)
-                    loadedPokemonPid = pokemon.pid
-
-                    print("New wild Pokemon !")
-                    print(pokemon)
-            except Exception as e:
-                # pass
-                print(pokemonData)
-                print(str(e))
-    except UnicodeDecodeError as e:
-        # Cannot mmapByes.decode because junk data has been accumulated : clear memory file
-        memory.clearPokemonData()
-        print(str(e))
-
-    except Exception as e:
-        # pass
-        print(mmapByes)
-        print(str(e))
+        print("New wild Pokemon !")
+        print(pokemon)
 
     # Check input already sent
     joypadInput = joypad.readInput()
