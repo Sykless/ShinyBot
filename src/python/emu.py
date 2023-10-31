@@ -33,17 +33,32 @@ while True:
     if (len(joypadInput) == 0):
         screenshot = img.getScreenshot()
 
+        # Overworld : spin mode
+        if (img.isPoketchAvailable(screenshot)):
+            # Facing left : Input up for 5 frames and release for 5 frames
         if (img.isTrainerFacingLeft(screenshot)):
-            joypad.writeInput("uuuuu@@@@@") # Input up for 5 frames and release for 5 frames
+                joypad.writeInput("uuuuu@@@@@")
+
+            # Facing right : Input down for 5 frames and release for 5 frames
         elif (img.isTrainerFacingRight(screenshot)):
-            joypad.writeInput("ddddd@@@@@") # Input down for 5 frames and release for 5 frames
+                joypad.writeInput("ddddd@@@@@")
+
+            # Facing down : Input left for 5 frames and release for 5 frames
         elif (img.isTrainerFacingDown(screenshot)):
-            joypad.writeInput("lllll@@@@@") # Input left for 5 frames and release for 5 frames
+                joypad.writeInput("lllll@@@@@")
+
+            # Facing up : Input right for 5 frames and release for 5 frames
         elif (img.isTrainerFacingUp(screenshot)):
-            joypad.writeInput("rrrrr@@@@@") # Input right for 5 frames and release for 5 frames
+                joypad.writeInput("rrrrr@@@@@")
+
+        # Battle screen at beginning/end : Mash B to skip dialogue
         elif (img.isBattleTouchscreenAvailable(screenshot)):
-            joypad.writeInput("BBBBB@@@@@") # Mash B to skip dialogue
+            joypad.writeInput("BBBBB@@@@@")
+
+        # Shiny Pokemon : Catch sequence
         elif (isShiny(pokemon)):
             pass # TODO : Catch Pokemon
+
+        # Runaway button displayed : Runaway sequence
         elif (img.isRunAwayAvailable(screenshot)):
-            joypad.writeInput("lllll@@@@@lllll@@@@@rrrrr@@@@@AAAAA@@@@@") # Runaway sequence
+            joypad.writeInput("lllll@@@@@lllll@@@@@rrrrr@@@@@AAAAA@@@@@")

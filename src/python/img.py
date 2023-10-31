@@ -17,6 +17,7 @@ TRAINER_DOWN = cv2.imread('src/python/data/trainer-down.png')
 TRAINER_LEFT = cv2.imread('src/python/data/trainer-left.png')
 RUNAWAY = cv2.imread('src/python/data/runaway.png')
 BATTLE_TOUCHSCREEN = cv2.imread('src/python/data/battle-touchscreen.png')
+POKETCH = cv2.imread('src/python/data/poketch.png')
 
 TRAINER_UP_MASK = cv2.imread('src/python/data/trainer-up-mask.png')
 TRAINER_RIGHT_MASK = cv2.imread('src/python/data/trainer-right-mask.png')
@@ -66,3 +67,6 @@ def isRunAwayAvailable(screenshot):
 
 def isBattleTouchscreenAvailable(screenshot):
     return isTemplateInImage(screenshot[212:212+152 , 0:256], BATTLE_TOUCHSCREEN, 1)
+
+def isPoketchAvailable(screenshot):
+    return isTemplateInImage(screenshot[225:225+126 , 224:224+32], POKETCH, 1)
