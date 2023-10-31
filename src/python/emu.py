@@ -39,5 +39,7 @@ while True:
             joypad.writeInput("lllll@@@@@") # Input left for 5 frames and release for 5 frames
         elif (img.isTrainerFacingUp(screenshot)):
             joypad.writeInput("rrrrr@@@@@") # Input right for 5 frames and release for 5 frames
+        elif (img.isBattleTouchscreenAvailable(screenshot)):
+            joypad.writeInput("BBBBB@@@@@") # Mash B to skip dialogue
         elif (img.isRunAwayAvailable(screenshot)):
             joypad.writeInput("lllll@@@@@lllll@@@@@rrrrr@@@@@AAAAA@@@@@") # Runaway sequence
