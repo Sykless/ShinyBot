@@ -8,14 +8,6 @@ console.clear()
 console.log("\nShinybot started\n")
 
 PLATINUM_ADDRESS = 0x02101F0C
-MAGIC_ADDRESS = 0x022DCFA0 -- Does not work for every pointer value
-
-NUM_OF_FRAMES_PER_PRESS = 5
-RELEASE_TIME = 2 * NUM_OF_FRAMES_PER_PRESS
-NUM_OF_POSITIONS = 4
-
-MODULO = NUM_OF_POSITIONS * RELEASE_TIME
-
 BUTTON_MAPPING = {
     ["A"] = {["A"] = "True"},
     ["B"] = {["B"] = "True"},
@@ -31,13 +23,6 @@ BUTTON_MAPPING = {
     ["S"] = {["Start"] = "True"},
     ["@"] = {}
 }
-
-UP_FRAMES = fillFramesArray(0)
-RIGHT_FRAMES = fillFramesArray(0.25)
-DOWN_FRAMES = fillFramesArray(0.5)
-LEFT_FRAMES = fillFramesArray(0.75)
-
-FRAMES_TO_WAIT = 16
 
 -- Pokemon object
 local pokemon = {}
