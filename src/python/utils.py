@@ -1,3 +1,6 @@
+from bag import Bag
+import memory
+
 def formatNumber(number):
     stringNumber = str(number)
 
@@ -11,7 +14,7 @@ def formatNumber(number):
 def getBits(a,b,d):
 	return (a >> b) % (1 << d)
     
-# Poke address 0x075EF0 to FF2801D2 instead of 082801D2
+# Poke address 0x075EF0 to FF2801D2 instead of 082801D2 to increase shiny odds to 1/255
 def getShinyValue(pid, OTId, OtSecretId):
     xorPid = getBits(pid,0,16) ^ getBits(pid,16,16)
     xorOT = OTId ^ OtSecretId
@@ -19,5 +22,14 @@ def getShinyValue(pid, OTId, OtSecretId):
 
     return shinyValue
 
-def isShiny(pokemon):
-    return hasattr(pokemon, 'shinyValue') and pokemon.shinyValue < 255
+def getPokeballLocation():
+     # Read JSON Bag data from memory file and convert it to Bag object
+    bag = Bag(**memory.readBagData())
+    pokeballLocation = -1
+
+    # Search for Poké Ball location
+    for ballId in range(len(bag.balls)):
+        if (bag.balls[ballId].name == "Poké Ball"):
+            pokeballLocation = ballId
+
+    return pokeballLocation

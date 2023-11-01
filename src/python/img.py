@@ -15,17 +15,27 @@ TRAINER_UP = cv2.imread('src/python/data/trainer-up.png')
 TRAINER_RIGHT = cv2.imread('src/python/data/trainer-right.png')
 TRAINER_DOWN = cv2.imread('src/python/data/trainer-down.png')
 TRAINER_LEFT = cv2.imread('src/python/data/trainer-left.png')
-RUNAWAY = cv2.imread('src/python/data/runaway.png')
-BATTLE_TOUCHSCREEN = cv2.imread('src/python/data/battle-touchscreen.png')
+
 POKETCH = cv2.imread('src/python/data/poketch.png')
+
+BATTLE_TOUCHSCREEN = cv2.imread('src/python/data/battle-touchscreen.png')
+RUNAWAY = cv2.imread('src/python/data/runaway.png')
+
+INSIDE_BAG = cv2.imread('src/python/data/inside-bag.png')
+INSIDE_BALLS = cv2.imread('src/python/data/inside-balls.png')
+ITEM_CURRENT_LOCATION_SELECTOR = cv2.imread('src/python/data/item-current-location-selector.png')
+FIRST_PAGE = cv2.imread('src/python/data/first-page.png')
+SECOND_PAGE = cv2.imread('src/python/data/second-page.png')
+THIRD_PAGE = cv2.imread('src/python/data/third-page.png')
+USE_ITEM = cv2.imread('src/python/data/use-item.png')
 
 TRAINER_UP_MASK = cv2.imread('src/python/data/trainer-up-mask.png')
 TRAINER_RIGHT_MASK = cv2.imread('src/python/data/trainer-right-mask.png')
 TRAINER_DOWN_MASK= cv2.imread('src/python/data/trainer-down-mask.png')
 TRAINER_LEFT_MASK = cv2.imread('src/python/data/trainer-left-mask.png')
+ITEM_CURRENT_LOCATION_MASK = cv2.imread('src/python/data/item-current-location-mask.png')
 
 def getScreenshot():
-
     while True:
         screenshotBytes = io.BytesIO(mmap.mmap(0, 30486, "screenshot"))
 
@@ -35,9 +45,10 @@ def getScreenshot():
 
             # Convert PIL image to CV2 image to enable image processing
             return cv2.cvtColor(numpy.array(screenshotImage), cv2.COLOR_RGB2BGR)
-        except Exception:
-            print(screenshotBytes.read())
-            print(traceback.format_exc())
+        except Exception as e:
+            pass
+            # print(screenshotBytes.read())
+            # print(str(e))
 
 
 def isTemplateInImage(image, template, threshold, mask = None):
@@ -46,27 +57,70 @@ def isTemplateInImage(image, template, threshold, mask = None):
     result = cv2.matchTemplate(image, template, cv2.TM_SQDIFF, mask = mask)
 
     # Get best match
-    min_val = cv2.minMaxLoc(result)[0]
+    min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
 
-    return min_val <= threshold
+    # print(min_val)
+
+    return min_val <= threshold, min_loc
 
 def isTrainerFacingDown(screenshot):
-    return isTemplateInImage(screenshot[76:76+23 , 119:119+17], TRAINER_DOWN, 3300000, TRAINER_DOWN_MASK)
+    return isTemplateInImage(screenshot[76:76+23 , 119:119+17], TRAINER_DOWN, 3300000, TRAINER_DOWN_MASK)[0]
 
 def isTrainerFacingUp(screenshot):
-    return isTemplateInImage(screenshot[76:76+23 , 119:119+17], TRAINER_UP, 3330000, TRAINER_UP_MASK)
+    return isTemplateInImage(screenshot[76:76+23 , 119:119+17], TRAINER_UP, 3330000, TRAINER_UP_MASK)[0]
 
 def isTrainerFacingLeft(screenshot):
-    return isTemplateInImage(screenshot[76:76+23 , 119:119+17], TRAINER_LEFT, 5000000, TRAINER_LEFT_MASK)
+    return isTemplateInImage(screenshot[76:76+23 , 119:119+17], TRAINER_LEFT, 5000000, TRAINER_LEFT_MASK)[0]
 
 def isTrainerFacingRight(screenshot):
-    return isTemplateInImage(screenshot[76:76+23 , 120:120+17], TRAINER_RIGHT, 5000000, TRAINER_RIGHT_MASK)
+    return isTemplateInImage(screenshot[76:76+23 , 120:120+17], TRAINER_RIGHT, 5000000, TRAINER_RIGHT_MASK)[0]
 
 def isRunAwayAvailable(screenshot):
-    return isTemplateInImage(screenshot[354:354+30 , 100:100+56], RUNAWAY, 1)
+    return isTemplateInImage(screenshot[354:354+30 , 100:100+56], RUNAWAY, 1)[0]
 
 def isBattleTouchscreenAvailable(screenshot):
-    return isTemplateInImage(screenshot[212:212+152 , 0:256], BATTLE_TOUCHSCREEN, 1)
+    return isTemplateInImage(screenshot[212:212+152 , 0:256], BATTLE_TOUCHSCREEN, 1)[0]
 
 def isPoketchAvailable(screenshot):
-    return isTemplateInImage(screenshot[225:225+126 , 224:224+32], POKETCH, 1)
+    return isTemplateInImage(screenshot[225:225+126 , 224:224+32], POKETCH, 1)[0]
+
+def isInsideBag(screenshot):
+    return isTemplateInImage(screenshot[208:208+58 , 135:135+114], INSIDE_BAG, 1)[0]
+
+def isInsideBalls(screenshot):
+    return isTemplateInImage(screenshot[348:348+32 , 91:91+74], INSIDE_BALLS, 1)[0]
+
+def getPageNumber(screenshot):
+    if (isFirstPage(screenshot)): return 1
+    elif (isSecondPage(screenshot)): return 2
+    elif (isThirdPage(screenshot)): return 3
+    else: return None
+
+def isFirstPage(screenshot):
+    return isTemplateInImage(screenshot[359:359+10 , 183:183+6], FIRST_PAGE, 1)[0]
+
+def isSecondPage(screenshot):
+    return isTemplateInImage(screenshot[359:359+10 , 183:183+6], SECOND_PAGE, 1)[0]
+
+def isThirdPage(screenshot):
+    return isTemplateInImage(screenshot[359:359+10 , 183:183+6], THIRD_PAGE, 1)[0]
+
+def isUseItems(screenshot):
+    return isTemplateInImage(screenshot[351:351+27 , 8:8+192], USE_ITEM, 1)[0]
+
+def getCurrentItemSelectedPosition(screenshot):
+    selectorInImage, location = isTemplateInImage(screenshot[198:198+152 , 0:0+256], ITEM_CURRENT_LOCATION_SELECTOR, 1)
+
+    if (selectorInImage):
+        y = round((location[1] + 48) / 48) - 1
+
+        # Cursor on an item
+        if (y < 3):
+            x = round((location[0] + 128) / 128) - 1
+        # Cursor on a menu button
+        else:
+            x = min(round((location[0] + 40) / 40) - 1 , 2)
+
+        return x,y
+    else:
+        return None

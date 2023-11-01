@@ -68,47 +68,93 @@ class Status:
         self.burned = burned 
 
 class Pokemon:
-    def __init__(self, experience, ribbons, stats, sealCoordinates, currentHP, moves, met, alternateForms, egg, 
-                 pokedexID, IV, OT, status, level, EV, pokeball, contest, female, pokerus, originalLanguage,
-                 markings, nickname, capsule, genderless, originGame, nicknamed, item, pid, friendship, name,
-                 ability, isEgg):
+
+    def __init__(self):
+        self.pid = 0
+
+        self.pokedexID = 0
+        self.name = None
+        self.level = 0
+        self.moves = []
+        self.ability = None
+        self.item = None
+        self.currentHP = 0
+        self.stats = None
+        self.IV = None
+        self.EV = None
+        self.experience = 0
+        self.status = None
+
+        self.OT = None
+        self.met = None
+        self.nicknamed = False
+        self.nickname = None
+        self.isEgg = False
+        self.pokeball = None
+        self.female = False
+        self.genderless = False
+        self.friendship = 0
+        self.pokerus = 0
+        self.alternateForms = 0
+        self.originalLanguage = None
+        self.originGame = None
+
+        self.ribbons = None
+        self.contest = None
+        self.markings = 0
+        self.capsule = 0
+        self.sealCoordinates = 0
+
+        self.shinyValue = 0
+        self.isShiny = False
+
+    def __init__(self, experience = None, ribbons = None, stats = None, sealCoordinates = None, currentHP = None, moves = None, met = None,
+                 alternateForms = None, pokedexID = None, IV = None, OT = None, status = None, level = None, EV = None, pokeball = None,
+                 contest = None, female = None, pokerus = None, originalLanguage = None, markings = None, nickname = None, capsule = None,
+                 genderless = None, originGame = None, nicknamed = None, item = None, pid = None, friendship = None, name = None, ability = None,
+                 isEgg = None):
         
-        self.pid = pid
+        # Allow empty Pokemon creation if pid is None
+        if (pid != None):
+            self.pid = pid
 
-        self.pokedexID = pokedexID
-        self.name = name
-        self.level = level
-        self.moves = [Move(**jsonMove) for jsonMove in moves]
-        self.ability = ability
-        self.item = item
-        self.currentHP = currentHP
-        self.stats = Stats(**stats)
-        self.IV = Stats(**IV)
-        self.EV = Stats(**EV)
-        self.experience = experience
-        self.status = Status(**status)
+            self.pokedexID = pokedexID
+            self.name = name
+            self.level = level
+            self.moves = [Move(**jsonMove) for jsonMove in moves]
+            self.ability = ability
+            self.item = item
+            self.currentHP = currentHP
+            self.stats = Stats(**stats)
+            self.IV = Stats(**IV)
+            self.EV = Stats(**EV)
+            self.experience = experience
+            self.status = Status(**status)
 
-        self.OT = Trainer(**OT)
-        self.met = Met(**met)
-        self.nicknamed = nicknamed
-        self.nickname = nickname
-        self.isEgg = isEgg
-        self.pokeball = pokeball
-        self.female = female
-        self.genderless = genderless
-        self.friendship = friendship
-        self.pokerus = pokerus
-        self.alternateForms = alternateForms
-        self.originalLanguage = originalLanguage
-        self.originGame = originGame
+            self.OT = Trainer(**OT)
+            self.met = Met(**met)
+            self.nicknamed = nicknamed
+            self.nickname = nickname
+            self.isEgg = isEgg
+            self.pokeball = pokeball
+            self.female = female
+            self.genderless = genderless
+            self.friendship = friendship
+            self.pokerus = pokerus
+            self.alternateForms = alternateForms
+            self.originalLanguage = originalLanguage
+            self.originGame = originGame
 
-        self.ribbons = Ribbons(**ribbons)
-        self.contest = Contest(**contest)
-        self.markings = markings
-        self.capsule = capsule
-        self.sealCoordinates = sealCoordinates
+            self.ribbons = Ribbons(**ribbons)
+            self.contest = Contest(**contest)
+            self.markings = markings
+            self.capsule = capsule
+            self.sealCoordinates = sealCoordinates
 
-        self.shinyValue = getShinyValue(pid, self.OT.ID, self.OT.secretID)
+            self.shinyValue = getShinyValue(pid, self.OT.ID, self.OT.secretID)
+        
+        # Pokemon not shiny by default if pid is None
+        self.isShiny = pid != None and self.shinyValue < 255
 
     def __str__(self):
         return (str(self.name) + " " + ("♀" if self.female else "♂")
