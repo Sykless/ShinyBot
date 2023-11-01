@@ -1,3 +1,38 @@
+BUTTON_MAPPING = {
+    ["A"] = {["A"] = "True"},
+    ["B"] = {["B"] = "True"},
+    ["X"] = {["X"] = "True"},
+    ["Y"] = {["Y"] = "True"},
+    ["L"] = {["L"] = "True"},
+    ["R"] = {["R"] = "True"},
+    ["d"] = {["Down"] = "True"},
+    ["l"] = {["Left"] = "True"},
+    ["u"] = {["Up"] = "True"},
+    ["r"] = {["Right"] = "True"},
+    ["s"] = {["Select"] = "True"},
+    ["S"] = {["Start"] = "True"},
+    ["@"] = {}
+}
+
+function inputFromMemory()
+    -- Read data from memory file sent by Python script
+    local mmfJoypad = comm.mmfRead("joypad", 4096)
+    local joypadInput = string.match(mmfJoypad, "[^\x00]+") -- Get everything before the first null \x00 character
+
+    if (joypadInput) then
+        -- Retrieve the first button of the sequence (only 1 input per frame)
+        local buttonPress = string.sub(joypadInput,1,1)
+        local remainingInputs = string.sub(joypadInput, 2, string.len(joypadInput))
+    
+        joypad.set(BUTTON_MAPPING[buttonPress])
+    
+        -- Erase first input with \x00 null character and shift the rest to the left
+        comm.mmfWrite("joypad", remainingInputs .. "\x00")
+    end
+end
+
+
+
 -- 32 bits multiplication, see http://www.sunshine2k.de/coding/c/mul32x32.html
 function multiply32(a,b) -- 
     local upper16BitsA = (a >> 16) & 0xFFFF

@@ -8,8 +8,6 @@
 -- • https://github.com/kwsch/PKHeX/tree/master
 -- • https://tasvideos.org/UserFiles/Info/45747701013813013 by FractalFusion
 
-local json = require "json"
-
 -- Block order dependening on the shift value (0-23)
 BLOCK_A = {1,1,1,1,1,1,2,2,3,4,3,4,2,2,3,4,3,4,2,2,3,4,3,4}
 BLOCK_B = {2,2,3,4,3,4,1,1,1,1,1,1,3,4,2,2,4,3,3,4,2,2,4,3}
@@ -29,7 +27,7 @@ function decryptPokemonData(selectedPidAddress)
     local pokemonData = {pid = pid, OT = {},
         EV = {}, IV = {}, stats = {}, 
         status = {}, moves = {}, met = {},
-        contest = {}, ribbons = {}, egg = {}
+        contest = {}, ribbons = {}
     }
 
     -- Calculate Shift value used for block shuffling
@@ -43,9 +41,6 @@ function decryptPokemonData(selectedPidAddress)
     decryptBlockC(pokemonData, selectedPidAddress, shiftValue, checksum)
     decryptBlockD(pokemonData, selectedPidAddress, shiftValue, checksum)
     decryptStats(pokemonData, selectedPidAddress, shiftValue)
-
-    -- Write Pokemon data in memory
-    comm.mmfWrite("pokemonData", json.encode({["pokemonData"] = pokemonData}) .. "\x00")
 
     return pokemonData
 end
