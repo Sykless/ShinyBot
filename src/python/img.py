@@ -34,6 +34,7 @@ TRAINER_RIGHT_MASK = cv2.imread('src/python/data/trainer-right-mask.png')
 TRAINER_DOWN_MASK= cv2.imread('src/python/data/trainer-down-mask.png')
 TRAINER_LEFT_MASK = cv2.imread('src/python/data/trainer-left-mask.png')
 ITEM_CURRENT_LOCATION_MASK = cv2.imread('src/python/data/item-current-location-mask.png')
+BATTLE_TOUCHSCREEN_MASK = cv2.imread('src/python/data/battle-touchscreen-mask.png')
 
 def getScreenshot():
     while True:
@@ -79,7 +80,7 @@ def isRunAwayAvailable(screenshot):
     return isTemplateInImage(screenshot[354:354+30 , 100:100+56], RUNAWAY, 1)[0]
 
 def isBattleTouchscreenAvailable(screenshot):
-    return isTemplateInImage(screenshot[212:212+152 , 0:256], BATTLE_TOUCHSCREEN, 1)[0]
+    return isTemplateInImage(screenshot[192:192+192 , 0:0+256], BATTLE_TOUCHSCREEN, 1, BATTLE_TOUCHSCREEN_MASK)[0]
 
 def isPoketchAvailable(screenshot):
     return isTemplateInImage(screenshot[225:225+126 , 224:224+32], POKETCH, 1)[0]
