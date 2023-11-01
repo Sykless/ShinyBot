@@ -14,7 +14,7 @@ def formatNumber(number):
 def getBits(a,b,d):
 	return (a >> b) % (1 << d)
     
-# Poke address 0x075EF0 to FF2801D2 instead of 082801D2 to increase shiny odds to 1/255
+# Poke address 0x075EF0 first byte value to FF instead of 08 to increase shiny odds to 1/255
 def getShinyValue(pid, OTId, OtSecretId):
     xorPid = getBits(pid,0,16) ^ getBits(pid,16,16)
     xorOT = OTId ^ OtSecretId

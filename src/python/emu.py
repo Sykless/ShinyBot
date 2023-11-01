@@ -53,41 +53,41 @@ while True:
         if (img.isPoketchAvailable(screenshot)):
             # Facing left : Input up for 5 frames and release for 5 frames
             if (img.isTrainerFacingLeft(screenshot)):
-                joypad.writeInput("uuuuu@@@@@")
+                joypad.writeInput("u")
 
             # Facing right : Input down for 5 frames and release for 5 frames
             elif (img.isTrainerFacingRight(screenshot)):
-                joypad.writeInput("ddddd@@@@@")
+                joypad.writeInput("d")
 
             # Facing down : Input left for 5 frames and release for 5 frames
             elif (img.isTrainerFacingDown(screenshot)):
-                joypad.writeInput("lllll@@@@@")
+                joypad.writeInput("l")
 
             # Facing up : Input right for 5 frames and release for 5 frames
             elif (img.isTrainerFacingUp(screenshot)):
-                joypad.writeInput("rrrrr@@@@@")
+                joypad.writeInput("r")
 
         # Battle screen at beginning/end : Mash B to skip dialogue
         elif (img.isBattleTouchscreenAvailable(screenshot)):
-            joypad.writeInput("BBBBB@@@@@")
+            joypad.writeInput("B")
 
         # Runaway button displayed : Runaway or catch Pokemon
         # TODO : Weaken Pokemon (False Swipe + Status ?)
         elif (img.isRunAwayAvailable(screenshot)):
             # Shiny Pokemon : Go to bag sequence
             if (pokemon.isShiny or catchAllMode):
-                joypad.writeInput("lllll@@@@@lllll@@@@@AAAAA@@@@@")
+                joypad.writeInput("llA")
             
             # Not Shiny : Runaway sequence
             else:
-                joypad.writeInput("lllll@@@@@lllll@@@@@rrrrr@@@@@AAAAA@@@@@")
+                joypad.writeInput("llrA")
 
         # Inside bag : Go to Balls sequence
         elif (img.isInsideBag(screenshot)):
             # Go to Balls menu
-            # Wait 15 frames after A press since press animation
+            # Wait 10 more frames after A press since press animation
             # loops back to default screen just before transitioning
-            joypad.writeInput("rrrrr@@@@@AAAAA@@@@@@@@@@@@@@@")
+            joypad.writeInput("rA", endSequence = "@@@@@@@@@@")
 
         elif (img.isInsideBalls(screenshot)):
             # Get Poké Ball location in bag
@@ -102,7 +102,7 @@ while True:
 
             # No cursor on screen : input left to make it appear
             if (not cursorLocation):
-                joypad.writeInput("lllll@@@@@")
+                joypad.writeInput("l")
             else:
                 pageNuber = img.getPageNumber(screenshot)
                 pokeballPageLocation = int(pokeballLocation / 6) + 1
@@ -116,20 +116,20 @@ while True:
 
                         # If cursor is on a menu button, press up to set it on position (0,2)
                         if (cursorLocation[1] == MENU_LINE):
-                            itemNavigationSequence += "uuuuu@@@@@"
+                            itemNavigationSequence += "u"
                             cursorLocation = [LEFT_ROW, 2]
                         
                         # Only press right if cursor is on left row and Pokéball is on right row
                         if (cursorLocation[0] == LEFT_ROW and pokeballLocation % 2 == RIGHT_ROW):
-                            itemNavigationSequence += "rrrrr@@@@@"
+                            itemNavigationSequence += "r"
 
                         # Press up or down depending on the cursor and Pokéball position
                         cursorDifferential = cursorLocation[1] - int(pokeballLocation / 2)
 
                         if (cursorDifferential < 0):
-                            itemNavigationSequence += "ddddd@@@@@" * (cursorDifferential * -1)
+                            itemNavigationSequence += "d" * (cursorDifferential * -1)
                         elif (cursorDifferential > 0):
-                            itemNavigationSequence += "uuuuu@@@@@" * cursorDifferential
+                            itemNavigationSequence += "u" * cursorDifferential
 
                     # Poké Ball are on a different page, navigate to menu button
                     else:
@@ -141,36 +141,36 @@ while True:
                         if (cursorLocation[1] < MENU_LINE):
                             # If cursor in the right row, press left to go to left row
                             if (cursorLocation[0] == RIGHT_ROW):
-                                itemNavigationSequence += "lllll@@@@@"
+                                itemNavigationSequence += "l"
                             
                             # Go down enough times to go to Menu line
-                            itemNavigationSequence += "ddddd@@@@@" * (3 - cursorLocation[1])
+                            itemNavigationSequence += "d" * (3 - cursorLocation[1])
 
                             # Default menu button might be "Previous page"
                             # so we press left to insure cursor is on "Next page"
-                            itemNavigationSequence += "lllll@@@@@"
+                            itemNavigationSequence += "l"
 
                             # Now that we're sure of the cursor position, press right to go to "Previous page"
                             if (previousPagePress):
-                                itemNavigationSequence += "rrrrr@@@@@"
+                                itemNavigationSequence += "r"
 
                         # Cursor in a menu button
                         else:
                             # If we want to press "Previous page" button, the input depends on the current position
                             if (previousPagePress):
                                 if (cursorLocation[1] == CANCEL_BUTTON):
-                                    itemNavigationSequence += "lllll@@@@@"
+                                    itemNavigationSequence += "l"
                                 elif (cursorLocation[1] == NEXT_PAGE_BUTTON):
-                                    itemNavigationSequence += "rrrrr@@@@@"
+                                    itemNavigationSequence += "r"
                             else:
                                 # Press left enough times to be on "Next Page" button
-                                itemNavigationSequence += "lllll@@@@@" * cursorLocation[0]
+                                itemNavigationSequence += "l" * cursorLocation[0]
                                 
                     # Validate input and wait 15 frames
-                    itemNavigationSequence += "AAAAA@@@@@@@@@@@@@@@"
-                    joypad.writeInput(itemNavigationSequence)
+                    itemNavigationSequence += "A"
+                    joypad.writeInput(itemNavigationSequence, endSequence = "@@@@@@@@@@")
                 else:
                     raise Exception('Inside Balls menu but no page number displayed ?')
                 
         elif (img.isUseItems(screenshot)):
-            joypad.writeInput("AAAAA@@@@@AAAAA@@@@@@@@@@")
+            joypad.writeInput("AA", endSequence = "@@@@@")
