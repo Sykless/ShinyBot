@@ -11,6 +11,7 @@ import memory
 
 LEFT_ROW = 0
 RIGHT_ROW = 1
+FIRST_LINE = 0
 MENU_LINE = 3
 
 NEXT_PAGE_BUTTON = 0
@@ -23,7 +24,7 @@ catchAllMode = False
 pokemon = Pokemon()
 loadedPokemonPid = 0
 pokeballLocation = -1
-        
+
 while True:
     # Read JSON Pokemon data from memory file
     jsonPokemonData = memory.readPokemonData()
@@ -68,6 +69,7 @@ while True:
                 joypad.writeInput("r")
 
         # Battle screen at beginning/end : Mash B to skip dialogue
+        # TODO : New Pokédex entry, need to press A
         elif (img.isBattleTouchscreenAvailable(screenshot)):
             joypad.writeInput("B")
 
@@ -84,10 +86,36 @@ while True:
 
         # Inside bag : Go to Balls sequence
         elif (img.isInsideBag(screenshot)):
-            # Go to Balls menu
-            # Wait 10 more frames after A press since press animation
-            # loops back to default screen just before transitioning
-            joypad.writeInput("rA", endSequence = "@@@@@@@@@@")
+            # Get cursor location (None if not present)
+            cursorLocation = img.getCurrentBagSectionSelectedPosition(screenshot)
+
+            # No cursor on screen : input left to make it appear
+            if (not cursorLocation):
+                joypad.writeInput("l")
+            else:
+                selectSectionSequence = ""
+
+                # Go to last used item
+                if (img.isPokeballLastUsed(screenshot)):
+
+                    # Press left if cursor is on the right row
+                    selectSectionSequence += "l" * cursorLocation[0]
+
+                    # Go down enough times to go on the menu line
+                    selectSectionSequence += "d" * (2 - cursorLocation[1])
+                    
+                # Go to Balls menu
+                else:
+                    # Go up enough times to go on the first line
+                    selectSectionSequence += "u" * cursorLocation[1]
+
+                    # Press right if cursor is on the left row
+                    selectSectionSequence += "r" * (1 - cursorLocation[0])
+
+                # Wait 10 more frames after A press since press animation
+                # loops back to default screen just before transitioning
+                selectSectionSequence += "A"
+                joypad.writeInput(selectSectionSequence, endSequence = "@@@@@@@@@@")
 
         elif (img.isInsideBalls(screenshot)):
             # Get Poké Ball location in bag
@@ -166,7 +194,7 @@ while True:
                                 # Press left enough times to be on "Next Page" button
                                 itemNavigationSequence += "l" * cursorLocation[0]
                                 
-                    # Validate input and wait 15 frames
+                    # Validate input and wait 10 more frames
                     itemNavigationSequence += "A"
                     joypad.writeInput(itemNavigationSequence, endSequence = "@@@@@@@@@@")
                 else:

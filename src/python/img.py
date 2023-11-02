@@ -20,9 +20,10 @@ POKETCH = cv2.imread('src/python/data/poketch.png')
 
 BATTLE_TOUCHSCREEN = cv2.imread('src/python/data/battle-touchscreen.png')
 RUNAWAY = cv2.imread('src/python/data/runaway.png')
-
+POKEBALL_LAST_USED = cv2.imread('src/python/data/pokeball-last-used.png')
 INSIDE_BAG = cv2.imread('src/python/data/inside-bag.png')
 INSIDE_BALLS = cv2.imread('src/python/data/inside-balls.png')
+
 ITEM_CURRENT_LOCATION_SELECTOR = cv2.imread('src/python/data/item-current-location-selector.png')
 FIRST_PAGE = cv2.imread('src/python/data/first-page.png')
 SECOND_PAGE = cv2.imread('src/python/data/second-page.png')
@@ -35,6 +36,18 @@ TRAINER_DOWN_MASK= cv2.imread('src/python/data/trainer-down-mask.png')
 TRAINER_LEFT_MASK = cv2.imread('src/python/data/trainer-left-mask.png')
 ITEM_CURRENT_LOCATION_MASK = cv2.imread('src/python/data/item-current-location-mask.png')
 BATTLE_TOUCHSCREEN_MASK = cv2.imread('src/python/data/battle-touchscreen-mask.png')
+
+BAG_SECTION_SELECTION = {}
+BAG_SECTION_SELECTION["linesNumber"] = 2
+BAG_SECTION_SELECTION["menuWidth"] = 214
+BAG_SECTION_SELECTION["width"] = 128
+BAG_SECTION_SELECTION["height"] = 72
+
+ITEM_SELECTION = {}
+ITEM_SELECTION["linesNumber"] = 3
+ITEM_SELECTION["menuWidth"] = 40
+ITEM_SELECTION["width"] = 128
+ITEM_SELECTION["height"] = 48
 
 def getScreenshot():
     while True:
@@ -88,6 +101,9 @@ def isPoketchAvailable(screenshot):
 def isInsideBag(screenshot):
     return isTemplateInImage(screenshot[208:208+58 , 135:135+114], INSIDE_BAG, 1)[0]
 
+def isPokeballLastUsed(screenshot):
+    return isTemplateInImage(screenshot[352:352+26 , 8:8+192], POKEBALL_LAST_USED, 1)[0]
+
 def isInsideBalls(screenshot):
     return isTemplateInImage(screenshot[348:348+32 , 91:91+74], INSIDE_BALLS, 1)[0]
 
@@ -109,18 +125,24 @@ def isThirdPage(screenshot):
 def isUseItems(screenshot):
     return isTemplateInImage(screenshot[351:351+27 , 8:8+192], USE_ITEM, 1)[0]
 
+def getCurrentBagSectionSelectedPosition(screenshot):
+    return getCursorPosition(screenshot, BAG_SECTION_SELECTION)
+
 def getCurrentItemSelectedPosition(screenshot):
+    return getCursorPosition(screenshot, ITEM_SELECTION)
+
+def getCursorPosition(screenshot, sectionSize):
     selectorInImage, location = isTemplateInImage(screenshot[198:198+152 , 0:0+256], ITEM_CURRENT_LOCATION_SELECTOR, 1)
 
     if (selectorInImage):
-        y = round((location[1] + 48) / 48) - 1
+        y = round((location[1] + sectionSize["height"]) / sectionSize["height"]) - 1
 
-        # Cursor on an item
-        if (y < 3):
-            x = round((location[0] + 128) / 128) - 1
+        # Cursor on a item
+        if (y < sectionSize["linesNumber"]):
+            x = round((location[0] + sectionSize["width"]) / sectionSize["width"]) - 1
         # Cursor on a menu button
         else:
-            x = min(round((location[0] + 40) / 40) - 1 , 2)
+            x = min(round((location[0] + sectionSize["menuWidth"]) / sectionSize["menuWidth"]) - 1 , 2)
 
         return x,y
     else:
