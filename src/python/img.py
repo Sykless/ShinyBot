@@ -29,6 +29,7 @@ FIRST_PAGE = cv2.imread('src/python/data/first-page.png')
 SECOND_PAGE = cv2.imread('src/python/data/second-page.png')
 THIRD_PAGE = cv2.imread('src/python/data/third-page.png')
 USE_ITEM = cv2.imread('src/python/data/use-item.png')
+NEW_POKEDEX_ENTRY = cv2.imread('src/python/data/new-pokedex-entry.png')
 
 TRAINER_UP_MASK = cv2.imread('src/python/data/trainer-up-mask.png')
 TRAINER_RIGHT_MASK = cv2.imread('src/python/data/trainer-right-mask.png')
@@ -124,6 +125,9 @@ def isThirdPage(screenshot):
 
 def isUseItems(screenshot):
     return isTemplateInImage(screenshot[351:351+27 , 8:8+192], USE_ITEM, 1)[0]
+
+def isNewPokedexEntry(screenshot):
+    return isTemplateInImage(screenshot[0:0+15 , 0:0+241], NEW_POKEDEX_ENTRY, 1)[0]
 
 def getCurrentBagSectionSelectedPosition(screenshot):
     return getCursorPosition(screenshot, BAG_SECTION_SELECTION)

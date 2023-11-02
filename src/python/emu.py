@@ -68,8 +68,11 @@ while True:
             elif (img.isTrainerFacingUp(screenshot)):
                 joypad.writeInput("r")
 
-        # Battle screen at beginning/end : Mash B to skip dialogue
-        # TODO : New Pokédex entry, need to press A
+        # New Pokedex entry : Press A
+        elif (img.isNewPokedexEntry(screenshot)):
+            joypad.writeInput("A")
+
+        # Screen during battle dialogue : Mash B to skip dialogue
         elif (img.isBattleTouchscreenAvailable(screenshot)):
             joypad.writeInput("B")
 
@@ -78,11 +81,11 @@ while True:
         elif (img.isRunAwayAvailable(screenshot)):
             # Shiny Pokemon : Go to bag sequence
             if (pokemon.isShiny or catchAllMode):
-                joypad.writeInput("llA")
+                joypad.writeInput("llA", endSequence = "@@@@@@@@@@")
             
             # Not Shiny : Runaway sequence
             else:
-                joypad.writeInput("llrA")
+                joypad.writeInput("llrA", endSequence = "@@@@@@@@@@")
 
         # Inside bag : Go to Balls sequence
         elif (img.isInsideBag(screenshot)):
