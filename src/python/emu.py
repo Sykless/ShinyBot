@@ -51,34 +51,34 @@ while True:
         screenshot = img.getScreenshot()
 
         # Overworld : spin mode
-        if (img.isPoketchAvailable(screenshot)):
+        if (img.poketch.isOnScreen(screenshot)):
             # Facing left : Input up for 5 frames and release for 5 frames
-            if (img.isTrainerFacingLeft(screenshot)):
+            if (img.trainerLeft.isOnScreen(screenshot)):
                 joypad.writeInput("u")
 
             # Facing right : Input down for 5 frames and release for 5 frames
-            elif (img.isTrainerFacingRight(screenshot)):
+            elif (img.trainerRight.isOnScreen(screenshot)):
                 joypad.writeInput("d")
 
             # Facing down : Input left for 5 frames and release for 5 frames
-            elif (img.isTrainerFacingDown(screenshot)):
+            elif (img.trainerDown.isOnScreen(screenshot)):
                 joypad.writeInput("l")
 
             # Facing up : Input right for 5 frames and release for 5 frames
-            elif (img.isTrainerFacingUp(screenshot)):
+            elif (img.trainerUp.isOnScreen(screenshot)):
                 joypad.writeInput("r")
 
         # New Pokedex entry : Press A
-        elif (img.isNewPokedexEntry(screenshot)):
+        elif (img.newPokedexEntry.isOnScreen(screenshot)):
             joypad.writeInput("A")
 
         # Screen during battle dialogue : Mash B to skip dialogue
-        elif (img.isBattleTouchscreenAvailable(screenshot)):
+        elif (img.battleTouchscreen.isOnScreen(screenshot)):
             joypad.writeInput("B")
 
         # Runaway button displayed : Runaway or catch Pokemon
         # TODO : Weaken Pokemon (False Swipe + Status ?)
-        elif (img.isRunAwayAvailable(screenshot)):
+        elif (img.runaway.isOnScreen(screenshot)):
             # Shiny Pokemon : Go to bag sequence
             if (pokemon.isShiny or catchAllMode):
                 joypad.writeInput("llA", endSequence = "@@@@@@@@@@")
@@ -88,7 +88,7 @@ while True:
                 joypad.writeInput("llrA", endSequence = "@@@@@@@@@@")
 
         # Inside bag : Go to Balls sequence
-        elif (img.isInsideBag(screenshot)):
+        elif (img.insideBag.isOnScreen(screenshot)):
             # Get cursor location (None if not present)
             cursorLocation = img.getCurrentBagSectionSelectedPosition(screenshot)
 
@@ -99,7 +99,7 @@ while True:
                 selectSectionSequence = ""
 
                 # Go to last used item
-                if (img.isPokeballLastUsed(screenshot)):
+                if (img.pokeballLastUsed.isOnScreen(screenshot)):
 
                     # Press left if cursor is on the right row
                     selectSectionSequence += "l" * cursorLocation[0]
@@ -120,7 +120,7 @@ while True:
                 selectSectionSequence += "A"
                 joypad.writeInput(selectSectionSequence, endSequence = "@@@@@@@@@@")
 
-        elif (img.isInsideBalls(screenshot)):
+        elif (img.insideBalls.isOnScreen(screenshot)):
             # Get Poké Ball location in bag
             pokeballLocation = utils.getPokeballLocation()
 
@@ -203,5 +203,5 @@ while True:
                 else:
                     raise Exception('Inside Balls menu but no page number displayed ?')
                 
-        elif (img.isUseItems(screenshot)):
+        elif (img.useItem.isOnScreen(screenshot)):
             joypad.writeInput("AA", endSequence = "@@@@@")

@@ -4,67 +4,52 @@ import mmap
 import io
 import numpy
 import cv2
-import traceback
 
 from PIL import Image, ImageFile
 
 # https://stackoverflow.com/questions/42462431/oserror-broken-data-stream-when-reading-image-file
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
-TRAINER_UP = cv2.imread('src/python/data/trainer-up.png')
-TRAINER_RIGHT = cv2.imread('src/python/data/trainer-right.png')
-TRAINER_DOWN = cv2.imread('src/python/data/trainer-down.png')
-TRAINER_LEFT = cv2.imread('src/python/data/trainer-left.png')
+class Template:
+    def __init__(self, name, positionX, positionY, width, height, threshold, mask = None):
+        self.image = cv2.imread("src/python/data/" + name + ".png")
+        self.mask = mask and cv2.imread("src/python/data/" + name + "-mask.png")
 
-POKETCH = cv2.imread('src/python/data/poketch.png')
+        self.positionX = positionX
+        self.positionY = positionY
+        self.width = width
+        self.height = height
+        self.threshold = threshold
 
-BATTLE_TOUCHSCREEN = cv2.imread('src/python/data/battle-touchscreen.png')
-RUNAWAY = cv2.imread('src/python/data/runaway.png')
-POKEBALL_LAST_USED = cv2.imread('src/python/data/pokeball-last-used.png')
-INSIDE_BAG = cv2.imread('src/python/data/inside-bag.png')
-INSIDE_BALLS = cv2.imread('src/python/data/inside-balls.png')
+    def isOnScreen(self, screenshot):
+        return isTemplateInImage(screenshot[
+                self.positionY:self.positionY + self.height,
+                self.positionX:self.positionX + self.width],
+            self.image, self.threshold, mask = self.mask)[0]
 
-ITEM_CURRENT_LOCATION_SELECTOR = cv2.imread('src/python/data/item-current-location-selector.png')
-FIRST_PAGE = cv2.imread('src/python/data/first-page.png')
-SECOND_PAGE = cv2.imread('src/python/data/second-page.png')
-THIRD_PAGE = cv2.imread('src/python/data/third-page.png')
-USE_ITEM = cv2.imread('src/python/data/use-item.png')
-NEW_POKEDEX_ENTRY = cv2.imread('src/python/data/new-pokedex-entry.png')
+trainerUp = Template("trainer-up", 119, 76, 17, 23, 3330000, mask = True)
+trainerDown = Template("trainer-down", 119, 76, 17, 23, 3330000, mask = True)
+trainerRight = Template("trainer-right", 120, 76, 17, 23, 5000000, mask = True)
+trainerLeft = Template("trainer-left", 119, 76, 17, 23, 5000000, mask = True)
+battleTouchscreen = Template("battle-touchscreen", 0, 192, 256, 192, 1, mask = True)
 
-TRAINER_UP_MASK = cv2.imread('src/python/data/trainer-up-mask.png')
-TRAINER_RIGHT_MASK = cv2.imread('src/python/data/trainer-right-mask.png')
-TRAINER_DOWN_MASK= cv2.imread('src/python/data/trainer-down-mask.png')
-TRAINER_LEFT_MASK = cv2.imread('src/python/data/trainer-left-mask.png')
-ITEM_CURRENT_LOCATION_MASK = cv2.imread('src/python/data/item-current-location-mask.png')
-BATTLE_TOUCHSCREEN_MASK = cv2.imread('src/python/data/battle-touchscreen-mask.png')
+poketch = Template("poketch", 224, 225, 32, 126, 1)
+runaway = Template("runaway", 100, 354, 56, 30, 1)
+insideBag = Template("inside-bag", 135, 208, 114, 58, 1)
+insideBalls = Template("inside-balls", 91, 348, 74, 32, 1)
+pokeballLastUsed = Template("pokeball-last-used", 8, 352, 192, 26, 1)
 
-BAG_SECTION_SELECTION = {}
-BAG_SECTION_SELECTION["linesNumber"] = 2
-BAG_SECTION_SELECTION["menuWidth"] = 214
-BAG_SECTION_SELECTION["width"] = 128
-BAG_SECTION_SELECTION["height"] = 72
+firstPage = Template("first-page", 183, 359, 6, 10, 1)
+secondPage = Template("second-page", 183, 359, 6, 10, 1)
+thirdPage = Template("third-page", 183, 359, 6, 10, 1)
+useItem = Template("use-item", 8, 351, 192, 27, 1)
+newPokedexEntry = Template("new-pokedex-entry", 0, 0, 241, 15, 1)
 
-ITEM_SELECTION = {}
-ITEM_SELECTION["linesNumber"] = 3
-ITEM_SELECTION["menuWidth"] = 40
-ITEM_SELECTION["width"] = 128
-ITEM_SELECTION["height"] = 48
-
-def getScreenshot():
-    while True:
-        screenshotBytes = io.BytesIO(mmap.mmap(0, 30486, "screenshot"))
-
-        try:
-            screenshotImage = Image.open(screenshotBytes)
-            # screenshotImage.save("test.png")
-
-            # Convert PIL image to CV2 image to enable image processing
-            return cv2.cvtColor(numpy.array(screenshotImage), cv2.COLOR_RGB2BGR)
-        except Exception as e:
-            pass
-            # print(screenshotBytes.read())
-            # print(str(e))
-
+def getPageNumber(screenshot):
+    if (firstPage.isOnScreen(screenshot)): return 1
+    elif (secondPage.isOnScreen(screenshot)): return 2
+    elif (thirdPage.isOnScreen(screenshot)): return 3
+    else: return None
 
 def isTemplateInImage(image, template, threshold, mask = None):
 
@@ -78,56 +63,19 @@ def isTemplateInImage(image, template, threshold, mask = None):
 
     return min_val <= threshold, min_loc
 
-def isTrainerFacingDown(screenshot):
-    return isTemplateInImage(screenshot[76:76+23 , 119:119+17], TRAINER_DOWN, 3300000, TRAINER_DOWN_MASK)[0]
+ITEM_CURRENT_LOCATION_SELECTOR = cv2.imread('src/python/data/item-current-location-selector.png')
 
-def isTrainerFacingUp(screenshot):
-    return isTemplateInImage(screenshot[76:76+23 , 119:119+17], TRAINER_UP, 3330000, TRAINER_UP_MASK)[0]
+BAG_SECTION_SELECTION = {}
+BAG_SECTION_SELECTION["linesNumber"] = 2
+BAG_SECTION_SELECTION["menuWidth"] = 214
+BAG_SECTION_SELECTION["width"] = 128
+BAG_SECTION_SELECTION["height"] = 72
 
-def isTrainerFacingLeft(screenshot):
-    return isTemplateInImage(screenshot[76:76+23 , 119:119+17], TRAINER_LEFT, 5000000, TRAINER_LEFT_MASK)[0]
-
-def isTrainerFacingRight(screenshot):
-    return isTemplateInImage(screenshot[76:76+23 , 120:120+17], TRAINER_RIGHT, 5000000, TRAINER_RIGHT_MASK)[0]
-
-def isRunAwayAvailable(screenshot):
-    return isTemplateInImage(screenshot[354:354+30 , 100:100+56], RUNAWAY, 1)[0]
-
-def isBattleTouchscreenAvailable(screenshot):
-    return isTemplateInImage(screenshot[192:192+192 , 0:0+256], BATTLE_TOUCHSCREEN, 1, BATTLE_TOUCHSCREEN_MASK)[0]
-
-def isPoketchAvailable(screenshot):
-    return isTemplateInImage(screenshot[225:225+126 , 224:224+32], POKETCH, 1)[0]
-
-def isInsideBag(screenshot):
-    return isTemplateInImage(screenshot[208:208+58 , 135:135+114], INSIDE_BAG, 1)[0]
-
-def isPokeballLastUsed(screenshot):
-    return isTemplateInImage(screenshot[352:352+26 , 8:8+192], POKEBALL_LAST_USED, 1)[0]
-
-def isInsideBalls(screenshot):
-    return isTemplateInImage(screenshot[348:348+32 , 91:91+74], INSIDE_BALLS, 1)[0]
-
-def getPageNumber(screenshot):
-    if (isFirstPage(screenshot)): return 1
-    elif (isSecondPage(screenshot)): return 2
-    elif (isThirdPage(screenshot)): return 3
-    else: return None
-
-def isFirstPage(screenshot):
-    return isTemplateInImage(screenshot[359:359+10 , 183:183+6], FIRST_PAGE, 1)[0]
-
-def isSecondPage(screenshot):
-    return isTemplateInImage(screenshot[359:359+10 , 183:183+6], SECOND_PAGE, 1)[0]
-
-def isThirdPage(screenshot):
-    return isTemplateInImage(screenshot[359:359+10 , 183:183+6], THIRD_PAGE, 1)[0]
-
-def isUseItems(screenshot):
-    return isTemplateInImage(screenshot[351:351+27 , 8:8+192], USE_ITEM, 1)[0]
-
-def isNewPokedexEntry(screenshot):
-    return isTemplateInImage(screenshot[0:0+15 , 0:0+241], NEW_POKEDEX_ENTRY, 1)[0]
+ITEM_SELECTION = {}
+ITEM_SELECTION["linesNumber"] = 3
+ITEM_SELECTION["menuWidth"] = 40
+ITEM_SELECTION["width"] = 128
+ITEM_SELECTION["height"] = 48
 
 def getCurrentBagSectionSelectedPosition(screenshot):
     return getCursorPosition(screenshot, BAG_SECTION_SELECTION)
@@ -151,3 +99,18 @@ def getCursorPosition(screenshot, sectionSize):
         return x,y
     else:
         return None
+    
+def getScreenshot():
+    while True:
+        screenshotBytes = io.BytesIO(mmap.mmap(0, 30486, "screenshot"))
+
+        try:
+            screenshotImage = Image.open(screenshotBytes)
+            # screenshotImage.save("test.png")
+
+            # Convert PIL image to CV2 image to enable image processing
+            return cv2.cvtColor(numpy.array(screenshotImage), cv2.COLOR_RGB2BGR)
+        except Exception as e:
+            pass
+            # print(screenshotBytes.read())
+            # print(str(e))
