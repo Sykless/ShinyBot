@@ -9,6 +9,9 @@ def readPokemonData():
 def readBagData():
     return readJsonData("bagData")
 
+def readPositionData():
+    return readJsonData("positionData")
+
 def clearMemoryData(memoryfileName):
     writePokemonMmap = mmap.mmap(-1, 4096, tagname=memoryfileName, access=mmap.ACCESS_WRITE)
     writePokemonMmap.write(bytes("\x00" * 4096, encoding="utf-8"))

@@ -14,6 +14,7 @@ local json = require "json"
 -- Pokemon object
 local pokemon = {}
 local bag = {}
+local positionData = {}
 
 -- Calculate PID memory addresses needed for data processing
 refreshPID()
@@ -28,6 +29,7 @@ console.log("Opposing PID : 0x" .. getHexValue(memory.read_u32_le(opposingPidAdd
 comm.mmfWrite("joypad", string.rep("\x00", 4096))
 comm.mmfWrite("pokemonData", string.rep("\x00", 4096))
 comm.mmfWrite("bagData", string.rep("\x00", 4096))
+comm.mmfWrite("positionData", string.rep("\x00", 4096))
 
 -- Set screenshot memory file name
 comm.mmfWrite("screenshot", string.rep("\x00", 30486))
@@ -50,6 +52,14 @@ while true do
         comm.mmfWrite("bagData", json.encode({["bagData"] = bag}) .. "\x00")
     end
 
+    -- Save player position every 5 frames
+    if emu.framecount() % 5 == 0 then
+        position = retrievePosition()
+        comm.mmfWrite("positionData", json.encode({["positionData"] = position}) .. "\x00")
+    end
+
+    gui.text(0,0, string.format("X: %d, Y: %d", position.positionX, position.positionY))
+    
     -- Input button retrieved from memory
     inputFromMemory()
 

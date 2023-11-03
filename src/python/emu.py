@@ -1,6 +1,6 @@
 
 from pokemon import Pokemon
-from bag import Bag
+from trainer import Position
 
 import time
 
@@ -19,11 +19,15 @@ PREVIOUS_PAGE_BUTTON = 1
 CANCEL_BUTTON = 2
 
 screenshotMode = False
+freeMode = True
 catchAllMode = False
 
 pokemon = Pokemon()
 loadedPokemonPid = 0
 pokeballLocation = -1
+
+mapFile = open('src/python/data/platinumMap.map')
+map = mapFile.readlines()
 
 while True:
     # Read JSON Pokemon data from memory file
@@ -42,9 +46,11 @@ while True:
     joypadInput = joypad.readInput()
 
     # Debug screenshot mode : only save the screenshot
-    if (screenshotMode):
+    if (freeMode):
         time.sleep(1)
         screenshot = img.getScreenshot()
+        playerPosition = Position(**memory.readPositionData())
+        print(map[playerPosition.Y][playerPosition.X])
 
     # Only apply new input if no input is found in memory
     elif (len(joypadInput) == 0):

@@ -47,6 +47,18 @@ function retrieveBag()
     return bagData
 end
 
+POSITION_X_ADDRESS = 0x021C5EAE
+POSITION_Y_ADDRESS = 0x021C5ECE
+
+function retrievePosition()
+    local positionData = {
+        positionX = memory.read_u16_le(POSITION_X_ADDRESS),
+        positionY = memory.read_u16_le(POSITION_Y_ADDRESS)
+    }
+    
+    return positionData
+end
+
 -- opposingPidAddress may vary so we must refresh its value from time to time
 function refreshPID()
     -- Pointer : Reference address
