@@ -11,6 +11,8 @@ import memory
 
 mapFile = open('src/python/data/platinumMap.map')
 PLATINUM_MAP = mapFile.readlines()
+MAX_Y = len(PLATINUM_MAP)
+MAX_X = len(PLATINUM_MAP[0])
 
 CELL_COST = {
     "O": 1, # Regular cell
@@ -198,8 +200,14 @@ def goToLocation(location):
     while memory.readJoypadData() or (playerPosition.Y, playerPosition.X) != path[-1]:
         playerPosition = Position(**memory.readPositionData())
 
+        # No longer in overworld : stop pathfinding and let main script take over
+        if (not 0 <= playerPosition.Y <= MAX_Y or not 0 <= playerPosition.X <= MAX_X):
+            print("Not in overworld !")
+            memory.clearMemoryData("joypad") # Clear input
+            break
+
         # Check character progression through the path
-        if (path[pathIndex] != (playerPosition.Y, playerPosition.X)):
+        elif (path[pathIndex] != (playerPosition.Y, playerPosition.X)):
 
             # Normal behavior : character went to next position
             if (path[pathIndex + 1] == (playerPosition.Y, playerPosition.X)):
@@ -207,6 +215,7 @@ def goToLocation(location):
 
             # Wrong path : recalculate from current position
             else:
+                print("Wrong path !")
 
                 # Make sure player is not moving anymore
                 memory.clearMemoryData("joypad") # Clear input
@@ -218,6 +227,7 @@ def goToLocation(location):
 
         # Pressed all inputs : check if we're at desired location
         elif (not memory.readJoypadData()):
+            print("Not arrived !")
 
             # Make sure player is not moving anymore
             waitFrames(12) # Wait 12 frames (9 for a full animation cycle + 3 for stop running animation)

@@ -2,12 +2,12 @@
 from pokemon import Pokemon
 from trainer import Position
 
-import time
 
 import img
 import utils
 import joypad
 import memory
+import pathfinding
 
 LEFT_ROW = 0
 RIGHT_ROW = 1
@@ -18,16 +18,23 @@ NEXT_PAGE_BUTTON = 0
 PREVIOUS_PAGE_BUTTON = 1
 CANCEL_BUTTON = 2
 
-screenshotMode = False
-freeMode = True
+LITTORELLA_SHOP = Position(187,842)
+LITTORELLA_POKEMON_CENTER = Position(177,843)
+
+FELICITE_SHOP = Position(179,766)
+FELICITE_POKEMON_CENTER = Position(180,777)
+
+ROUTE_204_SOUTH = Position(171,720)
+
+freeMode = False
 catchAllMode = False
+
+spinMode = False
+backToShop = True
 
 pokemon = Pokemon()
 loadedPokemonPid = 0
 pokeballLocation = -1
-
-mapFile = open('src/python/data/platinumMap.map')
-map = mapFile.readlines()
 
 while True:
     # Read JSON Pokemon data from memory file
@@ -38,7 +45,7 @@ while True:
         # Convert JSON data to Pokemon object
         pokemon = Pokemon(**jsonPokemonData)
         loadedPokemonPid = pokemon.pid
-
+          
         print("New wild Pokemon !")
         print(pokemon)
 
@@ -55,25 +62,32 @@ while True:
         screenshot = img.getScreenshot()
         playerPosition = Position(**memory.readPositionData())
         
-        # Overworld : spin mode
+        # Overworld
         if (img.poketch.isOnScreen(screenshot)):
-            playerDirection = img.getPlayerPosition(screenshot)
 
-            # Facing left : Input up for 5 frames and release for 5 frames
-            if (playerDirection == "l"):
-                joypad.writeInput("u")
+            # Spin to encounter wild Pokemon
+            if (spinMode):
+                playerDirection = img.getPlayerPosition(screenshot)
 
-            # Facing right : Input down for 5 frames and release for 5 frames
-            elif (playerDirection == "r"):
-                joypad.writeInput("d")
+                # Facing left : Input up for 5 frames and release for 5 frames
+                if (playerDirection == "l"):
+                    joypad.writeInput("u")
 
-            # Facing down : Input left for 5 frames and release for 5 frames
-            elif (playerDirection == "d"):
-                joypad.writeInput("l")
+                # Facing right : Input down for 5 frames and release for 5 frames
+                elif (playerDirection == "r"):
+                    joypad.writeInput("d")
 
-            # Facing up : Input right for 5 frames and release for 5 frames
-            elif (playerDirection == "u"):
-                joypad.writeInput("r")
+                # Facing down : Input left for 5 frames and release for 5 frames
+                elif (playerDirection == "d"):
+                    joypad.writeInput("l")
+
+                # Facing up : Input right for 5 frames and release for 5 frames
+                elif (playerDirection == "u"):
+                    joypad.writeInput("r")
+
+            # Go back to shop
+            elif (backToShop):
+                pathfinding.goToLocation(FELICITE_SHOP)
 
         # New Pokedex entry : Press A
         elif (img.newPokedexEntry.isOnScreen(screenshot)):
@@ -87,7 +101,7 @@ while True:
         # TODO : Weaken Pokemon (False Swipe + Status ?)
         elif (img.runaway.isOnScreen(screenshot)):
             # Shiny Pokemon : Go to bag sequence
-            if (pokemon.isShiny or catchAllMode):
+            if (not backToShop and (pokemon.isShiny or catchAllMode)):
                 joypad.writeInput("llA", endSequence = "@@@@@@@@@@")
             
             # Not Shiny : Runaway sequence
@@ -133,7 +147,7 @@ while True:
 
             # I'd rather crash than miss a Shiny
             if (pokeballLocation == -1):
-                raise Exception('No Poké Ball available !')
+                backToShop = True
 
             # Get cursor location (None if not present)
             cursorLocation = img.getCurrentItemSelectedPosition(screenshot)

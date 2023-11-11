@@ -1,4 +1,3 @@
-import mmap
 import memory
 
 FRAMES_RELEASE_TIME = 5
@@ -31,6 +30,8 @@ def writeRunInput(pathInputSequence, playerDirection):
         for inputButton in pathInputSequence[1:]:
             # 8 frames per input during run animation
             frameByFrameInputSequence += 8 * inputButton
+
+        print(frameByFrameInputSequence)
 
         # Set run flag to true and write input sequence
         memory.setMemoryFlag(runFlag = True)
