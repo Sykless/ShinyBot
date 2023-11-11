@@ -1,4 +1,5 @@
 import mmap
+import memory
 
 FRAMES_RELEASE_TIME = 5
 
@@ -13,10 +14,4 @@ def writeInput(inputSequence, endSequence = None):
         frameByFrameInputSequence += endSequence
     
     print(frameByFrameInputSequence)
-
-    writeInputMmap = mmap.mmap(-1, 4096, tagname="joypad", access=mmap.ACCESS_WRITE)
-    writeInputMmap.write(bytes(frameByFrameInputSequence, encoding="utf-8"))
-
-def readInput():
-    readInputMmap = mmap.mmap(-1, 4096, tagname="joypad", access=mmap.ACCESS_READ)
-    return readInputMmap.read().decode("utf-8").split("\x00")[0]
+    memory.writeMemoryData("joypad", frameByFrameInputSequence)

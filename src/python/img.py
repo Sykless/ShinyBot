@@ -51,6 +51,27 @@ def getPageNumber(screenshot):
     elif (thirdPage.isOnScreen(screenshot)): return 3
     else: return None
 
+def getPlayerPosition(screenshot):
+    # Facing left
+    if (trainerLeft.isOnScreen(screenshot)):
+        return "l"
+
+    # Facing right
+    elif (trainerRight.isOnScreen(screenshot)):
+        return "r"
+
+    # Facing down
+    elif (trainerDown.isOnScreen(screenshot)):
+        return "d"
+
+    # Facing up
+    elif (trainerUp.isOnScreen(screenshot)):
+        return "u"
+    
+    # Player not in the screenshot
+    else:
+        return None
+
 def isTemplateInImage(image, template, threshold, mask = None):
 
     # Template matching using TM_SQDIFF : Perfect match -> minimum value around 0.0

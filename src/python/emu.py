@@ -43,35 +43,36 @@ while True:
         print(pokemon)
 
     # Check input previsouy saved
-    joypadInput = joypad.readInput()
+    joypadInput = memory.readJoypadData()
 
     # Debug screenshot mode : only save the screenshot
     if (freeMode):
-        time.sleep(1)
         screenshot = img.getScreenshot()
         playerPosition = Position(**memory.readPositionData())
-        print(map[playerPosition.Y][playerPosition.X])
 
     # Only apply new input if no input is found in memory
     elif (len(joypadInput) == 0):
         screenshot = img.getScreenshot()
-
+        playerPosition = Position(**memory.readPositionData())
+        
         # Overworld : spin mode
         if (img.poketch.isOnScreen(screenshot)):
+            playerDirection = img.getPlayerPosition(screenshot)
+
             # Facing left : Input up for 5 frames and release for 5 frames
-            if (img.trainerLeft.isOnScreen(screenshot)):
+            if (playerDirection == "l"):
                 joypad.writeInput("u")
 
             # Facing right : Input down for 5 frames and release for 5 frames
-            elif (img.trainerRight.isOnScreen(screenshot)):
+            elif (playerDirection == "r"):
                 joypad.writeInput("d")
 
             # Facing down : Input left for 5 frames and release for 5 frames
-            elif (img.trainerDown.isOnScreen(screenshot)):
+            elif (playerDirection == "d"):
                 joypad.writeInput("l")
 
             # Facing up : Input right for 5 frames and release for 5 frames
-            elif (img.trainerUp.isOnScreen(screenshot)):
+            elif (playerDirection == "u"):
                 joypad.writeInput("r")
 
         # New Pokedex entry : Press A
