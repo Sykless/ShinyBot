@@ -1,3 +1,10 @@
+from trainer import Position
+from utils import waitFrames
+
+import img
+import joypad
+import memory
+
 # Credits :
 # - Python Implementation : https://medium.com/@nicholas.w.swift/easy-a-star-pathfinding-7e6689c7f7b2
 # - Improving Heuristics calculation : https://theory.stanford.edu/~amitp/GameProgramming/Heuristics.html
@@ -163,3 +170,67 @@ def getPathCoordinates(startPosition, endPosition):
             previousPosition = position
 
     return path, pathInputSequence
+
+def writePathInputs(location):
+    screenshot = img.getScreenshot()
+    playerPosition = Position(**memory.readPositionData())
+    playerDirection = img.getPlayerPosition(screenshot)
+
+    # Retrieve all inputs needed to go to specified location
+    path, pathInputSequence = getPathCoordinates(playerPosition, location)
+    joypad.writeRunInput(pathInputSequence, playerDirection)
+
+    return path
+
+def goToLocation(location):
+
+    # Calculate path from current position
+    playerPosition = Position(**memory.readPositionData())
+    path = writePathInputs(location)
+    pathIndex = 0
+
+    # Unfortunately, the running animation time is not consistent
+    # and we might bump into moving NPCs
+    # So we need to make sure the player follows the right path
+    #
+    # Only stop path processing when all inputs have been pressed
+    # and the player is at desired location
+    while memory.readJoypadData() or (playerPosition.Y, playerPosition.X) != path[-1]:
+        playerPosition = Position(**memory.readPositionData())
+
+        # Check character progression through the path
+        if (path[pathIndex] != (playerPosition.Y, playerPosition.X)):
+
+            # Normal behavior : character went to next position
+            if (path[pathIndex + 1] == (playerPosition.Y, playerPosition.X)):
+                pathIndex += 1
+
+            # Wrong path : recalculate from current position
+            else:
+
+                # Make sure player is not moving anymore
+                memory.clearMemoryData("joypad") # Clear input
+                waitFrames(12) # Wait 12 frames (9 for a full animation cycle + 3 for stop running animation)
+
+                # Calculate new path from new position
+                path = writePathInputs(location)
+                pathIndex = 0
+
+        # Pressed all inputs : check if we're at desired location
+        elif (not memory.readJoypadData()):
+
+            # Make sure player is not moving anymore
+            waitFrames(12) # Wait 12 frames (9 for a full animation cycle + 3 for stop running animation)
+
+            # Get final position after player stopped moving
+            playerPosition = Position(**memory.readPositionData())
+
+            # Check if player position is last path position
+            if ((playerPosition.Y, playerPosition.X) != path[-1]):
+
+                # Calculate new path from new position
+                path = writePathInputs(location)
+                pathIndex = 0
+
+    # Stop running after location has been reached
+    memory.setMemoryFlag(runFlag = False)

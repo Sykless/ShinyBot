@@ -15,6 +15,15 @@ def readPositionData():
 def readJoypadData():
     return readMemoryData("joypad")
 
+def setMemoryFlag(runFlag = None):
+    flagData = list(readMemoryData("flagsData"))
+
+    # Convert boolean to "0" or "1"
+    if (runFlag != None):
+        flagData[0] = str(int(runFlag))
+
+    writeMemoryData("flagsData", "".join(flagData))
+
 def clearMemoryData(memoryfileName):
     writeMemoryData(memoryfileName, "\x00" * 4096)
 

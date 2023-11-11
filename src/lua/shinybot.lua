@@ -12,9 +12,13 @@ PLATINUM_ADDRESS = 0x02101F0C
 local json = require "json"
 
 -- Pokemon object
+local position = {}
 local pokemon = {}
 local bag = {}
-local positionData = {}
+
+local flags = {
+    runInput = false
+}
 
 -- Calculate PID memory addresses needed for data processing
 refreshPID()
@@ -30,6 +34,7 @@ comm.mmfWrite("joypad", string.rep("\x00", 4096))
 comm.mmfWrite("pokemonData", string.rep("\x00", 4096))
 comm.mmfWrite("bagData", string.rep("\x00", 4096))
 comm.mmfWrite("positionData", string.rep("\x00", 4096))
+comm.mmfWrite("flagsData", "0" .. string.rep("\x00", 4095))
 
 -- Set screenshot memory file name
 comm.mmfWrite("screenshot", string.rep("\x00", 30486))
@@ -38,6 +43,8 @@ comm.mmfSetFilename("screenshot")
 while true do
     -- Save a screenshot in memory file every frame
     comm.mmfScreenshot()
+
+    flags = readFlagsFromMemory()
 
     -- Save pokemon and bag data every second
     if emu.framecount() % 60 == 0 then
@@ -52,16 +59,15 @@ while true do
         comm.mmfWrite("bagData", json.encode({["bagData"] = bag}) .. "\x00")
     end
 
-    -- Save player position every 5 frames
-    if emu.framecount() % 5 == 0 then
-        position = retrievePosition()
-        comm.mmfWrite("positionData", json.encode({["positionData"] = position}) .. "\x00")
-    end
+    -- Save player position every frames
+    position = retrievePosition()
+    comm.mmfWrite("positionData", json.encode({["positionData"] = position}) .. "\x00")
 
+    -- Debug : display position on screen
     gui.text(0,0, string.format("X: %d, Y: %d", position.positionX, position.positionY))
     
     -- Input button retrieved from memory
-    inputFromMemory()
+    inputFromMemory(flags.runInput)
 
     -- Next frame
     emu.frameadvance()
