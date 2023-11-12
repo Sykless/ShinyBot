@@ -11,8 +11,6 @@ import memory
 
 mapFile = open('src/python/data/platinumMap.map')
 PLATINUM_MAP = mapFile.readlines()
-MAX_Y = len(PLATINUM_MAP)
-MAX_X = len(PLATINUM_MAP[0])
 
 CELL_COST = {
     "O": 1, # Regular cell
@@ -200,8 +198,8 @@ def goToLocation(location):
     while memory.readJoypadData() or (playerPosition.Y, playerPosition.X) != path[-1]:
         playerPosition = Position(**memory.readPositionData())
 
-        # No longer in overworld : stop pathfinding and let main script take over
-        if (not 0 <= playerPosition.Y <= MAX_Y or not 0 <= playerPosition.X <= MAX_X):
+        # Non-0 PID : we're in a battle - stop pathfinding and let main script take over
+        if (memory.readPokemonData().get("pid",0) != 0):
             print("Not in overworld !")
             memory.clearMemoryData("joypad") # Clear input
             break
