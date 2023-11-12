@@ -23,7 +23,7 @@ CELL_COST = {
 }
 
 SOLID_BLOCKS = [
-    "X", # Wall
+    "X", # Wall, Tree, etc
     "S", # Sign
     "N"  # NPC
 ]
