@@ -37,7 +37,7 @@ comm.mmfWrite("positionData", string.rep("\x00", 4096))
 comm.mmfWrite("flagsData", "0" .. string.rep("\x00", 4095))
 
 -- Set screenshot memory file name
-comm.mmfWrite("screenshot", string.rep("\x00", 30486))
+comm.mmfWrite("screenshot", string.rep("\x00", 64000))
 comm.mmfSetFilename("screenshot")
 
 while true do

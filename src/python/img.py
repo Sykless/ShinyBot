@@ -123,8 +123,8 @@ def getCursorPosition(screenshot, sectionSize):
     
 def getScreenshot():
     while True:
-        screenshotBytes = io.BytesIO(mmap.mmap(0, 30486, "screenshot"))
-
+        screenshotBytes = io.BytesIO(mmap.mmap(0, 64000, "screenshot"))
+        
         try:
             screenshotImage = Image.open(screenshotBytes)
             # screenshotImage.save("test.png")
