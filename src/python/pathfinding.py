@@ -23,8 +23,9 @@ CELL_COST = {
 }
 
 SOLID_BLOCKS = [
-    "X", # Wall, NPC
-    "S"  # Sign
+    "X", # Wall
+    "S", # Sign
+    "N"  # NPC
 ]
 
 DIRECTIONS = [
