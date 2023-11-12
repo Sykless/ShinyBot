@@ -1,4 +1,4 @@
-from trainer import Position
+from position import Position
 from utils import waitFrames
 
 import img

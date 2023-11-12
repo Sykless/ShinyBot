@@ -64,7 +64,7 @@ while true do
     comm.mmfWrite("positionData", json.encode({["positionData"] = position}) .. "\x00")
 
     -- Debug : display position on screen
-    gui.text(0,0, string.format("X: %d, Y: %d", position.positionX, position.positionY))
+    gui.text(0,0, string.format("X: %d, Y: %d, Zone : %d", position.positionX, position.positionY, position.zone))
     
     -- Input button retrieved from memory
     inputFromMemory(flags.runInput)

@@ -47,16 +47,19 @@ function retrieveBag()
     return bagData
 end
 
-POSITION_X_ADDRESS = 0x021C5EAE
-POSITION_Y_ADDRESS = 0x021C5ECE
+MAP_POINTER = 0x021C0974
 
 function retrievePosition()
-    local positionData = {
-        positionX = memory.read_u16_le(POSITION_X_ADDRESS),
-        positionY = memory.read_u16_le(POSITION_Y_ADDRESS)
+
+    local mapAddress = memory.read_u32_le(MAP_POINTER) + 0x1294
+    local positionXAddress = mapAddress + 8
+    local positionYAddress = mapAddress + 12
+
+    return {
+        zone = memory.read_u16_le(mapAddress),
+        positionX = memory.read_u16_le(positionXAddress),
+        positionY = memory.read_u16_le(positionYAddress)
     }
-    
-    return positionData
 end
 
 -- opposingPidAddress may vary so we must refresh its value from time to time

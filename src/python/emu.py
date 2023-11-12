@@ -1,6 +1,6 @@
 
 from pokemon import Pokemon
-from trainer import Position
+from position import Position
 
 
 import img
@@ -34,7 +34,6 @@ backToShop = True
 
 pokemon = Pokemon()
 loadedPokemonPid = 0
-pokeballLocation = -1
 
 while True:
     # Read JSON Pokemon data from memory file
