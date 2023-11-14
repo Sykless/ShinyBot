@@ -9,17 +9,22 @@ import memory
 # - Python Implementation : https://medium.com/@nicholas.w.swift/easy-a-star-pathfinding-7e6689c7f7b2
 # - Improving Heuristics calculation : https://theory.stanford.edu/~amitp/GameProgramming/Heuristics.html
 
-mapFile = open('src/python/data/platinumMap.map')
+mapFile = open('src/python/data/overworld.map')
 PLATINUM_MAP = mapFile.readlines()
 
 CELL_COST = {
     "O": 1, # Regular cell
+    "A": 1, # Above ground (bridge)
+    "B": 1, # Below bridge
+    "Z": 1, # Zone (door, cave entrance)
     "D": 2, # One-way ledge to go down
     "L": 2, # One-way ledge to go left
     "U": 2, # One-way ledge to go up
     "R": 2, # One-way ledge to go right
     "G": 3, # Grass
-    "W": 5  # Water
+    "W": 5, # Water
+    "t": 5, # Tree
+    "r": 5, # Rock
 }
 
 SOLID_BLOCKS = [
@@ -37,17 +42,31 @@ DIRECTIONS = [
 
 # Node class for A* Pathfinding
 class Node():
-    
-    def __init__(self, parent=None, position=None):
+    def __init__(self, maze, position, parent = None):
         self.parent = parent
         self.position = position
+        self.cellType = maze[position[0]][position[1]]
 
+        # A* core parameters
         self.g = 0
         self.h = 0
         self.f = 0
 
-        # Special process for ledge nodes since we don't actually step on them
-        self.isLedge = False
+        # Special process for bridges since two cells share the same position, see solid blocks processing
+        if (parent and parent.isBelow):
+            # If you were below a bridge, you're leaving when not on Above or Below cell
+            self.isBelow = self.cellType in ["A","B"]
+            self.isAbove = False
+        else:
+            # If you were not, above/below condition just depends on current cell value
+            self.isBelow = self.cellType == "B"
+            self.isAbove = self.cellType == "A"
+
+    # Two nodes may share the same position but be above or below a bridge, so we must check those conditions as well
+    def __eq__(self, other):
+        if isinstance(other, Node):
+            return self.position == other.position and self.isBelow == other.isBelow and self.isAbove == other.isAbove
+        return False
 
     def __str__(self):
         return (
@@ -59,8 +78,8 @@ class Node():
 def astar(maze, start, end):
 
     # Create start and end node
-    start_node = Node(None, start)
-    end_node = Node(None, end)
+    start_node = Node(maze, start)
+    end_node = Node(maze, end)
 
     # Initialize both open and closed list
     open_list = []
@@ -90,56 +109,59 @@ def astar(maze, start, end):
             current = current_node
 
             while current is not None:
-                # Don't add ledge position to the path, we don't walk on the ledge, only go through it
-                # The optimal way would be to process ledge cells during input frame calculation
-                if (not current.isLedge):
+                # Don't add ledge node to the path, we don't walk on the ledge, only go through it
+                # The optimal way would be to calculate ledge cells jump animation during input frame calculation
+                if (current.cellType not in ["L","U","R","D"]):
                     path.append(current.position)
 
                 current = current.parent
 
             # Return reversed path
             return path[::-1]
-
+        
         # Generate children
         children = []
         for new_position in DIRECTIONS: # Adjacent squares
 
             # Get node position
             node_position = (current_node.position[0] + new_position["orientation"][0], current_node.position[1] + new_position["orientation"][1])
+            nextCellValue = maze[node_position[0]][node_position[1]]
+            topCellValue = maze[node_position[0] - 1][node_position[1]]
 
             # Can't walk through solid blocks
-            if maze[node_position[0]][node_position[1]] in SOLID_BLOCKS + new_position["solidLedges"]:
+            if nextCellValue in SOLID_BLOCKS + new_position["solidLedges"]:
+                continue
+
+            # If on a bridge, don't go on Below cells
+            if (current_node.isAbove and nextCellValue == "B"):
+                continue
+
+            # If under a bridge, only leave by passing on a Below cell
+            if (current_node.isBelow and current_node.cellType == "A" and nextCellValue not in ["A","B"]):
                 continue
 
             # Don't go up if a sign is just above since it triggers a dialogue
-            if (maze[node_position[0] - 1][node_position[1]] == "S" and new_position["orientation"] == (-1, 0)):
+            if (topCellValue == "S" and new_position["orientation"] == (-1, 0)):
                 continue
 
             # We can walk through the block : add node to the children list
-            new_node = Node(current_node, node_position)
+            new_node = Node(maze, node_position, current_node)
             children.append(new_node)
 
         # Loop through children
         for child in children:
 
             # Child is already in the closed list : don't process it
-            if len([closed_child for closed_child in closed_list if closed_child.position == child.position]) > 0:
+            if len([closed_child for closed_child in closed_list if closed_child == child ]) > 0:
                 continue
 
-            childPositionY = child.position[0]
-            childPositionX = child.position[1]
-            cellType = maze[childPositionY][childPositionX]
-
-            # Special process for ledge cells, see path processing
-            child.isLedge = (cellType in ["L","U","R","D"])
-
             # Create the f, g, and h values
-            child.g = current_node.g + CELL_COST.get(cellType, 999) # Default cell cost is 999, basically solid block
-            child.h = abs(childPositionY - end_node.position[0]) + abs(childPositionX - end_node.position[1]) # Manhattan distance
+            child.g = current_node.g + CELL_COST.get(child.cellType, 999) # Default cell cost is 999, basically solid block
+            child.h = abs(child.position[0] - end_node.position[0]) + abs(child.position[1] - end_node.position[1]) # Manhattan distance
             child.f = child.g + child.h
 
             # Child is already in the open list and a similar or better path exists : don't process it
-            if len([open_node for open_node in open_list if child.position == open_node.position and child.g >= open_node.g]) > 0:
+            if len([open_node for open_node in open_list if child == open_node and child.g >= open_node.g]) > 0:
                 continue
 
             # Add the child to the open list
