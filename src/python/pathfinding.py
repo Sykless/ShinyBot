@@ -13,24 +13,46 @@ mapFile = open('src/python/data/overworld.map')
 PLATINUM_MAP = mapFile.readlines()
 
 CELL_COST = {
+    # Traveling cells
     "O": 1, # Regular cell
-    "A": 1, # Above ground (bridge)
-    "B": 1, # Below bridge
     "Z": 1, # Zone (door, cave entrance)
+    "S": 2, # Swamp
+    "1": 1, # 1-depth snow
+    "2": 2, # 2-depth snow
+    "3": 3, # 3-depth snow
+    "4": 4, # 4-depth snow
+    "V": 2, # Bike slope
+    "G": 3, # Grass
+    "g": 5, # Tall grass
+    "E": 5, # Elevator
+    "e": 5, # Elevator door
+
+    # HM Obstacles
+    "t": 5, # Tree
+    "r": 5, # Rock
+    "b": 5, # Boulder
+    "W": 5, # Water
+    "w": 5, # Waterfall
+    "C": 5, # Climb
+
+    # Height-depending cells
+    "A": 1, # Above ground (bridge)
+    "a": 1, # Above ground (bike bridge)
+    "α": 1, # Above solid block (bridge)
+    "B": 1, # Below bridge
+    "d": 1, # Below bridge on water
+
+    # Orientation-depending cells
     "D": 2, # One-way ledge to go down
     "L": 2, # One-way ledge to go left
     "U": 2, # One-way ledge to go up
     "R": 2, # One-way ledge to go right
-    "G": 3, # Grass
-    "W": 5, # Water
-    "t": 5, # Tree
-    "r": 5, # Rock
 }
 
 SOLID_BLOCKS = [
     "X", # Wall, Tree, etc
-    "S", # Sign
-    "N"  # NPC
+    "N", # NPC
+    "s", # Sign
 ]
 
 DIRECTIONS = [
