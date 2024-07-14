@@ -282,7 +282,7 @@ zoneData = ["Mystery Zone - 0", "Mystery Zone - 1", "Mystery Zone - 2",     "Fé
     "Snowpoint Temple",
     "Snowpoint Temple",
         "Grotte Revêche",
-    "Grotte Revêche",
+        "Grotte Revêche - Sous-Sol",
         "Grotte Ruinemaniac",
         "Jardin Trophée",
         "Ile de Fer",
