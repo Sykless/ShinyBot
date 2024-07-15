@@ -160,9 +160,9 @@ class Pokemon:
         return (str(self.name) + " " + ("♀" if self.female else "♂")
                 + " level " + str(self.level) + " (" + self.ability + ")" + " - PID = " + str(hex(self.pid)) + " - Shiny value : " + str(self.shinyValue)  + "\n"
                 + " - " + self.moves[0].name + " (" + str(self.moves[0].PP) + ")\n"
-                + (" - " + self.moves[1].name + " (" + str(self.moves[1].PP) + ")\n" if len(self.moves) == 2 else "")
-                + (" - " + self.moves[2].name + " (" + str(self.moves[2].PP) + ")\n" if len(self.moves) == 3 else "")
-                + (" - " + self.moves[3].name + " (" + str(self.moves[3].PP) + ")\n" if len(self.moves) == 4 else "")
+                + (" - " + self.moves[1].name + " (" + str(self.moves[1].PP) + ")\n" if len(self.moves) >= 2 else "")
+                + (" - " + self.moves[2].name + " (" + str(self.moves[2].PP) + ")\n" if len(self.moves) >= 3 else "")
+                + (" - " + self.moves[3].name + " (" + str(self.moves[3].PP) + ")\n" if len(self.moves) >= 4 else "")
                 + "\n"
                 + " =============================================\n"
                 + " =       =  HP = ATQ = DEF = SPA = SPD = SPE =\n"
