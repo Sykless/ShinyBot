@@ -9,7 +9,7 @@ import memory
 # - Python Implementation : https://medium.com/@nicholas.w.swift/easy-a-star-pathfinding-7e6689c7f7b2
 # - Improving Heuristics calculation : https://theory.stanford.edu/~amitp/GameProgramming/Heuristics.html
 
-mapFile = open('src/python/data/overworld.map')
+mapFile = open('src/python/data/map/overworld.map')
 PLATINUM_MAP = mapFile.readlines()
 
 CELL_COST = {

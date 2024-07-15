@@ -12,8 +12,8 @@ ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 class Template:
     def __init__(self, name, positionX, positionY, width, height, threshold, mask = None):
-        self.image = cv2.imread("src/python/data/" + name + ".png")
-        self.mask = mask and cv2.imread("src/python/data/" + name + "-mask.png")
+        self.image = cv2.imread("src/python/data/img/" + name + ".png")
+        self.mask = mask and cv2.imread("src/python/data/img/" + name + "-mask.png")
 
         self.positionX = positionX
         self.positionY = positionY
@@ -84,7 +84,7 @@ def isTemplateInImage(image, template, threshold, mask = None):
 
     return min_val <= threshold, min_loc
 
-ITEM_CURRENT_LOCATION_SELECTOR = cv2.imread('src/python/data/item-current-location-selector.png')
+ITEM_CURRENT_LOCATION_SELECTOR = cv2.imread('src/python/data/img/item-current-location-selector.png')
 
 BAG_SECTION_SELECTION = {}
 BAG_SECTION_SELECTION["linesNumber"] = 2
