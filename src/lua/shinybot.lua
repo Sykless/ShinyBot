@@ -29,12 +29,12 @@ console.log("Ally PID : 0x" .. getHexValue(memory.read_u32_le(allyPidAddress)))
 console.log("Opposing PID address : 0x" .. getHexValue(opposingPidAddress))
 console.log("Opposing PID : 0x" .. getHexValue(memory.read_u32_le(opposingPidAddress)))
 
--- Clear previously used data
-comm.mmfWrite("joypad", string.rep("\x00", 4096))
-comm.mmfWrite("pokemonData", string.rep("\x00", 4096))
-comm.mmfWrite("bagData", string.rep("\x00", 4096))
-comm.mmfWrite("positionData", string.rep("\x00", 4096))
-comm.mmfWrite("flagsData", "0" .. string.rep("\x00", 4095))
+-- Clear previously used data, fill every byte with null values
+comm.mmfWrite("joypad", string.rep("\x00", 20480))
+comm.mmfWrite("pokemonTeamData", string.rep("\x00", 20480))
+comm.mmfWrite("bagData", string.rep("\x00", 20480))
+comm.mmfWrite("positionData", string.rep("\x00", 20480))
+comm.mmfWrite("flagsData", "0" .. string.rep("\x00", 20480))
 
 -- Set screenshot memory file name
 comm.mmfWrite("screenshot", string.rep("\x00", 64000))

@@ -25,15 +25,15 @@ def setMemoryFlag(runFlag = None):
     writeMemoryData("flagsData", "".join(flagData))
 
 def clearMemoryData(memoryfileName):
-    writeMemoryData(memoryfileName, "\x00" * 4096)
+    writeMemoryData(memoryfileName, "\x00" * 20480)
 
 def writeMemoryData(memoryfileName, input):
-    writeMemoryMmap = mmap.mmap(-1, 4096, tagname=memoryfileName, access=mmap.ACCESS_WRITE)
+    writeMemoryMmap = mmap.mmap(-1, 20480, tagname=memoryfileName, access=mmap.ACCESS_WRITE)
     writeMemoryMmap.write(bytes(input, encoding="utf-8"))
 
 def readMemoryData(memoryfileName):
     # Read memoryData as BytesIO object from memory file
-    mmapData = mmap.mmap(0, 4096, memoryfileName)
+    mmapData = mmap.mmap(0, 20480, memoryfileName)
     mmapByes = io.BytesIO(mmapData).read()
 
     try:

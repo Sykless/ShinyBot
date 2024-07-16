@@ -16,7 +16,7 @@ BUTTON_MAPPING = {
 
 function inputFromMemory(runFlag)
     -- Read data from memory file sent by Python script
-    local mmfJoypad = comm.mmfRead("joypad", 4096)
+    local mmfJoypad = comm.mmfRead("joypad", 20480)
     local joypadInput = string.match(mmfJoypad, "[^\x00]+") -- Get everything before the first null \x00 character
 
     if (joypadInput) then
@@ -38,7 +38,7 @@ function inputFromMemory(runFlag)
 end
 
 function readFlagsFromMemory()
-    local mmfFlags = comm.mmfRead("flagsData", 4096)
+    local mmfFlags = comm.mmfRead("flagsData", 20480)
     return {
         runInput = string.sub(mmfFlags,1,1) == "1"
     }
