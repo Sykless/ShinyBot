@@ -47,11 +47,13 @@ CELL_COST = {
     "L": 2, # One-way ledge to go left
     "U": 2, # One-way ledge to go up
     "R": 2, # One-way ledge to go right
+    "v": 2, # Bike ramp
 }
 
 SOLID_BLOCKS = [
     "X", # Wall, Tree, etc
     "N", # NPC
+    "I", # Interactable (Static encounter, Shop, etc)
     "s", # Sign
 ]
 
