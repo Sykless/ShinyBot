@@ -13,7 +13,8 @@ local json = require "json"
 
 -- Pokemon object
 local position = {}
-local pokemon = {}
+local pokemonTeam = {}
+local wildPokemon = {}
 local bag = {}
 
 local flags = {
@@ -32,6 +33,7 @@ console.log("Opposing PID : 0x" .. getHexValue(memory.read_u32_le(opposingPidAdd
 -- Clear previously used data, fill every byte with null values
 comm.mmfWrite("joypad", string.rep("\x00", 20480))
 comm.mmfWrite("pokemonTeamData", string.rep("\x00", 20480))
+comm.mmfWrite("wildPokemonData", string.rep("\x00", 20480))
 comm.mmfWrite("bagData", string.rep("\x00", 20480))
 comm.mmfWrite("positionData", string.rep("\x00", 20480))
 comm.mmfWrite("flagsData", "0" .. string.rep("\x00", 20480))
@@ -50,9 +52,20 @@ while true do
     if emu.framecount() % 60 == 0 then
         refreshPID()
         
-        -- Write Pokemon data in memory
-        pokemon = decryptPokemonData(opposingPidAddress) -- Get Pokemon encrypted data from PID address
-        comm.mmfWrite("pokemonData", json.encode({["pokemonData"] = pokemon}) .. "\x00")
+        -- Write Pokemon team data in memory
+        pokemonTeam = {}
+
+        -- Decrypt each pokemon in team
+        for i = 0, 5 do
+            allyPokemon = decryptPokemonData(allyPidAddress + i*0xEC) -- Get Pokemon encrypted data from PID address
+            table.insert(pokemonTeam, allyPokemon)
+        end
+
+        comm.mmfWrite("pokemonTeamData", json.encode({["pokemonTeamData"] = pokemonTeam}) .. "\x00")
+
+        -- Write wild Pokemon data in memory
+        wildPokemon = decryptPokemonData(opposingPidAddress) -- Get Pokemon encrypted data from PID address
+        comm.mmfWrite("wildPokemonData", json.encode({["wildPokemonData"] = wildPokemon}) .. "\x00")
 
         -- Write Bag data in memory
         bag = retrieveBag()

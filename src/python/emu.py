@@ -26,18 +26,22 @@ FELICITE_POKEMON_CENTER = Position(180,777)
 
 ROUTE_204_SOUTH = Position(171,720)
 
-freeMode = False
+freeMode = True
+shinyBot = False
 catchAllMode = False
 
 spinMode = False
 backToShop = True
 
-pokemon = Pokemon()
+pokemon = Pokemon() # Empty Pokemon object
 loadedPokemonPid = 0
 
-while True:
+jsonPokemonData = memory.readWildPokemonData()
+jsonTeamData = memory.readPokemonTeamData()
+
+while shinyBot:
     # Read JSON Pokemon data from memory file
-    jsonPokemonData = memory.readPokemonData()
+    jsonPokemonData = memory.readWildPokemonData()
 
     # Check if a new wild Pokemon has been found
     if (jsonPokemonData and jsonPokemonData["pid"] not in [0, loadedPokemonPid]):

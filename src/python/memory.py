@@ -3,8 +3,11 @@ import io
 import json
 import mmap
 
-def readPokemonData():
-    return readJsonData("pokemonData")
+def readPokemonTeamData():
+    return readJsonData("pokemonTeamData")
+
+def readWildPokemonData():
+    return readJsonData("wildPokemonData")
 
 def readBagData():
     return readJsonData("bagData")

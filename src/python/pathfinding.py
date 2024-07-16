@@ -244,7 +244,7 @@ def goToLocation(location):
         playerPosition = Position(**memory.readPositionData())
 
         # Non-0 PID : we're in a battle - stop pathfinding and let main script take over
-        if (memory.readPokemonData().get("pid",0) != 0):
+        if (memory.readWildPokemonData().get("pid",0) != 0):
             print("Not in overworld !")
             memory.clearMemoryData("joypad") # Clear input
             break
