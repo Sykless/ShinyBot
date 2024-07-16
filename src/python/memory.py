@@ -3,6 +3,7 @@ import io
 import json
 import mmap
 
+# WARNING : Pokemon Team data is only available during battle of if menu is open
 def readPokemonTeamData():
     return readJsonData("pokemonTeamData")
 

@@ -39,6 +39,9 @@ loadedPokemonPid = 0
 jsonPokemonData = memory.readWildPokemonData()
 jsonTeamData = memory.readPokemonTeamData()
 
+if (freeMode):
+    print("Debug Screenshot mode")
+
 while shinyBot:
     # Read JSON Pokemon data from memory file
     jsonPokemonData = memory.readWildPokemonData()

@@ -34,6 +34,8 @@ trainerLeft = Template("trainer-left", 119, 76, 17, 23, 5000000, mask = True)
 battleTouchscreen = Template("battle-touchscreen", 0, 192, 256, 192, 1, mask = True)
 
 poketch = Template("poketch", 224, 225, 32, 126, 1)
+pokemonMenu = Template("pokemon-menu", 0, 192, 208, 80, 1)
+hmAnimation = Template("hm-animation", 0, 56, 255, 80, 50000)
 runaway = Template("runaway", 100, 354, 56, 30, 1)
 insideBag = Template("inside-bag", 135, 208, 114, 58, 1)
 insideBalls = Template("inside-balls", 91, 348, 74, 32, 1)
@@ -85,6 +87,9 @@ def isTemplateInImage(image, template, threshold, mask = None):
     return min_val <= threshold, min_loc
 
 ITEM_CURRENT_LOCATION_SELECTOR = cv2.imread('src/python/data/img/item-current-location-selector.png')
+MENU_CURRENT_LOCATION_SELECTOR = cv2.imread('src/python/data/img/menu-selector.png')
+MAP_CURSOR_ICON = cv2.imread('src/python/data/img/map-cursor.png')
+MAP_CURSOR_ICON_MASK = cv2.imread('src/python/data/img/map-cursor-mask.png')
 
 BAG_SECTION_SELECTION = {}
 BAG_SECTION_SELECTION["linesNumber"] = 2
@@ -97,6 +102,7 @@ ITEM_SELECTION["linesNumber"] = 3
 ITEM_SELECTION["menuWidth"] = 40
 ITEM_SELECTION["width"] = 128
 ITEM_SELECTION["height"] = 48
+
 
 def getCurrentBagSectionSelectedPosition(screenshot):
     return getCursorPosition(screenshot, BAG_SECTION_SELECTION)
@@ -121,13 +127,32 @@ def getCursorPosition(screenshot, sectionSize):
     else:
         return None
     
+def getMapCursorPosition(screenshot):
+    selectorInImage, location = isTemplateInImage(screenshot[0:0+170 , 20:20+216], MAP_CURSOR_ICON, 1, MAP_CURSOR_ICON_MASK)
+
+    if (selectorInImage):
+        x = round((location[0] - 6) * 27 / 189)
+        y = round((location[1] - 2) * 22 / 154)
+
+        return x,y
+    else:
+        return None
+    
+def getMenuPosition(screenshot):
+    selectorInImage, location = isTemplateInImage(screenshot[8:8+168 , 158:158+3], MENU_CURRENT_LOCATION_SELECTOR, 1)
+
+    if (selectorInImage):
+        return round(location[1] / 24) + 1
+    else:
+        return 0
+    
 def getScreenshot():
     while True:
         screenshotBytes = io.BytesIO(mmap.mmap(0, 64000, "screenshot"))
         
         try:
             screenshotImage = Image.open(screenshotBytes)
-            # screenshotImage.save("test.png")
+            screenshotImage.save("test.png")
 
             # Convert PIL image to CV2 image to enable image processing
             return cv2.cvtColor(numpy.array(screenshotImage), cv2.COLOR_RGB2BGR)

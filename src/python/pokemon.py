@@ -1,11 +1,18 @@
 from utils import formatNumber
 from utils import getShinyValue
 
+import memory
+
 class Move:
     def __init__(self, name, PP, PPUp):
         self.name = name
         self.PP = PP
         self.PPUp = PPUp
+    
+    def isHM(self):
+            return self.name in ["Chatter", "Cut", "Defog", "Dig", "Dive", "Flash", "Fly", "Headbutt", "Milk Drink",
+                                "Rock Climb", "Rock Smash", "Secret Power", "Soft-Boiled", "Strength", "Surf",
+                                "Sweet Scent", "Teleport", "Waterfall", "Whirlpool"]
 
 class Contest:
     def __init__(self, cool, beauty, cute, smart, tough, sheen):
@@ -157,6 +164,10 @@ class Pokemon:
         self.isShiny = pid != None and self.shinyValue < 255
 
     def __str__(self):
+
+        if (self.name is None):
+            return "### INVALID POKEMON (PID " + str(self.pid) + ") ###"
+
         return (str(self.name) + " " + ("♀" if self.female else "♂")
                 + " level " + str(self.level) + " (" + self.ability + ")" + " - PID = " + str(hex(self.pid)) + " - Shiny value : " + str(self.shinyValue)  + "\n"
                 + " - " + self.moves[0].name + " (" + str(self.moves[0].PP) + ")\n"
@@ -173,3 +184,23 @@ class Pokemon:
                 + " =============================================\n"
                 + " = EV    = " + formatNumber(self.EV.HP) + " = " + formatNumber(self.EV.attack) + " = " + formatNumber(self.EV.defense) + " = " + formatNumber(self.EV.specialAttack) + " = " + formatNumber(self.EV.specialDefense) + " = " + formatNumber(self.EV.speed) + " =\n"
                 + " =============================================\n")
+    
+def isFlyAvailable():
+    jsonTeamData = memory.readPokemonTeamData()
+
+    for pokemonPosition in range(len(jsonTeamData)):
+        movePosition = 0
+        pokemon = Pokemon(**jsonTeamData[pokemonPosition])
+
+        for move in pokemon.moves:
+            if (move.isHM()):
+                movePosition += 1
+
+                # Return first pokemon with Fly available
+                if (move.name == "Fly"):
+                    return [pokemonPosition, movePosition]
+    
+    # No Pokemon with Fly
+    print("No Pokemon with Fly")
+    return [None, None]
+
