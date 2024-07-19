@@ -1,200 +1,659 @@
+from position import Position
 
-class Zone():
-    def __init__(self, position, destination):
+OVERWORLD_ID = 999
+
+class Door():
+    def __init__(self, position: Position, destination: Position):
         self.position = position
         self.destination = destination
 
-class Location():
-    def __init__(self, name, zoneIds, mapFile):
+class Zone():
+    def __init__(self, name, zoneId, mapFile):
         self.name = name
-        self.zoneIds = zoneIds
-        self.siblings = []
-
+        self.zoneId = zoneId
         self.map = open('src/python/data/map/' + mapFile + '.map').readlines()
 
-OVERWORLD = Location("Overworld",
-                     [3,   # Féli-Cité
-                      33,  # Joliberges
-                      45,  # Charbourg
-                      65,  # Vestigion
-                      86,  # Unionpolis
-                      120, # Verchamps
-                      132, # Voilaroc
-                      150, # Rivamar
-                      165, # Frimapic
-                      172, # Ligue Pokémon - Extérieur
-                      188, # Aire de Combat
-                      200, # Les Eoliennes
-                      204, # Forge Fuego - Extérieur
-                      260, # Ile Pleine Lune
-                      262, # Mont Abrupt - Extérieur
-                      274, # Paradis Fleuri
-                      288, # Ile de Fer
-                      320, # Ile Nouvellune
-                      334, # Rive Lac Vérité
-                      336, # Rive Lac Courage
-                      340, # Rive Lac Savoir
-                      341, # Chemin Source
-                      342, # Route 201
-                      343, # Route 202
-                      344, # Route 203
-                      345, # Route 204 - Sud
-                      346, # Route 204 - Nord
-                      347, # Route 205 - Ouest
-                      349, # Route 205 - Est
-                      350, # Route 206 - Sud
-                      353, # Route 207
-                      354, # Route 208
-                      356, # Route 209
-                      362, # Route 210 - Sud
-                      363, # Route 210 - Nord
-                      365, # Route 211 - Ouest
-                      366, # Route 211 - Est
-                      367, # Route 212 - Nord
-                      371, # Route 212 - Sud
-                      373, # Route 213
-                      380, # Route 214
-                      382, # Route 215
-                      383, # Route 216
-                      385, # Route 217
-                      388, # Route 218
-                      391, # Route 219
-                      392, # Route 221
-                      395, # Route 222
-                      399, # Route 224
-                      400, # Route 225
-                      403, # Route 227
-                      406, # Route 228
-                      407, # Route 229
-                      411, # Bonaugure
-                      418, # Littorella
-                      426, # Floraville
-                      433, # Bonville
-                      442, # Célestia
-                      450, # Aire de Survie
-                      457, # Aire de Détente
-                      467, # Route 220
-                      468, # Route 223
-                      469, # Route 226
-                      471, # Route 230
-                      472] # Passage Marin
-, "overworld")
+        self.doorList = []
+        self.zoneList = [zoneId]
 
+    def addDoor(self, door: Door):
+        self.doorList.append(door)
 
-LITTORELLA_CENTREPOKEMON = Location("Littorella - Centre Pokémon", [420], "littorella-centrePokemon")
-FELICITE_CENTREPOKEMON = Location("Féli-Cité - Centre Pokémon", [6], "felicite-centrePokemon")
-CHARBOURG_CENTREPOKEMON = Location("Charbourg - Centre Pokémon", [48], "charbourg-centrePokemon")
-FLORAVILLE_CENTREPOKEMON = Location("Floraville - Centre Pokémon", [428], "floraville-centrePokemon")
-VESTIGION_CENTREPOKEMON = Location("Vestigion - Centre Pokémon", [69], "vestigion-centrePokemon")
-UNIONPOLIS_CENTREPOKEMON = Location("Unionpolis - Centre Pokémon", [101], "unionpolis-centrePokemon")
-BONVILLE_CENTREPOKEMON = Location("Bonville - Centre Pokémon", [435], "bonville-centrePokemon")
-VOILAROC_CENTREPOKEMON = Location("Voilaroc - Centre Pokémon", [134], "voilaroc-centrePokemon")
-VERCHAMPS_CENTREPOKEMON = Location("Verchamps - Centre Pokémon", [123], "verchamps-centrePokemon")
-CELESTIA_CENTREPOKEMON = Location("Célestia - Centre Pokémon", [443], "celestia-centrePokemon")
-JOLIBERGES_CENTREPOKEMON = Location("Joliberges - Centre Pokémon", [36], "joliberges-centrePokemon")
-FRIMAPIC_CENTREPOKEMON = Location("Frimapic - Centre Pokémon", [168], "frimapic-centrePokemon")
-RIVAMAR_CENTREPOKEMON = Location("Rivamar - Centre Pokémon", [151], "rivamar-centrePokemon")
-ROUTEVICTOIRE_CENTREPOKEMON = Location("Route Victoire - Centre Pokémon", [173], "ligue-centrePokemon")
-AIREDECOMBAT_CENTREPOKEMON = Location("Aire de Combat - Centre Pokémon", [189], "airedecombat-centrePokemon")
-AIREDESURVIE_CENTREPOKEMON = Location("Aire de Survie - Centre Pokémon", [452], "airedesurvie-centrePokemon")
-AIREDEDETENTE_CENTREPOKEMON = Location("Aire de Détente - Centre Pokémon", [459], "airededetente-centrePokemon")
+    def isDoorOnTheMap(self, doorPosition: Position):
+        for door in self.doorList:
+            if (doorPosition == door.position):
+                return True
+        return False
 
-LITTORELLA_SHOP = Location("Littorella - Shop", [419], "littorella-shop")
-FELICITE_SHOP = Location("Féli-Cité - Shop", [4], "felicite-shop")
-CHARBOURG_SHOP = Location("Charbourg - Shop", [46], "charbourg-shop")
-FLORAVILLE_SHOP = Location("Floraville - Shop", [427], "floraville-shop")
-VESTIGION_SHOP = Location("Vestigion - Shop", [66], "vestigion-shop")
-UNIONPOLIS_SHOP = Location("Unionpolis - Shop", [87], "unionpolis-shop")
-BONVILLE_SHOP = Location("Bonville - Shop", [434], "bonville-shop")
-VERCHAMPS_SHOP = Location("Verchamps - Shop", [121], "verchamps-shop")
-CELESTIA_SHOP = Location("Célestia - Shop", [446], "celestia-shop")
-JOLIBERGES_SHOP = Location("Joliberges - Shop", [34], "joliberges-shop")
-FRIMAPIC_SHOP = Location("Frimapic - Shop", [166], "frimapic-shop")
-RIVAMAR_SHOP = Location("Rivamar - Shop", [153], "rivamar-shop")
-AIREDECOMBAT_SHOP = Location("Aire de Combat - Shop", [191], "airedecombat-shop")
-AIREDESURVIE_SHOP = Location("Aire de Survie - Shop", [451], "airedesurvie-shop")
+    # Specifically for overworld map since it shares multiple zones
+    def setZoneList(self, zoneList):
+        self.zoneList = zoneList
 
-LIGUEPOKEMON = Location("Ligue Pokémon", [175], "liguePokemon")
-VOILAROC_CENTRECOMMERCIAL = Location("Voilaroc - Centre Commercial", [137], "centreCommercial-1")
-VOILAROC_CENTRECOMMERCIALETAGE1 = Location("Voilaroc - Centre Commercial Étage 1", [138], "centreCommercial-2")
-VOILAROC_CENTRECOMMERCIALETAGE2 = Location("Voilaroc - Centre Commercial Étage 2", [139], "centreCommercial-3")
-VOILAROC_CENTRECOMMERCIALETAGE3 = Location("Voilaroc - Centre Commercial Étage 3", [140], "centreCommercial-4")
-VOILAROC_CENTRECOMMERCIALETAGE4 = Location("Voilaroc - Centre Commercial Étage 4", [141], "centreCommercial-5")
-VOILAROC_CENTRECOMMERCIALASCENSEUR = Location("Voilaroc - Centre Commercial Ascenseur", [142], "centreCommercial-7")
-VOILAROC_CENTRECOMMERCIALSOUSSOL1 = Location("Voilaroc - Centre Commercial Sous-Sol 1", [566], "centreCommercial-6")
+OVERWORLD = Zone("Overworld", OVERWORLD_ID, "overworld")
 
-ENTREECHARBOURG = Location("Entrée Charbourg", [258], "entreeCharbourg-1")
-ENTREECHARBOURG_SOUSSOL1 = Location("Entrée Charbourg - Sous-Sol 1", [259], "entreeCharbourg-2")
-CHEMINROCHEUX = Location("Chemin Rocheux", [254], "cheminRocheux")
-GROTTEREVECHE = Location("Grotte Revêche", [284], "grotteReveche-1")
-GROTTEREVECHE_SOUSSOL = Location("Grotte Revêche - Sous-Sol", [285], "grotteReveche-2")
-FORETVESTIGION = Location("Forêt de Vestigion", [203], "foretVestigion")
+# Littorella
+LITTORELLA_CENTREPOKEMON = Zone("Littorella - Centre Pokémon", 420, "littorella-centrePokemon")
+LITTORELLA_CENTREPOKEMON.addDoor(Door(Position(8,13,LITTORELLA_CENTREPOKEMON), Position(177,843,OVERWORLD)))
+LITTORELLA_SHOP = Zone("Littorella - Shop", 419, "littorella-shop")
+LITTORELLA_SHOP.addDoor(Door(Position(3,12,LITTORELLA_SHOP), Position(187,843,OVERWORLD)))
+OVERWORLD.addDoor(Door(Position(177,842,OVERWORLD), Position(8,12,LITTORELLA_CENTREPOKEMON)))
+OVERWORLD.addDoor(Door(Position(187,842,OVERWORLD), Position(3,11,LITTORELLA_SHOP)))
 
-MONTCOURONNE_PASSAGECHARBOURG = Location("Mont Couronné - Passage Charbourg", [207], "montCouronne-1")
-MONTCOURONNE_SALLE1 = Location("Mont Couronné - Salle 1", [208], "montCouronne-2")
-MONTCOURONNE_SALLE2 = Location("Mont Couronné - Salle 2", [209], "montCouronne-3")
-MONTCOURONNE_EXTERIEUR2 = Location("Mont Couronné - Extérieur 2", [210], "montCouronne-6")
-MONTCOURONNE_EXTERIEUR1 = Location("Mont Couronné - Extérieur 1", [211], "montCouronne-4")
-MONTCOURONNE_SALLE3 = Location("Mont Couronné - Salle 3", [212], "montCouronne-5")
-MONTCOURONNE_SALLE4 = Location("Mont Couronné - Salle 4", [213], "montCouronne-7")
-MONTCOURONNE_SALLE5 = Location("Mont Couronné - Salle 5", [214], "montCouronne-8")
-MONTCOURONNE_SALLE6 = Location("Mont Couronné - Salle 6", [215], "montCouronne-9")
-MONTCOURONNE_SALLE7 = Location("Mont Couronné - Salle 7", [216], "montCouronne-10")
-MONTCOURONNE_PASSAGEFRIMAPIC = Location("Mont Couronné - Passage Frimapic", [217], "montCouronne-13")
-MONTCOURONNE_PASSAGEVESTIGION = Location("Mont Couronné - Passage Vestigion", [218], "montCouronne-11")
-MONTCOURONNE_SALLE8 = Location("Mont Couronné - Salle 8", [219], "montCouronne-12")
-SALLEORIGINELLE = Location("Salle Originelle", [510], "salleOriginelle")
-COLONNESLANCES = Location("Colonnes Lances", [584], "colonnesLances")
+# Féli-Cité
+FELICITE_CENTREPOKEMON = Zone("Féli-Cité - Centre Pokémon", 6, "felicite-centrePokemon")
+FELICITE_CENTREPOKEMON.addDoor(Door(Position(8,13,FELICITE_CENTREPOKEMON), Position(180,777,OVERWORLD)))
+FELICITE_SHOP = Zone("Féli-Cité - Shop", 4, "felicite-shop")
+FELICITE_SHOP.addDoor(Door(Position(3,12,FELICITE_SHOP), Position(179,767,OVERWORLD)))
+OVERWORLD.addDoor(Door(Position(180,776,OVERWORLD), Position(8,12,FELICITE_CENTREPOKEMON)))
+OVERWORLD.addDoor(Door(Position(179,766,OVERWORLD), Position(3,11,FELICITE_SHOP)))
 
-ILEDEFER_REZDECHAUSSEE = Location("Ile de Fer - Rez-de-Chaussée", [289], "ileDeFer-1")
-ILEDEFER_SOUSSOL1OUEST = Location("Ile de Fer - Sous-Sol 1 Ouest", [290], "ileDeFer-2")
-ILEDEFER_SOUSSOL1EST = Location("Ile de Fer - Sous-Sol 1 Est", [291], "ileDeFer-3")
-ILEDEFER_SOUSSOL2EST = Location("Ile de Fer - Sous-Sol 2 Est", [292], "ileDeFer-4")
-ILEDEFER_SOUSSOL2OUEST = Location("Ile de Fer - Sous-Sol 2 Ouest", [293], "ileDeFer-5")
-ILEDEFER_SORTIE = Location("Ile de Fer - Sortie", [294], "ileDeFer-6")
+# Charbourg
+CHARBOURG_CENTREPOKEMON = Zone("Charbourg - Centre Pokémon", 48, "charbourg-centrePokemon")
+CHARBOURG_CENTREPOKEMON.addDoor(Door(Position(8,13,CHARBOURG_CENTREPOKEMON), Position(303,757,OVERWORLD)))
+CHARBOURG_SHOP = Zone("Charbourg - Shop", 46, "charbourg-shop")
+CHARBOURG_SHOP.addDoor(Door(Position(3,12,CHARBOURG_SHOP), Position(285,747,OVERWORLD)))
+OVERWORLD.addDoor(Door(Position(303,756,OVERWORLD), Position(8,12,CHARBOURG_CENTREPOKEMON)))
+OVERWORLD.addDoor(Door(Position(285,746,OVERWORLD), Position(3,11,CHARBOURG_SHOP)))
 
-ROUTEVICTOIRE = Location("Route Victoire", [244], "routeVictoire-1")
-ROUTEVICTOIRE_SALLEOUEST = Location("Route Victoire - Salle Ouest", [245], "routeVictoire-2")
-ROUTEVICTOIRE_SALLEEST = Location("Route Victoire - Salle Est", [246], "routeVictoire-3")
-ROUTEVICTOIRE_SALLEBRUME = Location("Route Victoire - Salle Brume", [247], "routeVictoire-5")
-ROUTEVICTOIRE_PASSAGEEST = Location("Route Victoire - Passage Est", [248], "routeVictoire-4")
-ROUTEVICTOIRE_PASSAGEROUTE224 = Location("Route Victoire - Passage Route 224", [249], "routeVictoire-6")
+# Floraville
+FLORAVILLE_CENTREPOKEMON = Zone("Floraville - Centre Pokémon", 428, "floraville-centrePokemon")
+FLORAVILLE_CENTREPOKEMON.addDoor(Door(Position(8,13,FLORAVILLE_CENTREPOKEMON), Position(176,667,OVERWORLD)))
+FLORAVILLE_SHOP = Zone("Floraville - Shop", 427, "floraville-shop")
+FLORAVILLE_SHOP.addDoor(Door(Position(3,12,FLORAVILLE_SHOP), Position(184,658,OVERWORLD)))
+OVERWORLD.addDoor(Door(Position(176,666,OVERWORLD), Position(8,12,FLORAVILLE_CENTREPOKEMON)))
+OVERWORLD.addDoor(Door(Position(184,657,OVERWORLD), Position(3,11,FLORAVILLE_SHOP)))
 
-MONTABRUPT_SALLE1 = Location("Mont Abrupt - Salle 1", [263], "montAbrupt-1")
-MONTABRUPT_SALLE2 = Location("Mont Abrupt - Salle 2", [264], "montAbrupt-2")
-MONTABRUPT_SALLEHEATRAN = Location("Mont Abrupt - Salle Heatran", [265], "montAbrupt-3")
+# Vestigion
+VESTIGION_CENTREPOKEMON = Zone("Vestigion - Centre Pokémon", 69, "vestigion-centrePokemon")
+VESTIGION_CENTREPOKEMON.addDoor(Door(Position(8,13,VESTIGION_CENTREPOKEMON), Position(305,531,OVERWORLD)))
+VESTIGION_SHOP = Zone("Vestigion - Shop", 66, "vestigion-shop")
+VESTIGION_SHOP.addDoor(Door(Position(3,12,VESTIGION_SHOP), Position(309,549,OVERWORLD)))
+OVERWORLD.addDoor(Door(Position(305,530,OVERWORLD), Position(8,12,VESTIGION_CENTREPOKEMON)))
+OVERWORLD.addDoor(Door(Position(309,548,OVERWORLD), Position(3,11,VESTIGION_SHOP)))
 
-SOURCEADIEU = Location("Source Adieu", [267], "sourceAdieu")
-GROTTERETOUR_ENTREE = Location("Grotte Retour - Entrée", [268], "grotteRetour-entree")
-GROTTERETOUR_SALLEPILIER = Location("Grotte Retour - Salle Pilier", [269], "grotteRetour-pilier")
-GROTTERETOUR_SALLEGIRATINA = Location("Grotte Retour - Salle Giratina", [270], "grotteRetour-giratina")
-GROTTERETOUR_SALLE2 = Location("Grotte Retour - Salle 1", [518], "grotteRetour-1")
-GROTTERETOUR_SALLE2 = Location("Grotte Retour - Salle 2", [519], "grotteRetour-2")
-GROTTERETOUR_SALLE3 = Location("Grotte Retour - Salle 3", [520], "grotteRetour-3")
-GROTTERETOUR_SALLE4 = Location("Grotte Retour - Salle 4", [521], "grotteRetour-4")
-GROTTERETOUR_SALLE5 = Location("Grotte Retour - Salle 5", [522], "grotteRetour-5")
-GROTTERETOUR_SALLE6 = Location("Grotte Retour - Salle 6", [523], "grotteRetour-6")
-GROTTERETOUR_SALLE8 = Location("Grotte Retour - Salle 8", [525], "grotteRetour-8")
-GROTTERETOUR_SALLE9 = Location("Grotte Retour - Salle 9", [526], "grotteRetour-9")
-GROTTERETOUR_SALLE10 = Location("Grotte Retour - Salle 10", [527], "grotteRetour-10")
-GROTTERETOUR_SALLE11 = Location("Grotte Retour - Salle 11", [528], "grotteRetour-11")
-GROTTERETOUR_SALLE12 = Location("Grotte Retour - Salle 12", [529], "grotteRetour-12")
-GROTTERETOUR_SALLE13 = Location("Grotte Retour - Salle 13", [530], "grotteRetour-13")
-GROTTERETOUR_SALLE14 = Location("Grotte Retour - Salle 14", [531], "grotteRetour-14")
-GROTTERETOUR_SALLE15 = Location("Grotte Retour - Salle 15", [532], "grotteRetour-15")
-GROTTERETOUR_SALLE41 = Location("Grotte Retour - Salle 41", [271], "grotteRetour-41")
-GROTTERETOUR_SALLE42 = Location("Grotte Retour - Salle 42", [272], "grotteRetour-42")
-GROTTERETOUR_SALLE43 = Location("Grotte Retour - Salle 43", [273], "grotteRetour-43")
+# Unionpolis
+UNIONPOLIS_CENTREPOKEMON = Zone("Unionpolis - Centre Pokémon", 101, "unionpolis-centrePokemon")
+UNIONPOLIS_CENTREPOKEMON.addDoor(Door(Position(8,13,UNIONPOLIS_CENTREPOKEMON), Position(465,698,OVERWORLD)))
+UNIONPOLIS_SHOP = Zone("Unionpolis - Shop", 87, "unionpolis-shop")
+UNIONPOLIS_SHOP.addDoor(Door(Position(3,12,UNIONPOLIS_SHOP), Position(477,711,OVERWORLD)))
+OVERWORLD.addDoor(Door(Position(465,697,OVERWORLD), Position(8,12,UNIONPOLIS_CENTREPOKEMON)))
+OVERWORLD.addDoor(Door(Position(477,710,OVERWORLD), Position(3,11,UNIONPOLIS_SHOP)))
 
-LACVERITE = Location("Lac Vérité", [312], "lacVérité")
-LACVERITE_CAVERNEVERITE = Location("Lac Vérité - Caverne Vérité", [313], "grotteCre")
-LACCOURAGE = Location("Lac Courage", [315], "lacCourage")
-LACCOURAGE_GROTTECOURAGE = Location("Lac Courage - Grotte Courage", [316], "grotteCre")
-LACSAVOIR = Location("Lac Savoir", [318], "lacSavoir")
-LACSAVOIR_CAVERNESAVOIR = Location("Lac Savoir - Caverne Savoir", [319], "grotteCre")
+# Bonville
+BONVILLE_CENTREPOKEMON = Zone("Bonville - Centre Pokémon", 435, "bonville-centrePokemon")
+BONVILLE_CENTREPOKEMON.addDoor(Door(Position(8,13,BONVILLE_CENTREPOKEMON), Position(566,657,OVERWORLD)))
+BONVILLE_SHOP = Zone("Bonville - Shop", 434, "bonville-shop")
+BONVILLE_SHOP.addDoor(Door(Position(3,12,BONVILLE_SHOP), Position(571,666,OVERWORLD)))
+OVERWORLD.addDoor(Door(Position(566,656,OVERWORLD), Position(8,12,BONVILLE_CENTREPOKEMON)))
+OVERWORLD.addDoor(Door(Position(571,665,OVERWORLD), Position(3,11,BONVILLE_SHOP)))
 
-ILEDEFER_GROTTEREGISTEEL = Location("Ile de Fer - Grotte Registeel", [587], "grotteRegi")
-MONTCOURONNE_GROTTEREGICE = Location("Mont Couronné - Grotte Regice", [589], "grotteRegi")
-ROUTE228_GROTTEREGIROCK = Location("Route 228 - Grotte Regirock", [591], "grotteRegi")
-ILENOUVELLUNE = Location("Ile Nouvellune - Intérieur", [321], "ileNouvellune")
-ILEPLEINELUNE = Location("Ile Pleine Lune - Intérieur", [261], "ilePleineLune")
+# Voilaroc
+VOILAROC_CENTREPOKEMON = Zone("Voilaroc - Centre Pokémon", 134, "voilaroc-centrePokemon")
+VOILAROC_CENTREPOKEMON.addDoor(Door(Position(8,13,VOILAROC_CENTREPOKEMON), Position(566,657,OVERWORLD)))
+VOILAROC_CENTRECOMMERCIAL = Zone("Voilaroc - Centre Commercial", 137, "centreCommercial-1")
+VOILAROC_CENTRECOMMERCIALETAGE1 = Zone("Voilaroc - Centre Commercial Étage 1", 138, "centreCommercial-2")
+VOILAROC_CENTRECOMMERCIALETAGE2 = Zone("Voilaroc - Centre Commercial Étage 2", 139, "centreCommercial-3")
+VOILAROC_CENTRECOMMERCIALETAGE3 = Zone("Voilaroc - Centre Commercial Étage 3", 140, "centreCommercial-4")
+VOILAROC_CENTRECOMMERCIALETAGE4 = Zone("Voilaroc - Centre Commercial Étage 4", 141, "centreCommercial-5")
+VOILAROC_CENTRECOMMERCIALASCENSEUR = Zone("Voilaroc - Centre Commercial Ascenseur", 142, "centreCommercial-7")
+VOILAROC_CENTRECOMMERCIALSOUSSOL1 = Zone("Voilaroc - Centre Commercial Sous-Sol 1", 566, "centreCommercial-6")
+VOILAROC_CENTRECOMMERCIAL.addDoor(Door(Position(10,13,VOILAROC_CENTRECOMMERCIAL), Position(701,604,OVERWORLD)))
+VOILAROC_CENTRECOMMERCIAL.addDoor(Door(Position(7,8,VOILAROC_CENTRECOMMERCIAL), Position(12,8,VOILAROC_CENTRECOMMERCIALSOUSSOL1)))
+VOILAROC_CENTRECOMMERCIAL.addDoor(Door(Position(12,8,VOILAROC_CENTRECOMMERCIAL), Position(6,8,VOILAROC_CENTRECOMMERCIALETAGE1)))
+VOILAROC_CENTRECOMMERCIAL.addDoor(Door(Position(15,2,VOILAROC_CENTRECOMMERCIAL), Position(3,6,VOILAROC_CENTRECOMMERCIALASCENSEUR)))
+VOILAROC_CENTRECOMMERCIALETAGE1.addDoor(Door(Position(7,8,VOILAROC_CENTRECOMMERCIALETAGE1), Position(13,8,VOILAROC_CENTRECOMMERCIAL)))
+VOILAROC_CENTRECOMMERCIALETAGE1.addDoor(Door(Position(12,8,VOILAROC_CENTRECOMMERCIALETAGE1), Position(6,8,VOILAROC_CENTRECOMMERCIALETAGE2)))
+VOILAROC_CENTRECOMMERCIALETAGE1.addDoor(Door(Position(15,2,VOILAROC_CENTRECOMMERCIALETAGE1), Position(3,6,VOILAROC_CENTRECOMMERCIALASCENSEUR)))
+VOILAROC_CENTRECOMMERCIALETAGE2.addDoor(Door(Position(7,8,VOILAROC_CENTRECOMMERCIALETAGE2), Position(13,8,VOILAROC_CENTRECOMMERCIALETAGE1)))
+VOILAROC_CENTRECOMMERCIALETAGE2.addDoor(Door(Position(12,8,VOILAROC_CENTRECOMMERCIALETAGE2), Position(6,8,VOILAROC_CENTRECOMMERCIALETAGE3)))
+VOILAROC_CENTRECOMMERCIALETAGE2.addDoor(Door(Position(15,2,VOILAROC_CENTRECOMMERCIALETAGE2), Position(3,6,VOILAROC_CENTRECOMMERCIALASCENSEUR)))
+VOILAROC_CENTRECOMMERCIALETAGE3.addDoor(Door(Position(7,8,VOILAROC_CENTRECOMMERCIALETAGE3), Position(13,8,VOILAROC_CENTRECOMMERCIALETAGE2)))
+VOILAROC_CENTRECOMMERCIALETAGE3.addDoor(Door(Position(12,8,VOILAROC_CENTRECOMMERCIALETAGE3), Position(6,8,VOILAROC_CENTRECOMMERCIALETAGE4)))
+VOILAROC_CENTRECOMMERCIALETAGE3.addDoor(Door(Position(15,2,VOILAROC_CENTRECOMMERCIALETAGE3), Position(3,6,VOILAROC_CENTRECOMMERCIALASCENSEUR)))
+VOILAROC_CENTRECOMMERCIALETAGE4.addDoor(Door(Position(7,8,VOILAROC_CENTRECOMMERCIALETAGE4), Position(13,8,VOILAROC_CENTRECOMMERCIALETAGE3)))
+VOILAROC_CENTRECOMMERCIALETAGE4.addDoor(Door(Position(15,2,VOILAROC_CENTRECOMMERCIALETAGE4), Position(3,6,VOILAROC_CENTRECOMMERCIALASCENSEUR)))
+VOILAROC_CENTRECOMMERCIALSOUSSOL1.addDoor(Door(Position(11,8,VOILAROC_CENTRECOMMERCIALSOUSSOL1), Position(6,8,VOILAROC_CENTRECOMMERCIAL)))
+VOILAROC_CENTRECOMMERCIALSOUSSOL1.addDoor(Door(Position(14,2,VOILAROC_CENTRECOMMERCIALSOUSSOL1), Position(3,6,VOILAROC_CENTRECOMMERCIALASCENSEUR)))
+VOILAROC_CENTRECOMMERCIALASCENSEUR.addDoor(Door(Position(3,7,VOILAROC_CENTRECOMMERCIALASCENSEUR), Position(15,3,VOILAROC_CENTRECOMMERCIAL)))
+OVERWORLD.addDoor(Door(Position(566,656,OVERWORLD), Position(8,12,VOILAROC_CENTREPOKEMON)))
+OVERWORLD.addDoor(Door(Position(701,603,OVERWORLD), Position(10,12,VOILAROC_CENTRECOMMERCIAL)))
+
+# Verchamps
+VERCHAMPS_CENTREPOKEMON = Zone("Verchamps - Centre Pokémon", 123, "verchamps-centrePokemon")
+VERCHAMPS_CENTREPOKEMON.addDoor(Door(Position(8,13,VERCHAMPS_CENTREPOKEMON), Position(600,816,OVERWORLD)))
+VERCHAMPS_SHOP = Zone("Verchamps - Shop", 121, "verchamps-shop")
+VERCHAMPS_SHOP.addDoor(Door(Position(3,12,VERCHAMPS_SHOP), Position(601,845,OVERWORLD)))
+OVERWORLD.addDoor(Door(Position(600,815,OVERWORLD), Position(8,12,VERCHAMPS_CENTREPOKEMON)))
+OVERWORLD.addDoor(Door(Position(601,844,OVERWORLD), Position(3,11,VERCHAMPS_SHOP)))
+
+# Célestia
+CELESTIA_CENTREPOKEMON = Zone("Célestia - Centre Pokémon", 443, "celestia-centrePokemon")
+CELESTIA_CENTREPOKEMON.addDoor(Door(Position(8,13,CELESTIA_CENTREPOKEMON), Position(472,539,OVERWORLD)))
+CELESTIA_SHOP = Zone("Célestia - Shop", 446, "celestia-shop")
+CELESTIA_SHOP.addDoor(Door(Position(4,9,CELESTIA_SHOP), Position(450,516,OVERWORLD)))
+OVERWORLD.addDoor(Door(Position(472,538,OVERWORLD), Position(8,12,CELESTIA_CENTREPOKEMON)))
+OVERWORLD.addDoor(Door(Position(450,515,OVERWORLD), Position(4,8,CELESTIA_SHOP)))
+
+# Joliberges
+JOLIBERGES_CENTREPOKEMON = Zone("Joliberges - Centre Pokémon", 36, "joliberges-centrePokemon")
+JOLIBERGES_CENTREPOKEMON.addDoor(Door(Position(8,13,JOLIBERGES_CENTREPOKEMON), Position(58,723,OVERWORLD)))
+JOLIBERGES_SHOP = Zone("Joliberges - Shop", 34, "joliberges-shop")
+JOLIBERGES_SHOP.addDoor(Door(Position(3,12,JOLIBERGES_SHOP), Position(53,741,OVERWORLD)))
+OVERWORLD.addDoor(Door(Position(58,722,OVERWORLD), Position(8,12,JOLIBERGES_CENTREPOKEMON)))
+OVERWORLD.addDoor(Door(Position(53,740,OVERWORLD), Position(3,11,JOLIBERGES_SHOP)))
+
+# Frimapic
+FRIMAPIC_CENTREPOKEMON = Zone("Frimapic - Centre Pokémon", 168, "frimapic-centrePokemon")
+FRIMAPIC_CENTREPOKEMON.addDoor(Door(Position(8,13,FRIMAPIC_CENTREPOKEMON), Position(379,234,OVERWORLD)))
+FRIMAPIC_SHOP = Zone("Frimapic - Shop", 166, "frimapic-shop")
+FRIMAPIC_SHOP.addDoor(Door(Position(3,12,FRIMAPIC_SHOP), Position(353,233,OVERWORLD)))
+OVERWORLD.addDoor(Door(Position(379,233,OVERWORLD), Position(8,12,FRIMAPIC_CENTREPOKEMON)))
+OVERWORLD.addDoor(Door(Position(353,232,OVERWORLD), Position(3,11,FRIMAPIC_SHOP)))
+
+# Rivamar
+RIVAMAR_CENTREPOKEMON = Zone("Rivamar - Centre Pokémon", 151, "rivamar-centrePokemon")
+RIVAMAR_CENTREPOKEMON.addDoor(Door(Position(8,13,RIVAMAR_CENTREPOKEMON), Position(860,785,OVERWORLD)))
+RIVAMAR_SHOP = Zone("Rivamar - Shop", 153, "rivamar-shop")
+RIVAMAR_SHOP.addDoor(Door(Position(3,12,RIVAMAR_SHOP), Position(853,769,OVERWORLD)))
+OVERWORLD.addDoor(Door(Position(860,784,OVERWORLD), Position(8,12,RIVAMAR_CENTREPOKEMON)))
+OVERWORLD.addDoor(Door(Position(853,768,OVERWORLD), Position(3,11,RIVAMAR_SHOP)))
+
+# Ligue Pokémon
+LIGUEPOKEMON_CENTREPOKEMON = Zone("Route Victoire - Centre Pokémon", 173, "ligue-centrePokemon")
+LIGUEPOKEMON = Zone("Ligue Pokémon", 175, "liguePokemon")
+LIGUEPOKEMON_CENTREPOKEMON.addDoor(Door(Position(8,13,LIGUEPOKEMON_CENTREPOKEMON), Position(842,599,OVERWORLD)))
+LIGUEPOKEMON.addDoor(Door(Position(11,12,LIGUEPOKEMON), Position(847,560,OVERWORLD)))
+OVERWORLD.addDoor(Door(Position(842,598,OVERWORLD), Position(8,12,LIGUEPOKEMON_CENTREPOKEMON)))
+OVERWORLD.addDoor(Door(Position(847,559,OVERWORLD), Position(11,11,LIGUEPOKEMON)))
+
+# Aire de Combat
+AIREDECOMBAT_CENTREPOKEMON = Zone("Aire de Combat - Centre Pokémon", 189, "airedecombat-centrePokemon")
+AIREDECOMBAT_CENTREPOKEMON.addDoor(Door(Position(8,13,AIREDECOMBAT_CENTREPOKEMON), Position(647,430,OVERWORLD)))
+AIREDECOMBAT_SHOP = Zone("Aire de Combat - Shop", 191, "airedecombat-shop")
+AIREDECOMBAT_SHOP.addDoor(Door(Position(3,12,AIREDECOMBAT_SHOP), Position(660,430,OVERWORLD)))
+OVERWORLD.addDoor(Door(Position(647,429,OVERWORLD), Position(8,12,AIREDECOMBAT_CENTREPOKEMON)))
+OVERWORLD.addDoor(Door(Position(660,429,OVERWORLD), Position(3,11,AIREDECOMBAT_SHOP)))
+
+# Aire de Survie
+AIREDESURVIE_CENTREPOKEMON = Zone("Aire de Survie - Centre Pokémon", 452, "airedesurvie-centrePokemon")
+AIREDESURVIE_CENTREPOKEMON.addDoor(Door(Position(8,13,AIREDESURVIE_CENTREPOKEMON), Position(659,339,OVERWORLD)))
+AIREDESURVIE_SHOP = Zone("Aire de Survie - Shop", 451, "airedesurvie-shop")
+AIREDESURVIE_SHOP.addDoor(Door(Position(3,12,AIREDESURVIE_SHOP), Position(663,339,OVERWORLD)))
+OVERWORLD.addDoor(Door(Position(659,338,OVERWORLD), Position(8,12,AIREDESURVIE_CENTREPOKEMON)))
+OVERWORLD.addDoor(Door(Position(663,338,OVERWORLD), Position(3,11,AIREDESURVIE_SHOP)))
+
+# Aire de Détente
+AIREDEDETENTE_CENTREPOKEMON = Zone("Aire de Détente - Centre Pokémon", 459, "airededetente-centrePokemon")
+AIREDEDETENTE_CENTREPOKEMON.addDoor(Door(Position(8,13,AIREDEDETENTE_CENTREPOKEMON), Position(802,473,OVERWORLD)))
+OVERWORLD.addDoor(Door(Position(802,472,OVERWORLD), Position(8,12,AIREDEDETENTE_CENTREPOKEMON)))
+
+# Passage Route 206 <-> Vestigion
+ROUTE206_PASSAGEVESTIGION = Zone("Route 206 - Passage Vestigion", 80, "route206-passageVestigion")
+ROUTE206_PASSAGEVESTIGION.addDoor(Door(Position(6,2,ROUTE206_PASSAGEVESTIGION), Position(304,569,OVERWORLD)))
+ROUTE206_PASSAGEVESTIGION.addDoor(Door(Position(7,2,ROUTE206_PASSAGEVESTIGION), Position(304,569,OVERWORLD)))
+ROUTE206_PASSAGEVESTIGION.addDoor(Door(Position(8,2,ROUTE206_PASSAGEVESTIGION), Position(304,569,OVERWORLD)))
+OVERWORLD.addDoor(Door(Position(304,570,OVERWORLD), Position(7,3,ROUTE206_PASSAGEVESTIGION)))
+OVERWORLD.addDoor(Door(Position(305,570,OVERWORLD), Position(7,3,ROUTE206_PASSAGEVESTIGION)))
+
+# Passage Route 206 <-> Charbourg
+ROUTE206_PASSAGECHARBOURG = Zone("Route 206 - Passage Charbourg", 351, "route206-passageCharbourg")
+ROUTE206_PASSAGECHARBOURG.addDoor(Door(Position(6,13,ROUTE206_PASSAGECHARBOURG), Position(301,689,OVERWORLD)))
+ROUTE206_PASSAGECHARBOURG.addDoor(Door(Position(7,13,ROUTE206_PASSAGECHARBOURG), Position(302,689,OVERWORLD)))
+ROUTE206_PASSAGECHARBOURG.addDoor(Door(Position(8,13,ROUTE206_PASSAGECHARBOURG), Position(304,689,OVERWORLD)))
+OVERWORLD.addDoor(Door(Position(301,688,OVERWORLD), Position(6,12,ROUTE206_PASSAGECHARBOURG)))
+OVERWORLD.addDoor(Door(Position(302,688,OVERWORLD), Position(7,12,ROUTE206_PASSAGECHARBOURG)))
+OVERWORLD.addDoor(Door(Position(303,688,OVERWORLD), Position(7,12,ROUTE206_PASSAGECHARBOURG)))
+OVERWORLD.addDoor(Door(Position(304,688,OVERWORLD), Position(8,12,ROUTE206_PASSAGECHARBOURG)))
+
+# Passage Route 208 <-> Unionpolis
+ROUTE208_PASSAGEUNIONPOLIS = Zone("Route 208 - Passage Unionpolis", 109, "route208-passageUnionpolis")
+ROUTE208_PASSAGEUNIONPOLIS.addDoor(Door(Position(0,7,ROUTE208_PASSAGEUNIONPOLIS), Position(447,726,OVERWORLD)))
+ROUTE208_PASSAGEUNIONPOLIS.addDoor(Door(Position(11,7,ROUTE208_PASSAGEUNIONPOLIS), Position(454,726,OVERWORLD)))
+OVERWORLD.addDoor(Door(Position(448,726,OVERWORLD), Position(1,7,ROUTE208_PASSAGEUNIONPOLIS)))
+OVERWORLD.addDoor(Door(Position(448,727,OVERWORLD), Position(1,7,ROUTE208_PASSAGEUNIONPOLIS)))
+OVERWORLD.addDoor(Door(Position(453,726,OVERWORLD), Position(10,7,ROUTE208_PASSAGEUNIONPOLIS)))
+OVERWORLD.addDoor(Door(Position(453,727,OVERWORLD), Position(10,7,ROUTE208_PASSAGEUNIONPOLIS)))
+
+# Passage Route 209 <-> Unionpolis
+ROUTE209_PASSAGEUNIONPOLIS = Zone("Route 209 - Passage Unionpolis", 110, "route209-passageUnionpolis")
+ROUTE209_PASSAGEUNIONPOLIS.addDoor(Door(Position(0,7,ROUTE209_PASSAGEUNIONPOLIS), Position(505,726,OVERWORLD)))
+ROUTE209_PASSAGEUNIONPOLIS.addDoor(Door(Position(11,7,ROUTE209_PASSAGEUNIONPOLIS), Position(512,726,OVERWORLD)))
+OVERWORLD.addDoor(Door(Position(506,726,OVERWORLD), Position(1,7,ROUTE209_PASSAGEUNIONPOLIS)))
+OVERWORLD.addDoor(Door(Position(506,727,OVERWORLD), Position(1,7,ROUTE209_PASSAGEUNIONPOLIS)))
+OVERWORLD.addDoor(Door(Position(511,726,OVERWORLD), Position(10,7,ROUTE209_PASSAGEUNIONPOLIS)))
+OVERWORLD.addDoor(Door(Position(511,727,OVERWORLD), Position(10,7,ROUTE209_PASSAGEUNIONPOLIS)))
+
+# Passage Route 212 <-> Unionpolis
+ROUTE212_PASSAGEUNIONPOLIS = Zone("Route 212 - Passage Unionpolis", 111, "route212-passageUnionpolis")
+ROUTE212_PASSAGEUNIONPOLIS.addDoor(Door(Position(5,2,ROUTE212_PASSAGEUNIONPOLIS), Position(458,729,OVERWORLD)))
+ROUTE212_PASSAGEUNIONPOLIS.addDoor(Door(Position(5,13,ROUTE212_PASSAGEUNIONPOLIS), Position(458,737,OVERWORLD)))
+OVERWORLD.addDoor(Door(Position(458,730,OVERWORLD), Position(5,3,ROUTE212_PASSAGEUNIONPOLIS)))
+OVERWORLD.addDoor(Door(Position(459,730,OVERWORLD), Position(5,3,ROUTE212_PASSAGEUNIONPOLIS)))
+OVERWORLD.addDoor(Door(Position(458,736,OVERWORLD), Position(5,12,ROUTE212_PASSAGEUNIONPOLIS)))
+OVERWORLD.addDoor(Door(Position(459,736,OVERWORLD), Position(5,12,ROUTE212_PASSAGEUNIONPOLIS)))
+
+# Passage Route 214 <-> Voilaroc
+ROUTE214_PASSAGEVOILAROC = Zone("Route 214 - Passage Voilaroc", 149, "route214-passageVoilaroc")
+ROUTE214_PASSAGEVOILAROC.addDoor(Door(Position(0,7,ROUTE214_PASSAGEVOILAROC), Position(671,598,OVERWORLD)))
+ROUTE214_PASSAGEVOILAROC.addDoor(Door(Position(11,7,ROUTE214_PASSAGEVOILAROC), Position(678,598,OVERWORLD)))
+OVERWORLD.addDoor(Door(Position(672,598,OVERWORLD), Position(1,7,ROUTE214_PASSAGEVOILAROC)))
+OVERWORLD.addDoor(Door(Position(672,599,OVERWORLD), Position(1,7,ROUTE214_PASSAGEVOILAROC)))
+OVERWORLD.addDoor(Door(Position(677,598,OVERWORLD), Position(10,7,ROUTE214_PASSAGEVOILAROC)))
+OVERWORLD.addDoor(Door(Position(677,599,OVERWORLD), Position(10,7,ROUTE214_PASSAGEVOILAROC)))
+
+# Passage Route 215 <-> Voilaroc
+ROUTE215_PASSAGEVOILAROC = Zone("Route 215 - Passage Voilaroc", 381, "route215-passageVoilaroc")
+ROUTE215_PASSAGEVOILAROC.addDoor(Door(Position(5,2,ROUTE215_PASSAGEVOILAROC), Position(718,638,OVERWORLD)))
+ROUTE215_PASSAGEVOILAROC.addDoor(Door(Position(5,13,ROUTE215_PASSAGEVOILAROC), Position(718,646,OVERWORLD)))
+OVERWORLD.addDoor(Door(Position(718,639,OVERWORLD), Position(5,3,ROUTE215_PASSAGEVOILAROC)))
+OVERWORLD.addDoor(Door(Position(719,639,OVERWORLD), Position(5,3,ROUTE215_PASSAGEVOILAROC)))
+OVERWORLD.addDoor(Door(Position(718,645,OVERWORLD), Position(5,12,ROUTE215_PASSAGEVOILAROC)))
+OVERWORLD.addDoor(Door(Position(719,645,OVERWORLD), Position(5,12,ROUTE215_PASSAGEVOILAROC)))
+
+# Passage Route 213 <-> Verchamps
+ROUTE213_PASSAGEVERCHAMPS = Zone("Route 213 - Passage Verchamps", 374, "route213-passageVerchamps")
+ROUTE213_PASSAGEVERCHAMPS.addDoor(Door(Position(0,7,ROUTE213_PASSAGEVERCHAMPS), Position(639,812,OVERWORLD)))
+ROUTE213_PASSAGEVERCHAMPS.addDoor(Door(Position(11,7,ROUTE213_PASSAGEVERCHAMPS), Position(646,812,OVERWORLD)))
+OVERWORLD.addDoor(Door(Position(640,812,OVERWORLD), Position(1,7,ROUTE213_PASSAGEVERCHAMPS)))
+OVERWORLD.addDoor(Door(Position(640,813,OVERWORLD), Position(1,7,ROUTE213_PASSAGEVERCHAMPS)))
+OVERWORLD.addDoor(Door(Position(645,812,OVERWORLD), Position(10,7,ROUTE213_PASSAGEVERCHAMPS)))
+OVERWORLD.addDoor(Door(Position(645,813,OVERWORLD), Position(10,7,ROUTE213_PASSAGEVERCHAMPS)))
+
+# Passage Route 218 <-> Féli-Cité
+ROUTE218_PASSAGEFELICITE = Zone("Route 218 - Passage Féli-Cité", 389, "route218-passageFelicite")
+ROUTE218_PASSAGEFELICITE.addDoor(Door(Position(0,7,ROUTE218_PASSAGEFELICITE), Position(128,758,OVERWORLD)))
+ROUTE218_PASSAGEFELICITE.addDoor(Door(Position(11,7,ROUTE218_PASSAGEFELICITE), Position(121,758,OVERWORLD)))
+OVERWORLD.addDoor(Door(Position(127,758,OVERWORLD), Position(1,7,ROUTE218_PASSAGEFELICITE)))
+OVERWORLD.addDoor(Door(Position(127,759,OVERWORLD), Position(1,7,ROUTE218_PASSAGEFELICITE)))
+OVERWORLD.addDoor(Door(Position(122,758,OVERWORLD), Position(10,7,ROUTE218_PASSAGEFELICITE)))
+OVERWORLD.addDoor(Door(Position(122,759,OVERWORLD), Position(10,7,ROUTE218_PASSAGEFELICITE)))
+
+# Passage Route 218 <-> Joliberges
+ROUTE218_PASSAGEJOLIBERGES = Zone("Route 218 - Passage Joliberges", 390, "route218-passageJoliberges")
+ROUTE218_PASSAGEJOLIBERGES.addDoor(Door(Position(0,7,ROUTE218_PASSAGEJOLIBERGES), Position(63,754,OVERWORLD)))
+ROUTE218_PASSAGEJOLIBERGES.addDoor(Door(Position(11,7,ROUTE218_PASSAGEJOLIBERGES), Position(70,754,OVERWORLD)))
+OVERWORLD.addDoor(Door(Position(64,754,OVERWORLD), Position(1,7,ROUTE218_PASSAGEJOLIBERGES)))
+OVERWORLD.addDoor(Door(Position(64,755,OVERWORLD), Position(1,7,ROUTE218_PASSAGEJOLIBERGES)))
+OVERWORLD.addDoor(Door(Position(69,754,OVERWORLD), Position(10,7,ROUTE218_PASSAGEJOLIBERGES)))
+OVERWORLD.addDoor(Door(Position(69,755,OVERWORLD), Position(10,7,ROUTE218_PASSAGEJOLIBERGES)))
+
+# Passage Route 222 <-> Rivamar
+ROUTE222_PASSAGERIVAMAR = Zone("Route 222 - Passage Rivamar", 398, "route222-passageRivamar")
+ROUTE222_PASSAGERIVAMAR.addDoor(Door(Position(0,7,ROUTE222_PASSAGERIVAMAR), Position(825,790,OVERWORLD)))
+ROUTE222_PASSAGERIVAMAR.addDoor(Door(Position(11,7,ROUTE222_PASSAGERIVAMAR), Position(832,790,OVERWORLD)))
+OVERWORLD.addDoor(Door(Position(826,790,OVERWORLD), Position(1,7,ROUTE222_PASSAGERIVAMAR)))
+OVERWORLD.addDoor(Door(Position(826,791,OVERWORLD), Position(1,7,ROUTE222_PASSAGERIVAMAR)))
+OVERWORLD.addDoor(Door(Position(831,790,OVERWORLD), Position(10,7,ROUTE222_PASSAGERIVAMAR)))
+OVERWORLD.addDoor(Door(Position(831,791,OVERWORLD), Position(10,7,ROUTE222_PASSAGERIVAMAR)))
+
+# Passage Route 225 <-> Aire de Combat
+ROUTE225_PASSAGEAIREDECOMBAT = Zone("Route 225 - Passage Aire de Combat", 193, "route225-passageAiredecombat")
+ROUTE225_PASSAGEAIREDECOMBAT.addDoor(Door(Position(5,2,ROUTE225_PASSAGEAIREDECOMBAT), Position(630,413,OVERWORLD)))
+ROUTE225_PASSAGEAIREDECOMBAT.addDoor(Door(Position(5,13,ROUTE225_PASSAGEAIREDECOMBAT), Position(630,422,OVERWORLD)))
+OVERWORLD.addDoor(Door(Position(630,414,OVERWORLD), Position(5,3,ROUTE225_PASSAGEAIREDECOMBAT)))
+OVERWORLD.addDoor(Door(Position(631,414,OVERWORLD), Position(5,3,ROUTE225_PASSAGEAIREDECOMBAT)))
+OVERWORLD.addDoor(Door(Position(630,421,OVERWORLD), Position(5,12,ROUTE225_PASSAGEAIREDECOMBAT)))
+OVERWORLD.addDoor(Door(Position(631,421,OVERWORLD), Position(5,12,ROUTE225_PASSAGEAIREDECOMBAT)))
+
+# Passage Route 226 <-> Route 228
+ROUTE226_PASSAGEROUTE228 = Zone("Route 226 - Passage Route 228", 501, "route226-passageRoute228")
+ROUTE226_PASSAGEROUTE228.addDoor(Door(Position(0,7,ROUTE226_PASSAGEROUTE228), Position(767,330,OVERWORLD)))
+ROUTE226_PASSAGEROUTE228.addDoor(Door(Position(11,7,ROUTE226_PASSAGEROUTE228), Position(774,330,OVERWORLD)))
+OVERWORLD.addDoor(Door(Position(768,330,OVERWORLD), Position(1,7,ROUTE226_PASSAGEROUTE228)))
+OVERWORLD.addDoor(Door(Position(768,331,OVERWORLD), Position(1,7,ROUTE226_PASSAGEROUTE228)))
+OVERWORLD.addDoor(Door(Position(773,330,OVERWORLD), Position(10,7,ROUTE226_PASSAGEROUTE228)))
+OVERWORLD.addDoor(Door(Position(773,331,OVERWORLD), Position(10,7,ROUTE226_PASSAGEROUTE228)))
+
+# Entrée Charbourg
+ENTREECHARBOURG = Zone("Entrée Charbourg", 258, "entreeCharbourg-1")
+ENTREECHARBOURG_SOUSSOL1 = Zone("Entrée Charbourg - Sous-Sol 1", 259, "entreeCharbourg-2")
+ENTREECHARBOURG.addDoor(Door(Position(3,22,ENTREECHARBOURG), Position(246,749,OVERWORLD)))
+ENTREECHARBOURG.addDoor(Door(Position(28,22,ENTREECHARBOURG), Position(258,749,OVERWORLD)))
+ENTREECHARBOURG.addDoor(Door(Position(21,5,ENTREECHARBOURG), Position(48,4,ENTREECHARBOURG_SOUSSOL1)))
+ENTREECHARBOURG_SOUSSOL1.addDoor(Door(Position(47,4,ENTREECHARBOURG_SOUSSOL1), Position(20,5,ENTREECHARBOURG)))
+OVERWORLD.addDoor(Door(Position(247,749,OVERWORLD), Position(4,22,ENTREECHARBOURG)))
+OVERWORLD.addDoor(Door(Position(257,749,OVERWORLD), Position(27,22,ENTREECHARBOURG)))
+
+# Chemin Rocheux
+CHEMINROCHEUX = Zone("Chemin Rocheux", 254, "cheminRocheux")
+CHEMINROCHEUX.addDoor(Door(Position(19,51,CHEMINROCHEUX), Position(171,706,OVERWORLD)))
+CHEMINROCHEUX.addDoor(Door(Position(28,45,CHEMINROCHEUX), Position(180,699,OVERWORLD)))
+OVERWORLD.addDoor(Door(Position(171,705,OVERWORLD), Position(19,50,CHEMINROCHEUX)))
+OVERWORLD.addDoor(Door(Position(180,698,OVERWORLD), Position(28,44,CHEMINROCHEUX)))
+
+# Forêt de Vestigion
+FORETVESTIGION = Zone("Forêt de Vestigion", 203, "foretVestigion")
+FORETVESTIGION.addDoor(Door(Position(28,87,FORETVESTIGION), Position(206,582,OVERWORLD)))
+FORETVESTIGION.addDoor(Door(Position(29,87,FORETVESTIGION), Position(207,582,OVERWORLD)))
+FORETVESTIGION.addDoor(Door(Position(87,36,FORETVESTIGION), Position(259,524,OVERWORLD)))
+FORETVESTIGION.addDoor(Door(Position(87,37,FORETVESTIGION), Position(259,525,OVERWORLD)))
+OVERWORLD.addDoor(Door(Position(206,581,OVERWORLD), Position(28,86,FORETVESTIGION)))
+OVERWORLD.addDoor(Door(Position(207,581,OVERWORLD), Position(29,86,FORETVESTIGION)))
+OVERWORLD.addDoor(Door(Position(258,524,OVERWORLD), Position(86,36,FORETVESTIGION)))
+OVERWORLD.addDoor(Door(Position(258,525,OVERWORLD), Position(86,37,FORETVESTIGION)))
+
+# Piste Cyclable (Too complicated to add to Overworld map because of Route 206, so it has its own map)
+PISTECYCLABLE = Zone("Piste Cyclable", 350, "pisteCyclable")
+PISTECYCLABLE.addDoor(Door(Position(304,576,PISTECYCLABLE), Position(7,12,ROUTE206_PASSAGEVESTIGION)))
+PISTECYCLABLE.addDoor(Door(Position(305,576,PISTECYCLABLE), Position(7,12,ROUTE206_PASSAGEVESTIGION)))
+PISTECYCLABLE.addDoor(Door(Position(300,682,PISTECYCLABLE), Position(6,3,ROUTE206_PASSAGECHARBOURG)))
+PISTECYCLABLE.addDoor(Door(Position(301,682,PISTECYCLABLE), Position(7,3,ROUTE206_PASSAGECHARBOURG)))
+PISTECYCLABLE.addDoor(Door(Position(302,682,PISTECYCLABLE), Position(7,3,ROUTE206_PASSAGECHARBOURG)))
+PISTECYCLABLE.addDoor(Door(Position(303,682,PISTECYCLABLE), Position(7,3,ROUTE206_PASSAGECHARBOURG)))
+PISTECYCLABLE.addDoor(Door(Position(304,682,PISTECYCLABLE), Position(7,3,ROUTE206_PASSAGECHARBOURG)))
+PISTECYCLABLE.addDoor(Door(Position(305,682,PISTECYCLABLE), Position(8,3,ROUTE206_PASSAGECHARBOURG)))
+ROUTE206_PASSAGEVESTIGION.addDoor(Door(Position(6,13,ROUTE206_PASSAGEVESTIGION), Position(304,577,PISTECYCLABLE)))
+ROUTE206_PASSAGEVESTIGION.addDoor(Door(Position(7,13,ROUTE206_PASSAGEVESTIGION), Position(304,577,PISTECYCLABLE)))
+ROUTE206_PASSAGEVESTIGION.addDoor(Door(Position(8,13,ROUTE206_PASSAGEVESTIGION), Position(304,577,PISTECYCLABLE)))
+ROUTE206_PASSAGECHARBOURG.addDoor(Door(Position(6,2,ROUTE206_PASSAGECHARBOURG), Position(301,681,PISTECYCLABLE)))
+ROUTE206_PASSAGECHARBOURG.addDoor(Door(Position(7,2,ROUTE206_PASSAGECHARBOURG), Position(302,681,PISTECYCLABLE)))
+ROUTE206_PASSAGECHARBOURG.addDoor(Door(Position(8,2,ROUTE206_PASSAGECHARBOURG), Position(304,681,PISTECYCLABLE)))
+
+# Grotte Revêche
+GROTTEREVECHE = Zone("Grotte Revêche", 284, "grotteReveche-1")
+GROTTEREVECHE_SOUSSOL = Zone("Grotte Revêche - Sous-Sol", 285, "grotteReveche-2")
+GROTTEREVECHE.addDoor(Door(Position(30,56,GROTTEREVECHE), Position(299,612,OVERWORLD)))
+GROTTEREVECHE.addDoor(Door(Position(41,54,GROTTEREVECHE), Position(310,608,OVERWORLD)))
+GROTTEREVECHE.addDoor(Door(Position(27,54,GROTTEREVECHE), Position(16,40,GROTTEREVECHE_SOUSSOL)))
+GROTTEREVECHE.addDoor(Door(Position(54,54,GROTTEREVECHE), Position(43,38,GROTTEREVECHE_SOUSSOL)))
+GROTTEREVECHE_SOUSSOL.addDoor(Door(Position(17,40,GROTTEREVECHE_SOUSSOL), Position(28,54,GROTTEREVECHE)))
+GROTTEREVECHE_SOUSSOL.addDoor(Door(Position(44,38,GROTTEREVECHE_SOUSSOL), Position(55,54,GROTTEREVECHE)))
+OVERWORLD.addDoor(Door(Position(299,611,OVERWORLD), Position(30,55,GROTTEREVECHE)))
+OVERWORLD.addDoor(Door(Position(310,607,OVERWORLD), Position(41,53,GROTTEREVECHE)))
+
+# Mont Couronné
+MONTCOURONNE_PASSAGECHARBOURG = Zone("Mont Couronné - Passage Charbourg", 207, "montCouronne-1")
+MONTCOURONNE_SALLE1 = Zone("Mont Couronné - Salle 1", 208, "montCouronne-2")
+MONTCOURONNE_SALLE2 = Zone("Mont Couronné - Salle 2", 209, "montCouronne-3")
+MONTCOURONNE_EXTERIEUR1 = Zone("Mont Couronné - Extérieur 1", 211, "montCouronne-4")
+MONTCOURONNE_EXTERIEUR2 = Zone("Mont Couronné - Extérieur 2", 210, "montCouronne-6")
+MONTCOURONNE_SALLE3 = Zone("Mont Couronné - Salle 3", 212, "montCouronne-5")
+MONTCOURONNE_SALLE4 = Zone("Mont Couronné - Salle 4", 213, "montCouronne-7")
+MONTCOURONNE_SALLE5 = Zone("Mont Couronné - Salle 5", 214, "montCouronne-8")
+MONTCOURONNE_SALLE6 = Zone("Mont Couronné - Salle 6", 215, "montCouronne-9")
+MONTCOURONNE_SALLE7 = Zone("Mont Couronné - Salle 7", 216, "montCouronne-10")
+MONTCOURONNE_PASSAGEVESTIGION = Zone("Mont Couronné - Passage Vestigion", 218, "montCouronne-11")
+MONTCOURONNE_SALLE8 = Zone("Mont Couronné - Salle 8", 219, "montCouronne-12")
+MONTCOURONNE_PASSAGEFRIMAPIC = Zone("Mont Couronné - Passage Frimapic", 217, "montCouronne-13")
+MONTCOURONNE_GROTTEREGICE = Zone("Mont Couronné - Grotte Regice", 589, "grotteRegi")
+SALLEORIGINELLE = Zone("Salle Originelle", 510, "salleOriginelle")
+COLONNESLANCES = Zone("Colonnes Lances", 584, "colonnesLances")
+MONTCOURONNE_PASSAGECHARBOURG.addDoor(Door(Position(3,8,MONTCOURONNE_PASSAGECHARBOURG), Position(341,712,OVERWORLD)))
+MONTCOURONNE_PASSAGECHARBOURG.addDoor(Door(Position(28,20,MONTCOURONNE_PASSAGECHARBOURG), Position(392,724,OVERWORLD)))
+MONTCOURONNE_PASSAGECHARBOURG.addDoor(Door(Position(26,3,MONTCOURONNE_PASSAGECHARBOURG), Position(27,48,MONTCOURONNE_SALLE1)))
+MONTCOURONNE_SALLE1.addDoor(Door(Position(26,48,MONTCOURONNE_SALLE1), Position(25,3,MONTCOURONNE_PASSAGECHARBOURG)))
+MONTCOURONNE_SALLE1.addDoor(Door(Position(1,59,MONTCOURONNE_SALLE1), Position(348,717,OVERWORLD)))
+MONTCOURONNE_SALLE1.addDoor(Door(Position(7,23,MONTCOURONNE_SALLE1), Position(7,12,MONTCOURONNE_SALLE1)))
+MONTCOURONNE_SALLE1.addDoor(Door(Position(7,13,MONTCOURONNE_SALLE1), Position(7,24,MONTCOURONNE_SALLE1)))
+MONTCOURONNE_SALLE1.addDoor(Door(Position(12,4,MONTCOURONNE_SALLE1), Position(14,26,MONTCOURONNE_SALLE2)))
+MONTCOURONNE_SALLE1.addDoor(Door(Position(20,4,MONTCOURONNE_SALLE1), Position(18,26,MONTCOURONNE_SALLE2)))
+MONTCOURONNE_SALLE2.addDoor(Door(Position(3,30,MONTCOURONNE_SALLE2), Position(12,36,MONTCOURONNE_EXTERIEUR1)))
+MONTCOURONNE_SALLE2.addDoor(Door(Position(13,26,MONTCOURONNE_SALLE2), Position(11,4,MONTCOURONNE_SALLE1)))
+MONTCOURONNE_SALLE2.addDoor(Door(Position(19,26,MONTCOURONNE_SALLE2), Position(21,4,MONTCOURONNE_SALLE1)))
+MONTCOURONNE_EXTERIEUR1.addDoor(Door(Position(12,35,MONTCOURONNE_EXTERIEUR1), Position(3,29,MONTCOURONNE_SALLE2)))
+MONTCOURONNE_EXTERIEUR1.addDoor(Door(Position(39,18,MONTCOURONNE_EXTERIEUR1), Position(35,24,MONTCOURONNE_SALLE3)))
+MONTCOURONNE_EXTERIEUR1.addDoor(Door(Position(11,17,MONTCOURONNE_EXTERIEUR1), Position(7,25,MONTCOURONNE_SALLE3)))
+MONTCOURONNE_SALLE3.addDoor(Door(Position(35,25,MONTCOURONNE_SALLE3), Position(39,19,MONTCOURONNE_EXTERIEUR1)))
+MONTCOURONNE_SALLE3.addDoor(Door(Position(7,26,MONTCOURONNE_SALLE3), Position(11,18,MONTCOURONNE_EXTERIEUR1)))
+MONTCOURONNE_SALLE3.addDoor(Door(Position(17,6,MONTCOURONNE_SALLE3), Position(59,6,MONTCOURONNE_SALLE3)))
+MONTCOURONNE_SALLE3.addDoor(Door(Position(59,7,MONTCOURONNE_SALLE3), Position(17,7,MONTCOURONNE_SALLE3)))
+MONTCOURONNE_SALLE3.addDoor(Door(Position(41,10,MONTCOURONNE_SALLE3), Position(42,40,MONTCOURONNE_EXTERIEUR2)))
+MONTCOURONNE_EXTERIEUR2.addDoor(Door(Position(41,40,MONTCOURONNE_EXTERIEUR2), Position(40,10,MONTCOURONNE_SALLE3)))
+MONTCOURONNE_EXTERIEUR2.addDoor(Door(Position(46,28,MONTCOURONNE_EXTERIEUR2), Position(2,58,MONTCOURONNE_SALLE7)))
+MONTCOURONNE_EXTERIEUR2.addDoor(Door(Position(14,19,MONTCOURONNE_EXTERIEUR2), Position(2,3,MONTCOURONNE_SALLE4)))
+MONTCOURONNE_SALLE4.addDoor(Door(Position(1,3,MONTCOURONNE_SALLE4), Position(13,19,MONTCOURONNE_EXTERIEUR2)))
+MONTCOURONNE_SALLE4.addDoor(Door(Position(19,8,MONTCOURONNE_SALLE4), Position(21,7,MONTCOURONNE_SALLE5)))
+MONTCOURONNE_SALLE5.addDoor(Door(Position(20,7,MONTCOURONNE_SALLE5), Position(18,8,MONTCOURONNE_SALLE4)))
+MONTCOURONNE_SALLE5.addDoor(Door(Position(12,24,MONTCOURONNE_SALLE5), Position(10,24,MONTCOURONNE_SALLE6)))
+MONTCOURONNE_SALLE6.addDoor(Door(Position(11,24,MONTCOURONNE_SALLE6), Position(13,24,MONTCOURONNE_SALLE5)))
+MONTCOURONNE_SALLE6.addDoor(Door(Position(7,5,MONTCOURONNE_SALLE6), Position(31,53,COLONNESLANCES)))
+COLONNESLANCES.addDoor(Door(Position(31,54,COLONNESLANCES), Position(7,6,MONTCOURONNE_SALLE6)))
+COLONNESLANCES.addDoor(Door(Position(31,52,COLONNESLANCES), Position(31,52,SALLEORIGINELLE)))
+SALLEORIGINELLE.addDoor(Door(Position(31,54,SALLEORIGINELLE), Position(7,6,MONTCOURONNE_SALLE6)))
+MONTCOURONNE_SALLE7.addDoor(Door(Position(1,58,MONTCOURONNE_SALLE7), Position(45,28,MONTCOURONNE_EXTERIEUR2)))
+MONTCOURONNE_SALLE7.addDoor(Door(Position(16,13,MONTCOURONNE_SALLE7), Position(21,61,MONTCOURONNE_PASSAGEVESTIGION)))
+MONTCOURONNE_PASSAGEVESTIGION.addDoor(Door(Position(21,62,MONTCOURONNE_PASSAGEVESTIGION), Position(16,14,MONTCOURONNE_SALLE7)))
+MONTCOURONNE_PASSAGEVESTIGION.addDoor(Door(Position(1,41,MONTCOURONNE_PASSAGEVESTIGION), Position(380,532,OVERWORLD)))
+MONTCOURONNE_PASSAGEVESTIGION.addDoor(Door(Position(30,35,MONTCOURONNE_PASSAGEVESTIGION), Position(419,527,OVERWORLD)))
+MONTCOURONNE_PASSAGEVESTIGION.addDoor(Door(Position(10,10,MONTCOURONNE_PASSAGEVESTIGION), Position(8,60,MONTCOURONNE_SALLE8)))
+MONTCOURONNE_SALLE8.addDoor(Door(Position(9,60,MONTCOURONNE_SALLE8), Position(11,10,MONTCOURONNE_PASSAGEVESTIGION)))
+MONTCOURONNE_SALLE8.addDoor(Door(Position(9,3,MONTCOURONNE_SALLE8), Position(10,27,MONTCOURONNE_PASSAGEFRIMAPIC)))
+MONTCOURONNE_PASSAGEFRIMAPIC.addDoor(Door(Position(9,27,MONTCOURONNE_PASSAGEFRIMAPIC), Position(8,3,MONTCOURONNE_SALLE8)))
+MONTCOURONNE_PASSAGEFRIMAPIC.addDoor(Door(Position(15,16,MONTCOURONNE_PASSAGEFRIMAPIC), Position(7,12,MONTCOURONNE_GROTTEREGICE)))
+MONTCOURONNE_PASSAGEFRIMAPIC.addDoor(Door(Position(1,18,MONTCOURONNE_PASSAGEFRIMAPIC), Position(375,403,OVERWORLD)))
+MONTCOURONNE_GROTTEREGICE.addDoor(Door(Position(7,13,MONTCOURONNE_GROTTEREGICE), Position(15,17,MONTCOURONNE_PASSAGEFRIMAPIC)))
+OVERWORLD.addDoor(Door(Position(342,712,OVERWORLD), Position(4,8,MONTCOURONNE_PASSAGECHARBOURG)))
+OVERWORLD.addDoor(Door(Position(391,724,OVERWORLD), Position(27,20,MONTCOURONNE_PASSAGECHARBOURG)))
+OVERWORLD.addDoor(Door(Position(349,717,OVERWORLD), Position(2,59,MONTCOURONNE_SALLE1)))
+OVERWORLD.addDoor(Door(Position(381,532,OVERWORLD), Position(2,41,MONTCOURONNE_PASSAGEVESTIGION)))
+OVERWORLD.addDoor(Door(Position(418,527,OVERWORLD), Position(29,35,MONTCOURONNE_PASSAGEVESTIGION)))
+OVERWORLD.addDoor(Door(Position(376,403,OVERWORLD), Position(2,18,MONTCOURONNE_PASSAGEFRIMAPIC)))
+
+# Hôtel Grand Lac
+HOTELGRANDLAC = Zone("Hôtel Grand Lac", 376, "hotelGrandLac")
+HOTELGRANDLAC.addDoor(Door(Position(8,2,HOTELGRANDLAC), Position(706,813,OVERWORLD)))
+HOTELGRANDLAC.addDoor(Door(Position(8,12,HOTELGRANDLAC), Position(706,819,OVERWORLD)))
+OVERWORLD.addDoor(Door(Position(706,814,OVERWORLD), Position(8,3,HOTELGRANDLAC)))
+OVERWORLD.addDoor(Door(Position(706,818,OVERWORLD), Position(8,11,HOTELGRANDLAC)))
+
+# Ile de Fer
+ILEDEFER_REZDECHAUSSEE = Zone("Ile de Fer - Rez-de-Chaussée", 289, "ileDeFer-1")
+ILEDEFER_SOUSSOL1OUEST = Zone("Ile de Fer - Sous-Sol 1 Ouest", 290, "ileDeFer-2")
+ILEDEFER_SOUSSOL1EST = Zone("Ile de Fer - Sous-Sol 1 Est", 291, "ileDeFer-3")
+ILEDEFER_SOUSSOL2EST = Zone("Ile de Fer - Sous-Sol 2 Est", 292, "ileDeFer-4")
+ILEDEFER_SOUSSOL2OUEST = Zone("Ile de Fer - Sous-Sol 2 Ouest", 293, "ileDeFer-5")
+ILEDEFER_GROTTEREGISTEEL = Zone("Ile de Fer - Grotte Registeel", 587, "grotteRegi")
+ILEDEFER_SORTIE = Zone("Ile de Fer - Sortie", 294, "ileDeFer-6")
+ILEDEFER_REZDECHAUSSEE.addDoor(Door(Position(6,9,ILEDEFER_REZDECHAUSSEE), Position(117,490,OVERWORLD)))
+ILEDEFER_REZDECHAUSSEE.addDoor(Door(Position(3,3,ILEDEFER_REZDECHAUSSEE), Position(15,3,ILEDEFER_SOUSSOL1OUEST)))
+ILEDEFER_REZDECHAUSSEE.addDoor(Door(Position(9,3,ILEDEFER_REZDECHAUSSEE), Position(2,3,ILEDEFER_SOUSSOL1EST)))
+ILEDEFER_SOUSSOL1OUEST.addDoor(Door(Position(16,3,ILEDEFER_SOUSSOL1OUEST), Position(4,3,ILEDEFER_REZDECHAUSSEE)))
+ILEDEFER_SOUSSOL1EST.addDoor(Door(Position(1,3,ILEDEFER_SOUSSOL1EST), Position(8,3,ILEDEFER_REZDECHAUSSEE)))
+ILEDEFER_SOUSSOL1EST.addDoor(Door(Position(17,26,ILEDEFER_SOUSSOL1EST), Position(2,3,ILEDEFER_SOUSSOL2EST)))
+ILEDEFER_SOUSSOL1EST.addDoor(Door(Position(5,26,ILEDEFER_SOUSSOL1EST), Position(38,3,ILEDEFER_SOUSSOL2OUEST)))
+ILEDEFER_SOUSSOL2EST.addDoor(Door(Position(1,3,ILEDEFER_SOUSSOL2EST), Position(16,26,ILEDEFER_SOUSSOL1EST)))
+ILEDEFER_SOUSSOL2OUEST.addDoor(Door(Position(39,3,ILEDEFER_SOUSSOL2OUEST), Position(6,26,ILEDEFER_SOUSSOL1EST)))
+ILEDEFER_SOUSSOL2OUEST.addDoor(Door(Position(13,48,ILEDEFER_SOUSSOL2OUEST), Position(14,15,ILEDEFER_SORTIE)))
+ILEDEFER_SORTIE.addDoor(Door(Position(15,15,ILEDEFER_SORTIE), Position(14,48,ILEDEFER_SOUSSOL2OUEST)))
+ILEDEFER_SORTIE.addDoor(Door(Position(14,1,ILEDEFER_SORTIE), Position(7,12,ILEDEFER_GROTTEREGISTEEL)))
+ILEDEFER_SORTIE.addDoor(Door(Position(1,5,ILEDEFER_SORTIE), Position(103,489,OVERWORLD)))
+ILEDEFER_GROTTEREGISTEEL.addDoor(Door(Position(7,13,ILEDEFER_GROTTEREGISTEEL), Position(14,2,ILEDEFER_SORTIE)))
+OVERWORLD.addDoor(Door(Position(117,489,OVERWORLD), Position(6,8,ILEDEFER_REZDECHAUSSEE)))
+OVERWORLD.addDoor(Door(Position(104,489,OVERWORLD), Position(2,5,ILEDEFER_SORTIE)))
+
+# Route Victoire
+ROUTEVICTOIRE = Zone("Route Victoire", 244, "routeVictoire-1")
+ROUTEVICTOIRE_SALLEOUEST = Zone("Route Victoire - Salle Ouest", 245, "routeVictoire-2")
+ROUTEVICTOIRE_SALLEEST = Zone("Route Victoire - Salle Est", 246, "routeVictoire-3")
+ROUTEVICTOIRE_SALLEBRUME = Zone("Route Victoire - Salle Brume", 247, "routeVictoire-5")
+ROUTEVICTOIRE_PASSAGEEST = Zone("Route Victoire - Passage Est", 248, "routeVictoire-4")
+ROUTEVICTOIRE_PASSAGEROUTE224 = Zone("Route Victoire - Passage Route 224", 249, "routeVictoire-6")
+ROUTEVICTOIRE.addDoor(Door(Position(14,79,ROUTEVICTOIRE), Position(851,598,OVERWORLD)))
+ROUTEVICTOIRE.addDoor(Door(Position(15,79,ROUTEVICTOIRE), Position(851,598,OVERWORLD)))
+ROUTEVICTOIRE.addDoor(Door(Position(16,79,ROUTEVICTOIRE), Position(851,598,OVERWORLD)))
+ROUTEVICTOIRE.addDoor(Door(Position(33,4,ROUTEVICTOIRE), Position(853,582,OVERWORLD)))
+ROUTEVICTOIRE.addDoor(Door(Position(33,5,ROUTEVICTOIRE), Position(853,582,OVERWORLD)))
+ROUTEVICTOIRE.addDoor(Door(Position(33,6,ROUTEVICTOIRE), Position(853,582,OVERWORLD)))
+ROUTEVICTOIRE.addDoor(Door(Position(3,37,ROUTEVICTOIRE), Position(20,16,ROUTEVICTOIRE_SALLEOUEST)))
+ROUTEVICTOIRE.addDoor(Door(Position(6,47,ROUTEVICTOIRE), Position(23,26,ROUTEVICTOIRE_SALLEOUEST)))
+ROUTEVICTOIRE.addDoor(Door(Position(3,25,ROUTEVICTOIRE), Position(20,4,ROUTEVICTOIRE_SALLEOUEST)))
+ROUTEVICTOIRE.addDoor(Door(Position(43,41,ROUTEVICTOIRE), Position(4,39,ROUTEVICTOIRE_SALLEEST)))
+ROUTEVICTOIRE.addDoor(Door(Position(45,48,ROUTEVICTOIRE), Position(6,46,ROUTEVICTOIRE_SALLEEST)))
+ROUTEVICTOIRE.addDoor(Door(Position(42,24,ROUTEVICTOIRE), Position(3,22,ROUTEVICTOIRE_SALLEEST)))
+ROUTEVICTOIRE.addDoor(Door(Position(46,33,ROUTEVICTOIRE), Position(5,20,ROUTEVICTOIRE_PASSAGEEST)))
+ROUTEVICTOIRE_SALLEOUEST.addDoor(Door(Position(21,16,ROUTEVICTOIRE_SALLEOUEST), Position(4,37,ROUTEVICTOIRE)))
+ROUTEVICTOIRE_SALLEOUEST.addDoor(Door(Position(24,26,ROUTEVICTOIRE_SALLEOUEST), Position(7,47,ROUTEVICTOIRE)))
+ROUTEVICTOIRE_SALLEOUEST.addDoor(Door(Position(21,4,ROUTEVICTOIRE_SALLEOUEST), Position(4,25,ROUTEVICTOIRE)))
+ROUTEVICTOIRE_SALLEEST.addDoor(Door(Position(3,39,ROUTEVICTOIRE_SALLEEST), Position(42,41,ROUTEVICTOIRE)))
+ROUTEVICTOIRE_SALLEEST.addDoor(Door(Position(5,46,ROUTEVICTOIRE_SALLEEST), Position(44,48,ROUTEVICTOIRE)))
+ROUTEVICTOIRE_SALLEEST.addDoor(Door(Position(2,22,ROUTEVICTOIRE_SALLEEST), Position(41,24,ROUTEVICTOIRE)))
+ROUTEVICTOIRE_PASSAGEEST.addDoor(Door(Position(4,20,ROUTEVICTOIRE_PASSAGEEST), Position(45,33,ROUTEVICTOIRE)))
+ROUTEVICTOIRE_PASSAGEEST.addDoor(Door(Position(22,10,ROUTEVICTOIRE_PASSAGEEST), Position(3,58,ROUTEVICTOIRE_SALLEBRUME)))
+ROUTEVICTOIRE_SALLEBRUME.addDoor(Door(Position(2,58,ROUTEVICTOIRE_SALLEBRUME), Position(21,10,ROUTEVICTOIRE_PASSAGEEST)))
+ROUTEVICTOIRE_SALLEBRUME.addDoor(Door(Position(57,13,ROUTEVICTOIRE_SALLEBRUME), Position(12,16,ROUTEVICTOIRE_PASSAGEROUTE224)))
+ROUTEVICTOIRE_PASSAGEROUTE224.addDoor(Door(Position(11,16,ROUTEVICTOIRE_PASSAGEROUTE224), Position(56,13,ROUTEVICTOIRE_SALLEBRUME)))
+ROUTEVICTOIRE_PASSAGEROUTE224.addDoor(Door(Position(30,16,ROUTEVICTOIRE_PASSAGEROUTE224), Position(878,560,OVERWORLD)))
+OVERWORLD.addDoor(Door(Position(850,597,OVERWORLD), Position(15,78,ROUTEVICTOIRE)))
+OVERWORLD.addDoor(Door(Position(851,597,OVERWORLD), Position(15,78,ROUTEVICTOIRE)))
+OVERWORLD.addDoor(Door(Position(852,597,OVERWORLD), Position(15,78,ROUTEVICTOIRE)))
+OVERWORLD.addDoor(Door(Position(877,560,OVERWORLD), Position(29,16,ROUTEVICTOIRE_PASSAGEROUTE224)))
+OVERWORLD.addDoor(Door(Position(854,581,OVERWORLD), Position(34,5,ROUTEVICTOIRE)))
+OVERWORLD.addDoor(Door(Position(854,582,OVERWORLD), Position(34,5,ROUTEVICTOIRE)))
+OVERWORLD.addDoor(Door(Position(854,583,OVERWORLD), Position(34,5,ROUTEVICTOIRE)))
+
+# Grotte Retour
+SOURCEADIEU = Zone("Source Adieu", 267, "sourceAdieu")
+GROTTERETOUR_ENTREE = Zone("Grotte Retour - Entrée", 268, "grotteRetour-entree")
+GROTTERETOUR_SALLEPILIER = Zone("Grotte Retour - Salle Pilier", 269, "grotteRetour-pilier")
+GROTTERETOUR_SALLEGIRATINA = Zone("Grotte Retour - Salle Giratina", 270, "grotteRetour-giratina")
+GROTTERETOUR_SALLE2 = Zone("Grotte Retour - Salle 1", 518, "grotteRetour-1")
+GROTTERETOUR_SALLE2 = Zone("Grotte Retour - Salle 2", 519, "grotteRetour-2")
+GROTTERETOUR_SALLE3 = Zone("Grotte Retour - Salle 3", 520, "grotteRetour-3")
+GROTTERETOUR_SALLE4 = Zone("Grotte Retour - Salle 4", 521, "grotteRetour-4")
+GROTTERETOUR_SALLE5 = Zone("Grotte Retour - Salle 5", 522, "grotteRetour-5")
+GROTTERETOUR_SALLE6 = Zone("Grotte Retour - Salle 6", 523, "grotteRetour-6")
+GROTTERETOUR_SALLE8 = Zone("Grotte Retour - Salle 8", 525, "grotteRetour-8")
+GROTTERETOUR_SALLE9 = Zone("Grotte Retour - Salle 9", 526, "grotteRetour-9")
+GROTTERETOUR_SALLE10 = Zone("Grotte Retour - Salle 10", 527, "grotteRetour-10")
+GROTTERETOUR_SALLE11 = Zone("Grotte Retour - Salle 11", 528, "grotteRetour-11")
+GROTTERETOUR_SALLE12 = Zone("Grotte Retour - Salle 12", 529, "grotteRetour-12")
+GROTTERETOUR_SALLE13 = Zone("Grotte Retour - Salle 13", 530, "grotteRetour-13")
+GROTTERETOUR_SALLE14 = Zone("Grotte Retour - Salle 14", 531, "grotteRetour-14")
+GROTTERETOUR_SALLE15 = Zone("Grotte Retour - Salle 15", 532, "grotteRetour-15")
+GROTTERETOUR_SALLE41 = Zone("Grotte Retour - Salle 41", 271, "grotteRetour-41")
+GROTTERETOUR_SALLE42 = Zone("Grotte Retour - Salle 42", 272, "grotteRetour-42")
+GROTTERETOUR_SALLE43 = Zone("Grotte Retour - Salle 43", 273, "grotteRetour-43")
+SOURCEADIEU.addDoor(Door(Position(12,57,SOURCEADIEU), Position(762,714,OVERWORLD)))
+SOURCEADIEU.addDoor(Door(Position(13,57,SOURCEADIEU), Position(763,714,OVERWORLD)))
+SOURCEADIEU.addDoor(Door(Position(31,16,SOURCEADIEU), Position(11,16,GROTTERETOUR_ENTREE)))
+GROTTERETOUR_ENTREE.addDoor(Door(Position(11,17,GROTTERETOUR_ENTREE), Position(31,17,SOURCEADIEU)))
+OVERWORLD.addDoor(Door(Position(762,713,OVERWORLD), Position(12,56,SOURCEADIEU)))
+OVERWORLD.addDoor(Door(Position(763,713,OVERWORLD), Position(13,56,SOURCEADIEU)))
+
+# Mont Abrupt
+MONTABRUPT_SALLE1 = Zone("Mont Abrupt - Salle 1", 263, "montAbrupt-1")
+MONTABRUPT_SALLE2 = Zone("Mont Abrupt - Salle 2", 264, "montAbrupt-2")
+MONTABRUPT_SALLEHEATRAN = Zone("Mont Abrupt - Salle Heatran", 265, "montAbrupt-3")
+MONTABRUPT_SALLE1.addDoor(Door(Position(20,30,MONTABRUPT_SALLE1), Position(750,232,OVERWORLD)))
+MONTABRUPT_SALLE1.addDoor(Door(Position(17,2,MONTABRUPT_SALLE1), Position(42,86,MONTABRUPT_SALLE2)))
+MONTABRUPT_SALLE2.addDoor(Door(Position(42,87,MONTABRUPT_SALLE2), Position(17,3,MONTABRUPT_SALLE1)))
+MONTABRUPT_SALLE2.addDoor(Door(Position(47,2,MONTABRUPT_SALLE2), Position(7,17,MONTABRUPT_SALLEHEATRAN)))
+MONTABRUPT_SALLEHEATRAN.addDoor(Door(Position(7,18,MONTABRUPT_SALLEHEATRAN), Position(47,3,MONTABRUPT_SALLE2)))
+OVERWORLD.addDoor(Door(Position(750,231,OVERWORLD), Position(20,29,MONTABRUPT_SALLE1)))
+
+# Lac Vérité
+LACVERITE = Zone("Lac Vérité", 312, "lacVérité")
+LACVERITE_CAVERNEVERITE = Zone("Lac Vérité - Caverne Vérité", 313, "grotteCre")
+LACVERITE.addDoor(Door(Position(46,55,LACVERITE), Position(80,844,OVERWORLD)))
+LACVERITE.addDoor(Door(Position(47,55,LACVERITE), Position(81,844,OVERWORLD)))
+LACVERITE.addDoor(Door(Position(32,32,LACVERITE), Position(14,29,LACVERITE_CAVERNEVERITE)))
+LACVERITE_CAVERNEVERITE.addDoor(Door(Position(14,30,LACVERITE_CAVERNEVERITE), Position(32,33,LACVERITE)))
+OVERWORLD.addDoor(Door(Position(80,843,OVERWORLD), Position(46,54,LACVERITE)))
+OVERWORLD.addDoor(Door(Position(81,843,OVERWORLD), Position(47,54,LACVERITE)))
+
+# Lac Courage
+LACCOURAGE = Zone("Lac Courage", 315, "lacCourage")
+LACCOURAGE_CAVERNECOURAGE = Zone("Lac Courage - Caverne Courage", 316, "grotteCre")
+LACCOURAGE.addDoor(Door(Position(53,10,LACCOURAGE), Position(717,760,OVERWORLD)))
+LACCOURAGE.addDoor(Door(Position(53,11,LACCOURAGE), Position(717,761,OVERWORLD)))
+LACCOURAGE.addDoor(Door(Position(32,32,LACCOURAGE), Position(14,29,LACCOURAGE_CAVERNECOURAGE)))
+LACCOURAGE_CAVERNECOURAGE.addDoor(Door(Position(14,30,LACCOURAGE_CAVERNECOURAGE), Position(32,33,LACCOURAGE)))
+OVERWORLD.addDoor(Door(Position(716,760,OVERWORLD), Position(52,10,LACCOURAGE)))
+OVERWORLD.addDoor(Door(Position(716,761,OVERWORLD), Position(52,11,LACCOURAGE)))
+
+# Lac Savoir
+LACSAVOIR = Zone("Lac Savoir", 318, "lacSavoir")
+LACSAVOIR_CAVERNESAVOIR = Zone("Lac Savoir - Caverne Savoir", 319, "grotteCre")
+LACSAVOIR.addDoor(Door(Position(14,51,LACSAVOIR), Position(308,230,OVERWORLD)))
+LACSAVOIR.addDoor(Door(Position(15,51,LACSAVOIR), Position(309,230,OVERWORLD)))
+LACSAVOIR.addDoor(Door(Position(32,32,LACSAVOIR), Position(14,29,LACSAVOIR_CAVERNESAVOIR)))
+LACSAVOIR_CAVERNESAVOIR.addDoor(Door(Position(14,30,LACSAVOIR_CAVERNESAVOIR), Position(32,33,LACSAVOIR)))
+OVERWORLD.addDoor(Door(Position(308,229,OVERWORLD), Position(14,50,LACSAVOIR)))
+OVERWORLD.addDoor(Door(Position(309,229,OVERWORLD), Position(15,50,LACSAVOIR)))
+
+# Grottes Légendaires
+ROUTE228_GROTTEREGIROCK = Zone("Route 228 - Grotte Regirock", 591, "grotteRegi")
+ROUTE228_GROTTEREGIROCK.addDoor(Door(Position(7,13,ROUTE228_GROTTEREGIROCK), Position(785,341,OVERWORLD)))
+OVERWORLD.addDoor(Door(Position(785,340,OVERWORLD), Position(7,12,ROUTE228_GROTTEREGIROCK)))
+
+# Ile Nouvellune
+ILENOUVELLUNE = Zone("Ile Nouvellune - Intérieur", 321, "ileNouvellune")
+ILENOUVELLUNE.addDoor(Door(Position(16,22,ILENOUVELLUNE), Position(53,269,OVERWORLD)))
+ILENOUVELLUNE.addDoor(Door(Position(17,22,ILENOUVELLUNE), Position(54,269,OVERWORLD)))
+OVERWORLD.addDoor(Door(Position(53,268,OVERWORLD), Position(16,21,ILENOUVELLUNE)))
+OVERWORLD.addDoor(Door(Position(54,268,OVERWORLD), Position(17,21,ILENOUVELLUNE)))
+
+# Ile Pleine Lune 
+ILEPLEINELUNE = Zone("Ile Pleine Lune - Intérieur", 261, "ilePleineLune")
+ILEPLEINELUNE.addDoor(Door(Position(16,22,ILEPLEINELUNE), Position(137,269,OVERWORLD)))
+ILEPLEINELUNE.addDoor(Door(Position(17,22,ILEPLEINELUNE), Position(138,269,OVERWORLD)))
+OVERWORLD.addDoor(Door(Position(137,268,OVERWORLD), Position(16,21,ILEPLEINELUNE)))
+OVERWORLD.addDoor(Door(Position(138,268,OVERWORLD), Position(17,21,ILEPLEINELUNE)))
+
+OVERWORLD.setZoneList(
+    [3,   # Féli-Cité
+    33,  # Joliberges
+    45,  # Charbourg
+    65,  # Vestigion
+    86,  # Unionpolis
+    120, # Verchamps
+    132, # Voilaroc
+    150, # Rivamar
+    165, # Frimapic
+    172, # Ligue Pokémon - Extérieur
+    188, # Aire de Combat
+    200, # Les Eoliennes
+    204, # Forge Fuego - Extérieur
+    260, # Ile Pleine Lune
+    262, # Mont Abrupt - Extérieur
+    274, # Paradis Fleuri
+    288, # Ile de Fer
+    320, # Ile Nouvellune
+    334, # Rive Lac Vérité
+    336, # Rive Lac Courage
+    340, # Rive Lac Savoir
+    341, # Chemin Source
+    342, # Route 201
+    343, # Route 202
+    344, # Route 203
+    345, # Route 204 - Sud
+    346, # Route 204 - Nord
+    347, # Route 205 - Ouest
+    349, # Route 205 - Est
+    350, # Route 206 - Sud
+    353, # Route 207
+    354, # Route 208
+    356, # Route 209
+    362, # Route 210 - Sud
+    363, # Route 210 - Nord
+    365, # Route 211 - Ouest
+    366, # Route 211 - Est
+    367, # Route 212 - Nord
+    371, # Route 212 - Sud
+    373, # Route 213
+    380, # Route 214
+    382, # Route 215
+    383, # Route 216
+    385, # Route 217
+    388, # Route 218
+    391, # Route 219
+    392, # Route 221
+    395, # Route 222
+    399, # Route 224
+    400, # Route 225
+    403, # Route 227
+    406, # Route 228
+    407, # Route 229
+    411, # Bonaugure
+    418, # Littorella
+    426, # Floraville
+    433, # Bonville
+    442, # Célestia
+    450, # Aire de Survie
+    457, # Aire de Détente
+    467, # Route 220
+    468, # Route 223
+    469, # Route 226
+    471, # Route 230
+    472] # Passage Marin
+)

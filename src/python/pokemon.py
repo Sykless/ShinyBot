@@ -164,7 +164,6 @@ class Pokemon:
         self.isShiny = pid != None and self.shinyValue < 255
 
     def __str__(self):
-
         if (self.name is None):
             return "### INVALID POKEMON (PID " + str(self.pid) + ") ###"
 
