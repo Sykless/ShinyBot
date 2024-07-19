@@ -38,7 +38,7 @@ CELL_COST = {
     # Height-depending cells
     "A": 1, # Above ground (bridge)
     "a": 1, # Above ground (bike bridge)
-    "α": 1, # Above solid block (bridge)
+    "@": 1, # Above solid block (bridge)
     "B": 1, # Below bridge
     "d": 1, # Below bridge on water
 
@@ -135,8 +135,8 @@ def astar(maze, start, end):
             while current is not None:
                 # Don't add ledge node to the path, we don't walk on the ledge, only go through it
                 # The optimal way would be to calculate ledge cells jump animation during input frame calculation
-                if (current.cellType not in ["L","U","R","D"]):
-                    path.append(current.position)
+                # if (current.cellType not in ["l","u","r","d"]):
+                path.append(current.position)
 
                 current = current.parent
 
