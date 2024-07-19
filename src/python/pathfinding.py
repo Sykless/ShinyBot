@@ -1,4 +1,4 @@
-from position import Position
+from zone import Position
 from utils import waitFrames
 
 import img
@@ -218,7 +218,7 @@ def getPathCoordinates(startPosition, endPosition):
 
     return path, pathInputSequence
 
-def writePathInputs(location):
+def writePathInputs(location: Position):
     screenshot = img.getScreenshot()
     playerPosition = Position(**memory.readPositionData())
     playerDirection = img.getPlayerPosition(screenshot)
@@ -229,7 +229,7 @@ def writePathInputs(location):
 
     return path
 
-def goToLocation(location):
+def goToLocation(location: Position):
 
     # Calculate path from current position
     playerPosition = Position(**memory.readPositionData())

@@ -1,6 +1,6 @@
 
 from pokemon import Pokemon
-from position import Position
+from zone import Position
 
 
 import img

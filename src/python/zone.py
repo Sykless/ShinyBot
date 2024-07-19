@@ -1,11 +1,5 @@
-from position import Position
-
 OVERWORLD_ID = 999
-
-class Door():
-    def __init__(self, position: Position, destination: Position):
-        self.position = position
-        self.destination = destination
+ZONELIST = {}
 
 class Zone():
     def __init__(self, name, zoneId, mapFile):
@@ -16,19 +10,61 @@ class Zone():
         self.doorList = []
         self.zoneList = [zoneId]
 
-    def addDoor(self, door: Door):
+    def addDoor(self, door):
         self.doorList.append(door)
-
-    def isDoorOnTheMap(self, doorPosition: Position):
-        for door in self.doorList:
-            if (doorPosition == door.position):
-                return True
-        return False
 
     # Specifically for overworld map since it shares multiple zones
     def setZoneList(self, zoneList):
         self.zoneList = zoneList
 
+class Position:
+    def __init__(self, positionX, positionY, zone):
+        self.X = positionX
+        self.Y = positionY
+
+        # Provide actual Zone object
+        if isinstance(zone, Zone):
+            self.zone = zone
+        # Provide Zone ID, search for the Zone object in ZONELIST
+        elif (isinstance(zone, int) and zone in ZONELIST):
+            self.zone = ZONELIST[zone]
+        # Not Zone object nor known ZoneID
+        else:
+            self.zone = None
+            print("Unknown zone :", end = " ")
+            print(zone)
+
+    def __eq__(self, other):
+        if isinstance(other, Position):
+            return self.X == other.X and self.Y == other.Y and self.zone.zoneId == other.zone.zoneId
+        return False
+
+    def __str__(self):
+        return "Position (" + str(self.X) + "," + str(self.Y) + ") à " + self.zone.name
+
+class Door():
+    def __init__(self, position: Position, destination: Position):
+        self.position = position
+        self.destination = destination
+
+class Town():
+    def __init__(self, name, zoneId, pokemonCenterZone, shopZone, flyCoordinates, pokemonCenterPosition: Position, shopPosition: Position):
+
+        self.name = name
+        self.zoneId = zoneId
+        self.flyCoordinates = flyCoordinates
+
+        self.pokemonCenterZone = pokemonCenterZone
+        self.pokemonCenterLocation = pokemonCenterPosition
+        if pokemonCenterZone is not None:
+            self.pokemonCenterMap = open('src/python/data/map/' + name + '-centrePokemon.map').readlines()
+
+        self.shopZone = shopZone
+        self.shopLocation = shopPosition
+        if shopZone is not None:
+            self.shopMap = open('src/python/data/map/' + name + '-shop.map').readlines()
+
+# Overworld
 OVERWORLD = Zone("Overworld", OVERWORLD_ID, "overworld")
 
 # Littorella
@@ -506,7 +542,7 @@ SOURCEADIEU = Zone("Source Adieu", 267, "sourceAdieu")
 GROTTERETOUR_ENTREE = Zone("Grotte Retour - Entrée", 268, "grotteRetour-entree")
 GROTTERETOUR_SALLEPILIER = Zone("Grotte Retour - Salle Pilier", 269, "grotteRetour-pilier")
 GROTTERETOUR_SALLEGIRATINA = Zone("Grotte Retour - Salle Giratina", 270, "grotteRetour-giratina")
-GROTTERETOUR_SALLE2 = Zone("Grotte Retour - Salle 1", 518, "grotteRetour-1")
+GROTTERETOUR_SALLE1 = Zone("Grotte Retour - Salle 1", 518, "grotteRetour-1")
 GROTTERETOUR_SALLE2 = Zone("Grotte Retour - Salle 2", 519, "grotteRetour-2")
 GROTTERETOUR_SALLE3 = Zone("Grotte Retour - Salle 3", 520, "grotteRetour-3")
 GROTTERETOUR_SALLE4 = Zone("Grotte Retour - Salle 4", 521, "grotteRetour-4")
@@ -590,6 +626,27 @@ ILEPLEINELUNE.addDoor(Door(Position(17,22,ILEPLEINELUNE), Position(138,269,OVERW
 OVERWORLD.addDoor(Door(Position(137,268,OVERWORLD), Position(16,21,ILEPLEINELUNE)))
 OVERWORLD.addDoor(Door(Position(138,268,OVERWORLD), Position(17,21,ILEPLEINELUNE)))
 
+# Towns (used for Fly)
+BONAUGURE_TOWN = Town("bonaugure", 411, None, None, [[2,21]], None, None)
+LITTORELLA_TOWN = Town("littorella", 418, 420, 419, [[4,20]], Position(177,842,OVERWORLD), Position(187,842,OVERWORLD))
+FELICITE_TOWN = Town("felicite", 3, 6, 4, [[3,17],[4,17],[3,18],[4,18]], Position(180,776,OVERWORLD), Position(179,766,OVERWORLD))
+CHARBOURG_TOWN = Town("charbourg", 45, 48, 46, [[7,17],[8,17],[8,18]], Position(303,756,OVERWORLD), Position(285,746,OVERWORLD))
+FLORAVILLE_TOWN = Town("floraville", 426, 428, 427, [[4,13],[4,14]], Position(176,666,OVERWORLD), Position(184,657,OVERWORLD))
+VESTIGION_TOWN = Town("vestigion", 65, 69, 66, [[8,10],[9,10],[8,11]], Position(305,530,OVERWORLD), Position(309,548,OVERWORLD))
+UNIONPOLIS_TOWN = Town("unionpolis", 86, 101, 87, [[13,15],[14,15],[13,16],[14,16]], Position(465,697,OVERWORLD), Position(477,710,OVERWORLD))
+BONVILLE_TOWN = Town("bonville", 433, 435, 434, [[16,14],[17,14]], Position(566,656,OVERWORLD), Position(571,665,OVERWORLD))
+VOILAROC_TOWN = Town("voilaroc", 132, 134, None, [[20,12],[21,12],[20,13],[21,13]], Position(717,611,OVERWORLD), None)
+VERCHAMPS_TOWN = Town("verchamps", 120, 123, 121, [[17,19],[18,19],[17,20],[18,20]], Position(600,815,OVERWORLD), Position(601,844,OVERWORLD))
+CELESTIA_TOWN = Town("celestia", 442, 443, 446, [[13,10]], Position(472,538,OVERWORLD), Position(450,515,OVERWORLD))
+JOLIBERGES_TOWN = Town("joliberges", 33, 36, 34, [[0,16],[0,17]], Position(58,722,OVERWORLD), Position(53,740,OVERWORLD))
+FRIMAPIC_TOWN = Town("frimapic", 165, 168, 166, [[10,0],[10,1]], Position(379,233,OVERWORLD), Position(353,232,OVERWORLD))
+RIVAMAR_TOWN = Town("rivamar", 150, 151, 153, [[25,17],[26,17],[25,18],[26,18]], Position(860,784,OVERWORLD), Position(853,768,OVERWORLD))
+ROUTEVICTOIRE_TOWN = Town("ligue", 172, 173, None, [[25,12]], Position(842,598,OVERWORLD), None)
+LIGUEPOKEMON_TOWN = Town("ligue", 172, None, None, [[25,11]], None, None)
+AIREDECOMBAT_TOWN = Town("airedecombat", 188, 189, 191, [[18,7],[19,7]], Position(647,429,OVERWORLD), Position(660,429,OVERWORLD))
+AIREDESURVIE_TOWN = Town("airedesurvie", 450, 452, 451, [[19,4]], Position(659,338,OVERWORLD), Position(663,338,OVERWORLD))
+AIREDEDETENTE_TOWN = Town("airededetente", 457, 459, None, [[24,8]], Position(802,472,OVERWORLD), None)
+
 OVERWORLD.setZoneList(
     [3,   # Féli-Cité
     33,  # Joliberges
@@ -657,3 +714,193 @@ OVERWORLD.setZoneList(
     471, # Route 230
     472] # Passage Marin
 )
+
+ZONELIST = {
+    3: OVERWORLD,
+    4: FELICITE_SHOP,
+    6: FELICITE_CENTREPOKEMON,
+    33: OVERWORLD,
+    34: JOLIBERGES_SHOP,
+    36: JOLIBERGES_CENTREPOKEMON,
+    45: OVERWORLD,
+    46: CHARBOURG_SHOP,
+    48: CHARBOURG_CENTREPOKEMON,
+    65: OVERWORLD,
+    66: VESTIGION_SHOP,
+    69: VESTIGION_CENTREPOKEMON,
+    80: ROUTE206_PASSAGEVESTIGION,
+    86: OVERWORLD,
+    87: UNIONPOLIS_SHOP,
+    101: UNIONPOLIS_CENTREPOKEMON,
+    109: ROUTE208_PASSAGEUNIONPOLIS,
+    110: ROUTE209_PASSAGEUNIONPOLIS,
+    111: ROUTE212_PASSAGEUNIONPOLIS,
+    120: OVERWORLD,
+    121: VERCHAMPS_SHOP,
+    123: VERCHAMPS_CENTREPOKEMON,
+    132: OVERWORLD,
+    134: VOILAROC_CENTREPOKEMON,
+    137: VOILAROC_CENTRECOMMERCIAL,
+    138: VOILAROC_CENTRECOMMERCIALETAGE1,
+    139: VOILAROC_CENTRECOMMERCIALETAGE2,
+    140: VOILAROC_CENTRECOMMERCIALETAGE3,
+    141: VOILAROC_CENTRECOMMERCIALETAGE4,
+    142: VOILAROC_CENTRECOMMERCIALASCENSEUR,
+    149: ROUTE214_PASSAGEVOILAROC,
+    150: OVERWORLD,
+    151: RIVAMAR_CENTREPOKEMON,
+    153: RIVAMAR_SHOP,
+    165: OVERWORLD,
+    166: FRIMAPIC_SHOP,
+    168: FRIMAPIC_CENTREPOKEMON,
+    172: OVERWORLD,
+    173: LIGUEPOKEMON_CENTREPOKEMON,
+    175: LIGUEPOKEMON,
+    188: OVERWORLD,
+    189: AIREDECOMBAT_CENTREPOKEMON,
+    191: AIREDECOMBAT_SHOP,
+    193: ROUTE225_PASSAGEAIREDECOMBAT,
+    200: OVERWORLD,
+    203: FORETVESTIGION,
+    204: OVERWORLD,
+    207: MONTCOURONNE_PASSAGECHARBOURG,
+    208: MONTCOURONNE_SALLE1,
+    209: MONTCOURONNE_SALLE2,
+    210: MONTCOURONNE_EXTERIEUR2,
+    211: MONTCOURONNE_EXTERIEUR1,
+    212: MONTCOURONNE_SALLE3,
+    213: MONTCOURONNE_SALLE4,
+    214: MONTCOURONNE_SALLE5,
+    215: MONTCOURONNE_SALLE6,
+    216: MONTCOURONNE_SALLE7,
+    217: MONTCOURONNE_PASSAGEFRIMAPIC,
+    218: MONTCOURONNE_PASSAGEVESTIGION,
+    219: MONTCOURONNE_SALLE8,
+    244: ROUTEVICTOIRE,
+    245: ROUTEVICTOIRE_SALLEOUEST,
+    246: ROUTEVICTOIRE_SALLEEST,
+    247: ROUTEVICTOIRE_SALLEBRUME,
+    248: ROUTEVICTOIRE_PASSAGEEST,
+    249: ROUTEVICTOIRE_PASSAGEROUTE224,
+    254: CHEMINROCHEUX,
+    258: ENTREECHARBOURG,
+    259: ENTREECHARBOURG_SOUSSOL1,
+    260: OVERWORLD,
+    261: ILEPLEINELUNE,
+    262: OVERWORLD,
+    263: MONTABRUPT_SALLE1,
+    264: MONTABRUPT_SALLE2,
+    265: MONTABRUPT_SALLEHEATRAN,
+    267: SOURCEADIEU,
+    268: GROTTERETOUR_ENTREE,
+    269: GROTTERETOUR_SALLEPILIER,
+    270: GROTTERETOUR_SALLEGIRATINA,
+    271: GROTTERETOUR_SALLE41,
+    272: GROTTERETOUR_SALLE42,
+    273: GROTTERETOUR_SALLE43,
+    274: OVERWORLD,
+    284: GROTTEREVECHE,
+    285: GROTTEREVECHE_SOUSSOL,
+    288: OVERWORLD,
+    289: ILEDEFER_REZDECHAUSSEE,
+    290: ILEDEFER_SOUSSOL1OUEST,
+    291: ILEDEFER_SOUSSOL1EST,
+    292: ILEDEFER_SOUSSOL2EST,
+    293: ILEDEFER_SOUSSOL2OUEST,
+    294: ILEDEFER_SORTIE,
+    312: LACVERITE,
+    313: LACVERITE_CAVERNEVERITE,
+    315: LACCOURAGE,
+    316: LACCOURAGE_CAVERNECOURAGE,
+    318: LACSAVOIR,
+    319: LACSAVOIR_CAVERNESAVOIR,
+    320: OVERWORLD,
+    321: ILENOUVELLUNE,
+    334: OVERWORLD,
+    336: OVERWORLD,
+    340: OVERWORLD,
+    341: OVERWORLD,
+    342: OVERWORLD,
+    343: OVERWORLD,
+    344: OVERWORLD,
+    345: OVERWORLD,
+    346: OVERWORLD,
+    347: OVERWORLD,
+    349: OVERWORLD,
+    350: OVERWORLD,
+    350: PISTECYCLABLE,
+    351: ROUTE206_PASSAGECHARBOURG,
+    353: OVERWORLD,
+    354: OVERWORLD,
+    356: OVERWORLD,
+    362: OVERWORLD,
+    363: OVERWORLD,
+    365: OVERWORLD,
+    366: OVERWORLD,
+    367: OVERWORLD,
+    371: OVERWORLD,
+    373: OVERWORLD,
+    374: ROUTE213_PASSAGEVERCHAMPS,
+    376: HOTELGRANDLAC,
+    380: OVERWORLD,
+    381: ROUTE215_PASSAGEVOILAROC,
+    382: OVERWORLD,
+    383: OVERWORLD,
+    385: OVERWORLD,
+    388: OVERWORLD,
+    389: ROUTE218_PASSAGEFELICITE,
+    390: ROUTE218_PASSAGEJOLIBERGES,
+    391: OVERWORLD,
+    392: OVERWORLD,
+    395: OVERWORLD,
+    398: ROUTE222_PASSAGERIVAMAR,
+    399: OVERWORLD,
+    400: OVERWORLD,
+    403: OVERWORLD,
+    406: OVERWORLD,
+    407: OVERWORLD,
+    411: OVERWORLD,
+    419: LITTORELLA_SHOP,
+    420: LITTORELLA_CENTREPOKEMON,
+    418: OVERWORLD,
+    426: OVERWORLD,
+    427: FLORAVILLE_SHOP,
+    428: FLORAVILLE_CENTREPOKEMON,
+    433: OVERWORLD,
+    434: BONVILLE_SHOP,
+    435: BONVILLE_CENTREPOKEMON,
+    442: OVERWORLD,
+    443: CELESTIA_CENTREPOKEMON,
+    446: CELESTIA_SHOP,
+    450: OVERWORLD,
+    451: AIREDESURVIE_SHOP,
+    452: AIREDESURVIE_CENTREPOKEMON,
+    457: OVERWORLD,
+    459: AIREDEDETENTE_CENTREPOKEMON,
+    467: OVERWORLD,
+    468: OVERWORLD,
+    469: OVERWORLD,
+    471: OVERWORLD,
+    472: OVERWORLD,
+    501: ROUTE226_PASSAGEROUTE228,
+    510: SALLEORIGINELLE,
+    518: GROTTERETOUR_SALLE1,
+    519: GROTTERETOUR_SALLE2,
+    520: GROTTERETOUR_SALLE3,
+    521: GROTTERETOUR_SALLE4,
+    522: GROTTERETOUR_SALLE5,
+    523: GROTTERETOUR_SALLE6,
+    525: GROTTERETOUR_SALLE8,
+    526: GROTTERETOUR_SALLE9,
+    527: GROTTERETOUR_SALLE10,
+    528: GROTTERETOUR_SALLE11,
+    529: GROTTERETOUR_SALLE12,
+    530: GROTTERETOUR_SALLE13,
+    531: GROTTERETOUR_SALLE14,
+    532: GROTTERETOUR_SALLE15,
+    566: VOILAROC_CENTRECOMMERCIALSOUSSOL1,
+    584: COLONNESLANCES,
+    587: ILEDEFER_GROTTEREGISTEEL,
+    589: MONTCOURONNE_GROTTEREGICE,
+    591: ROUTE228_GROTTEREGIROCK
+}
