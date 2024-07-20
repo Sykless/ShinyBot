@@ -66,10 +66,10 @@ DIRECTIONS = [
 
 # Node class for A* Pathfinding
 class Node():
-    def __init__(self, maze, position, parent = None):
+    def __init__(self, position: Position, parent = None):
         self.parent = parent
         self.position = position
-        self.cellType = maze[position[0]][position[1]]
+        self.cellType = position.zone.map[position.Y][position.X]
 
         # A* core parameters
         self.g = 0
@@ -94,16 +94,16 @@ class Node():
 
     def __str__(self):
         return (
-            "(" + str(self.position[0]) + "," + str(self.position[1]) + ") - " + str(self.f) + " (" + str(self.g) + " + " + str(self.h) + ")"
+            "(" + str(self.position.Y) + "," + str(self.position.X) + ") - " + str(self.f) + " (" + str(self.g) + " + " + str(self.h) + ")"
               + ("" if not self.parent else
-              " - parent : (" + str(self.parent.position[0]) + "," + str(self.parent.position[1]) + ") - " + str(self.parent.f) + " (" + str(self.parent.g) + " + " + str(self.parent.h) + ")"))
+              " - parent : (" + str(self.parent.position.Y) + "," + str(self.parent.position.X) + ") - " + str(self.parent.f) + " (" + str(self.parent.g) + " + " + str(self.parent.h) + ")"))
 
 # Use A* algorithm to find most efficient path
-def astar(maze, start, end):
+def astar(start: Position, end: Position):
 
     # Create start and end node
-    start_node = Node(maze, start)
-    end_node = Node(maze, end)
+    start_node = Node(start)
+    end_node = Node(end)
 
     # Initialize both open and closed list
     open_list = []
@@ -145,12 +145,13 @@ def astar(maze, start, end):
         
         # Generate children
         children = []
+        zoneMap = current_node.position.zone.map
         for new_position in DIRECTIONS: # Adjacent squares
 
             # Get node position
-            node_position = (current_node.position[0] + new_position["orientation"][0], current_node.position[1] + new_position["orientation"][1])
-            nextCellValue = maze[node_position[0]][node_position[1]]
-            topCellValue = maze[node_position[0] - 1][node_position[1]]
+            node_position = Position(current_node.position.X + new_position["orientation"][1], current_node.position.Y + new_position["orientation"][0], current_node.position.zone)
+            nextCellValue = zoneMap[node_position.Y][node_position.X]
+            topCellValue = zoneMap[node_position.Y - 1][node_position.X]
 
             # Can't walk through solid blocks
             if nextCellValue in SOLID_BLOCKS + new_position["solidLedges"]:
@@ -169,19 +170,19 @@ def astar(maze, start, end):
                 continue
 
             # We can walk through the block : add node to the children list
-            new_node = Node(maze, node_position, current_node)
+            new_node = Node(node_position, current_node)
             children.append(new_node)
 
         # Loop through children
         for child in children:
 
             # Child is already in the closed list : don't process it
-            if len([closed_child for closed_child in closed_list if closed_child == child ]) > 0:
+            if len([closed_child for closed_child in closed_list if closed_child == child]) > 0:
                 continue
 
             # Create the f, g, and h values
             child.g = current_node.g + CELL_COST.get(child.cellType, 999) # Default cell cost is 999, basically solid block
-            child.h = abs(child.position[0] - end_node.position[0]) + abs(child.position[1] - end_node.position[1]) # Manhattan distance
+            child.h = abs(child.position.Y - end_node.position.Y) + abs(child.position.X - end_node.position.X) # Manhattan distance
             child.f = child.g + child.h
 
             # Child is already in the open list and a similar or better path exists : don't process it
@@ -194,16 +195,16 @@ def astar(maze, start, end):
 def getPathCoordinates(startPosition, endPosition):
 
     # Get most effective path from startPosition to endPosition
-    path = astar(PLATINUM_MAP, (startPosition.Y, startPosition.X), (endPosition.Y, endPosition.X))
+    path = astar(startPosition, endPosition)
     pathInputSequence = ""
 
     # Convert path to joypad inputs
     if (path):
-        previousPosition = (startPosition.Y, startPosition.X)
+        previousPosition = Position(startPosition.X, startPosition.Y, startPosition.zone)
 
         for position in path:
-            diffY = position[0] - previousPosition[0]
-            diffX = position[1] - previousPosition[1]
+            diffY = position.Y - previousPosition.Y
+            diffX = position.X - previousPosition.X
 
             if (diffY > 0):
                 pathInputSequence += "d"
@@ -242,7 +243,7 @@ def goToLocation(location: Position):
     #
     # Only stop path processing when all inputs have been pressed
     # and the player is at desired location
-    while memory.readJoypadData() or (playerPosition.Y, playerPosition.X) != path[-1]:
+    while memory.readJoypadData() or playerPosition != path[-1]:
         playerPosition = Position(**memory.readPositionData())
 
         # Non-0 PID : we're in a battle - stop pathfinding and let main script take over
@@ -252,10 +253,10 @@ def goToLocation(location: Position):
             break
 
         # Check character progression through the path
-        elif (path[pathIndex] != (playerPosition.Y, playerPosition.X)):
+        elif (path[pathIndex] != playerPosition):
 
             # Normal behavior : character went to next position
-            if (path[pathIndex + 1] == (playerPosition.Y, playerPosition.X)):
+            if (path[pathIndex + 1] == playerPosition):
                 pathIndex += 1
 
             # Wrong path : recalculate from current position
@@ -281,7 +282,7 @@ def goToLocation(location: Position):
             playerPosition = Position(**memory.readPositionData())
 
             # Check if player position is last path position
-            if ((playerPosition.Y, playerPosition.X) != path[-1]):
+            if (playerPosition != path[-1]):
 
                 # Calculate new path from new position
                 path = writePathInputs(location)
