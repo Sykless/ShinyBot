@@ -195,8 +195,8 @@ OVERWORLD.addDoor(Door(Position(860,784,OVERWORLD), Position(8,12,RIVAMAR_CENTRE
 OVERWORLD.addDoor(Door(Position(853,768,OVERWORLD), Position(3,11,RIVAMAR_SHOP)))
 
 # Ligue Pokémon
-LIGUEPOKEMON_CENTREPOKEMON = Zone("Route Victoire - Centre Pokémon", 173, "ligue-centrePokemon")
-LIGUEPOKEMON = Zone("Ligue Pokémon", 175, "liguePokemon")
+LIGUEPOKEMON_CENTREPOKEMON = Zone("Route Victoire - Centre Pokémon", 173, "liguePokemon-centrePokemon")
+LIGUEPOKEMON = Zone("Ligue Pokémon - Intérieur", 175, "liguePokemon-2")
 LIGUEPOKEMON_CENTREPOKEMON.addDoor(Door(Position(8,13,LIGUEPOKEMON_CENTREPOKEMON), Position(842,599,OVERWORLD)))
 LIGUEPOKEMON.addDoor(Door(Position(11,12,LIGUEPOKEMON), Position(847,560,OVERWORLD)))
 OVERWORLD.addDoor(Door(Position(842,598,OVERWORLD), Position(8,12,LIGUEPOKEMON_CENTREPOKEMON)))
@@ -473,13 +473,13 @@ OVERWORLD.addDoor(Door(Position(706,814,OVERWORLD), Position(8,3,HOTELGRANDLAC))
 OVERWORLD.addDoor(Door(Position(706,818,OVERWORLD), Position(8,11,HOTELGRANDLAC)))
 
 # Ile de Fer
-ILEDEFER_REZDECHAUSSEE = Zone("Ile de Fer - Rez-de-Chaussée", 289, "ileDeFer-1")
-ILEDEFER_SOUSSOL1OUEST = Zone("Ile de Fer - Sous-Sol 1 Ouest", 290, "ileDeFer-2")
-ILEDEFER_SOUSSOL1EST = Zone("Ile de Fer - Sous-Sol 1 Est", 291, "ileDeFer-3")
-ILEDEFER_SOUSSOL2EST = Zone("Ile de Fer - Sous-Sol 2 Est", 292, "ileDeFer-4")
-ILEDEFER_SOUSSOL2OUEST = Zone("Ile de Fer - Sous-Sol 2 Ouest", 293, "ileDeFer-5")
+ILEDEFER_REZDECHAUSSEE = Zone("Ile de Fer - Rez-de-Chaussée", 289, "ileDeFer-2")
+ILEDEFER_SOUSSOL1OUEST = Zone("Ile de Fer - Sous-Sol 1 Ouest", 290, "ileDeFer-3")
+ILEDEFER_SOUSSOL1EST = Zone("Ile de Fer - Sous-Sol 1 Est", 291, "ileDeFer-4")
+ILEDEFER_SOUSSOL2EST = Zone("Ile de Fer - Sous-Sol 2 Est", 292, "ileDeFer-5")
+ILEDEFER_SOUSSOL2OUEST = Zone("Ile de Fer - Sous-Sol 2 Ouest", 293, "ileDeFer-6")
 ILEDEFER_GROTTEREGISTEEL = Zone("Ile de Fer - Grotte Registeel", 587, "grotteRegi")
-ILEDEFER_SORTIE = Zone("Ile de Fer - Sortie", 294, "ileDeFer-6")
+ILEDEFER_SORTIE = Zone("Ile de Fer - Sortie", 294, "ileDeFer-7")
 ILEDEFER_REZDECHAUSSEE.addDoor(Door(Position(6,9,ILEDEFER_REZDECHAUSSEE), Position(117,490,OVERWORLD)))
 ILEDEFER_REZDECHAUSSEE.addDoor(Door(Position(3,3,ILEDEFER_REZDECHAUSSEE), Position(15,3,ILEDEFER_SOUSSOL1OUEST)))
 ILEDEFER_REZDECHAUSSEE.addDoor(Door(Position(9,3,ILEDEFER_REZDECHAUSSEE), Position(2,3,ILEDEFER_SOUSSOL1EST)))
@@ -613,14 +613,14 @@ ROUTE228_GROTTEREGIROCK.addDoor(Door(Position(7,13,ROUTE228_GROTTEREGIROCK), Pos
 OVERWORLD.addDoor(Door(Position(785,340,OVERWORLD), Position(7,12,ROUTE228_GROTTEREGIROCK)))
 
 # Ile Nouvellune
-ILENOUVELLUNE = Zone("Ile Nouvellune - Intérieur", 321, "ileNouvellune")
+ILENOUVELLUNE = Zone("Ile Nouvellune - Intérieur", 321, "ileNouvellune-2")
 ILENOUVELLUNE.addDoor(Door(Position(16,22,ILENOUVELLUNE), Position(53,269,OVERWORLD)))
 ILENOUVELLUNE.addDoor(Door(Position(17,22,ILENOUVELLUNE), Position(54,269,OVERWORLD)))
 OVERWORLD.addDoor(Door(Position(53,268,OVERWORLD), Position(16,21,ILENOUVELLUNE)))
 OVERWORLD.addDoor(Door(Position(54,268,OVERWORLD), Position(17,21,ILENOUVELLUNE)))
 
 # Ile Pleine Lune 
-ILEPLEINELUNE = Zone("Ile Pleine Lune - Intérieur", 261, "ilePleineLune")
+ILEPLEINELUNE = Zone("Ile Pleine Lune - Intérieur", 261, "ilePleineLune-2")
 ILEPLEINELUNE.addDoor(Door(Position(16,22,ILEPLEINELUNE), Position(137,269,OVERWORLD)))
 ILEPLEINELUNE.addDoor(Door(Position(17,22,ILEPLEINELUNE), Position(138,269,OVERWORLD)))
 OVERWORLD.addDoor(Door(Position(137,268,OVERWORLD), Position(16,21,ILEPLEINELUNE)))
