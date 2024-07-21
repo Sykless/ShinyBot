@@ -49,7 +49,6 @@ CELL_COST = {
     "L": 2, # One-way ledge to go left
     "U": 2, # One-way ledge to go up
     "R": 2, # One-way ledge to go right
-    "v": 2, # Bike ramp
 }
 
 SOLID_BLOCKS = [
@@ -58,6 +57,7 @@ SOLID_BLOCKS = [
     "s", # Sign (Special process since it displays a message if coming from the bottom)
     "I", # Interactable (Static encounter, Shop, etc)
     "b", # Boulder (Cannot be removed like Cut or Rock Smash, so is actually an obsctacle)
+    "v", # Bike ramp
 ]
 
 DIRECTIONS = [
@@ -96,10 +96,24 @@ class Node():
         return False
 
     def __str__(self):
-        return (
-            "(" + str(self.position.Y) + "," + str(self.position.X) + ") - " + str(self.f) + " (" + str(self.g) + " + " + str(self.h) + ")"
-              + ("" if not self.parent else
-              " - parent : (" + str(self.parent.position.Y) + "," + str(self.parent.position.X) + ") - " + str(self.parent.f) + " (" + str(self.parent.g) + " + " + str(self.parent.h) + ")"))
+        return str(self.position) + " - " + self.cellType + "\n"
+
+    def __repr__(self):
+        return str(self)
+
+def areThreeSideCellsFree(zoneMap, currentPosition, orientation):
+
+    # Can only jump bike ramps if facing left or right
+    if (orientation[0] == 0):
+        # Can only jump bike ramps if we have free side cells to accelerate
+        if (orientation[1] == 1):
+            return zoneMap[currentPosition.Y][currentPosition.X-2:currentPosition.X+1] == "OOO"
+        elif (orientation[1] == -1):
+            return zoneMap[currentPosition.Y][currentPosition.X:currentPosition.X+3] == "OOO"
+        else:
+            return False
+    else:
+        return False
 
 def isBoulderPushable(zoneMap, playerPosition, boulderPosition, orientation, blockingBoulders):
 
@@ -267,7 +281,16 @@ def astar(start: Position, end: Position, zoneMap):
                 # If the solid block is a boulder and the cell after that is a free cell, we can try pushing the boulder
                 if (nextCellValue == "b" and isBoulderPushable(zoneMap,current_node.position,node_position,new_position["orientation"],blockingBoulders)):
                     blockingBoulders.append((current_node.position, node_position))
-                continue
+
+                # If the solid block is a bike ramp, we might be able to jump 3 cells left or right if we find 3 cells to accelerate
+                if (nextCellValue == "v" and areThreeSideCellsFree(zoneMap, current_node.position, new_position["orientation"])):
+                    node_position = Position(current_node.position.X + 4*new_position["orientation"][1],
+                                            current_node.position.Y, 
+                                            current_node.position.zone)
+                    nextCellValue = zoneMap[node_position.Y][node_position.X]
+                    topCellValue = zoneMap[node_position.Y - 1][node_position.X]
+                else:
+                    continue
 
             # If on a bridge, don't go on Below cells
             if (current_node.isAbove and nextCellValue == "B"):
