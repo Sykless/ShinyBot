@@ -2,6 +2,7 @@ from zone import Position
 from utils import waitFrames
 
 import img
+import zone
 import joypad
 import memory
 
@@ -9,8 +10,10 @@ import memory
 # - Python Implementation : https://medium.com/@nicholas.w.swift/easy-a-star-pathfinding-7e6689c7f7b2
 # - Improving Heuristics calculation : https://theory.stanford.edu/~amitp/GameProgramming/Heuristics.html
 
-mapFile = open('src/python/data/map/overworld.map')
-PLATINUM_MAP = mapFile.readlines()
+PUZZLE_BOULDERS = [
+    (Position(25,16,zone.MONTABRUPT_SALLE1), Position(26,16,zone.MONTABRUPT_SALLE1)),
+    (Position(6,31,zone.ROUTEVICTOIRE_SALLEOUEST), Position(6,32,zone.ROUTEVICTOIRE_SALLEOUEST))
+]
 
 CELL_COST = {
     # Traveling cells
@@ -21,7 +24,7 @@ CELL_COST = {
     "2": 2, # 2-depth snow
     "3": 3, # 3-depth snow
     "4": 4, # 4-depth snow
-    "V": 2, # Bike slope
+    "V": 1, # Bike slope
     "G": 3, # Grass
     "g": 5, # Tall grass
     "E": 5, # Elevator
@@ -30,7 +33,6 @@ CELL_COST = {
     # HM Obstacles
     "t": 5, # Tree
     "r": 5, # Rock
-    "b": 5, # Boulder
     "W": 5, # Water
     "w": 5, # Waterfall
     "C": 5, # Climb
@@ -53,8 +55,9 @@ CELL_COST = {
 SOLID_BLOCKS = [
     "X", # Wall, Tree, etc
     "N", # NPC
+    "s", # Sign (Special process since it displays a message if coming from the bottom)
     "I", # Interactable (Static encounter, Shop, etc)
-    "s", # Sign
+    "b", # Boulder (Cannot be removed like Cut or Rock Smash, so is actually an obsctacle)
 ]
 
 DIRECTIONS = [
@@ -66,10 +69,10 @@ DIRECTIONS = [
 
 # Node class for A* Pathfinding
 class Node():
-    def __init__(self, position: Position, parent = None):
+    def __init__(self, position: Position, zoneMap, parent = None):
         self.parent = parent
         self.position = position
-        self.cellType = position.zone.map[position.Y][position.X]
+        self.cellType = zoneMap[position.Y][position.X]
 
         # A* core parameters
         self.g = 0
@@ -79,12 +82,12 @@ class Node():
         # Special process for bridges since two cells share the same position, see solid blocks processing
         if (parent and parent.isBelow):
             # If you were below a bridge, you're leaving when not on Above or Below cell
-            self.isBelow = self.cellType in ["A","B"]
+            self.isBelow = self.cellType in ["A","a","@","B","d"]
             self.isAbove = False
         else:
             # If you were not, above/below condition just depends on current cell value
-            self.isBelow = self.cellType == "B"
-            self.isAbove = self.cellType == "A"
+            self.isBelow = self.cellType in ["B","d"]
+            self.isAbove = self.cellType in ["A","a","@"]
 
     # Two nodes may share the same position but be above or below a bridge, so we must check those conditions as well
     def __eq__(self, other):
@@ -98,12 +101,116 @@ class Node():
               + ("" if not self.parent else
               " - parent : (" + str(self.parent.position.Y) + "," + str(self.parent.position.X) + ") - " + str(self.parent.f) + " (" + str(self.parent.g) + " + " + str(self.parent.h) + ")"))
 
+def isBoulderPushable(zoneMap, playerPosition, boulderPosition, orientation, blockingBoulders):
+
+    # Boulder is pushable if the cell after that is an empty one, and the boulder hasn't already been processed
+    return (zoneMap[boulderPosition.Y + orientation[0]][boulderPosition.X + orientation[1]] == "O" 
+                and (playerPosition, boulderPosition) not in blockingBoulders)
+
+
+def sortBoulders(boulderList, endPosition, orientation):
+
+    # Calculate boulder distance to endPosition
+    for boulder in boulderList:
+        boulder[1].setDistance(endPosition)
+
+    # Sort by distance to endPosition
+    sortedList = sorted(boulderList, key=lambda x: x[1].distance)
+
+    # Specific process for particular boulders that need to be pushed last
+    for boulder in PUZZLE_BOULDERS:
+        if (boulder in sortedList):
+            sortedList.remove(boulder)
+            sortedList.append(boulder)
+
+    print(sortedList)
+    return sortedList
+
+def getMostEfficientPath(start: Position, end: Position):
+
+    # Boulders might block the way, we'll track them and process them if needed
+    while True:
+
+        # Try to find a path again until all boulders have been processed
+        possiblePath, blockingBoulders = astar(start, end, start.zone.map)
+
+        # No path found, checking for boulders
+        if (not possiblePath and len(blockingBoulders) > 0):
+            
+            # Push the boulders close to endPosition first
+            blockingBoulders = sortBoulders(blockingBoulders, end)
+
+            # Retrieve every boulder actually blocking the way
+            for boulder in blockingBoulders:
+                playerPosition = boulder[0]
+                boulderPosition = boulder[1]
+
+                # Create a copy of the map since we'll edit it
+                newMap = boulderPosition.zone.map[:]
+                
+                # Operations will depend on the player and boulders positions
+                xDiff = boulderPosition.X - playerPosition.X
+                yDiff = boulderPosition.Y - playerPosition.Y
+
+                # Try to push the boulder all the way
+                while True:
+
+                    # Push the boulder in the direction the player is facing
+                    updatedBoulder = Position(boulderPosition.X + xDiff, boulderPosition.Y + yDiff, boulderPosition.zone)
+                    updatedPlayer = Position(playerPosition.X + xDiff, playerPosition.Y + yDiff, playerPosition.zone)
+
+                    # Update the map to take into account the pushed boulder
+                    if (xDiff == 1):
+                        newMap[boulderPosition.Y] = newMap[boulderPosition.Y][:boulderPosition.X] + "Ob" + newMap[boulderPosition.Y][boulderPosition.X+2:]
+                    elif (xDiff == -1):
+                        newMap[boulderPosition.Y] = newMap[boulderPosition.Y][:boulderPosition.X-1] + "bO" + newMap[boulderPosition.Y][boulderPosition.X+1:]
+                    else:
+                        newMap[boulderPosition.Y] = newMap[boulderPosition.Y][:boulderPosition.X] + "O" + newMap[boulderPosition.Y][boulderPosition.X+1:]
+                        newMap[boulderPosition.Y + yDiff] = newMap[boulderPosition.Y + yDiff][:boulderPosition.X] + "b" + newMap[boulderPosition.Y + yDiff][boulderPosition.X+1:]
+
+                    # Try to find a way now that the boulder has been pushed
+                    possiblePath, newBlockingBoulders = astar(playerPosition, end, newMap)
+
+                    # A path has been found, return it
+                    if (possiblePath):
+                        print("Found a path !\n")
+                        return None # possiblePath
+
+                    # No path has been found but boulder can still be pushed, keep trying
+                    elif ((updatedPlayer, updatedBoulder) in newBlockingBoulders):
+                        print("Still pushing the boulder... " + str(updatedBoulder))
+                        boulderPosition = updatedBoulder
+                        playerPosition = updatedPlayer
+
+                    # Boulder has been pushed all the way and still no path found
+                    # Try another boulder but keep the same map
+                    elif (len(newBlockingBoulders) > 0):
+                        print("\nCannot push the boulder anymore, trying another boulder")
+
+                        # Push the boulders close to endPosition first
+                        newBlockingBoulders = sortBoulders(newBlockingBoulders, end)
+
+                        playerPosition = newBlockingBoulders[0][0]
+                        boulderPosition = newBlockingBoulders[0][1]
+                        xDiff = boulderPosition.X - playerPosition.X
+                        yDiff = boulderPosition.Y - playerPosition.Y
+
+                    # No boulder left to push and no 
+                    else:
+                        print("\nCannot push the boulder anymore, we definetly can't find a path\n")
+                        return None
+        else:
+            return possiblePath
+
 # Use A* algorithm to find most efficient path
-def astar(start: Position, end: Position):
+def astar(start: Position, end: Position, zoneMap):
+
+    # Boulders might block the way, we'll track them and process them if needed
+    blockingBoulders = []
 
     # Create start and end node
-    start_node = Node(start)
-    end_node = Node(end)
+    start_node = Node(start, zoneMap)
+    end_node = Node(end, zoneMap)
 
     # Initialize both open and closed list
     open_list = []
@@ -141,20 +248,25 @@ def astar(start: Position, end: Position):
                 current = current.parent
 
             # Return reversed path
-            return path[::-1]
+            return path[::-1], []
         
         # Generate children
         children = []
-        zoneMap = current_node.position.zone.map
         for new_position in DIRECTIONS: # Adjacent squares
 
             # Get node position
-            node_position = Position(current_node.position.X + new_position["orientation"][1], current_node.position.Y + new_position["orientation"][0], current_node.position.zone)
+            node_position = Position(current_node.position.X + new_position["orientation"][1],
+                                     current_node.position.Y + new_position["orientation"][0],
+                                     current_node.position.zone)
             nextCellValue = zoneMap[node_position.Y][node_position.X]
             topCellValue = zoneMap[node_position.Y - 1][node_position.X]
 
             # Can't walk through solid blocks
             if nextCellValue in SOLID_BLOCKS + new_position["solidLedges"]:
+
+                # If the solid block is a boulder and the cell after that is a free cell, we can try pushing the boulder
+                if (nextCellValue == "b" and isBoulderPushable(zoneMap,current_node.position,node_position,new_position["orientation"],blockingBoulders)):
+                    blockingBoulders.append((current_node.position, node_position))
                 continue
 
             # If on a bridge, don't go on Below cells
@@ -170,7 +282,7 @@ def astar(start: Position, end: Position):
                 continue
 
             # We can walk through the block : add node to the children list
-            new_node = Node(node_position, current_node)
+            new_node = Node(node_position, zoneMap, current_node)
             children.append(new_node)
 
         # Loop through children
@@ -192,10 +304,12 @@ def astar(start: Position, end: Position):
             # Add the child to the open list
             open_list.append(child)
 
-def getPathCoordinates(startPosition, endPosition):
+    # We reached the end of the loop, maybe boulders are blocking the way
+    return None, blockingBoulders
 
+def getPathCoordinates(startPosition, endPosition):
     # Get most effective path from startPosition to endPosition
-    path = astar(startPosition, endPosition)
+    path = getMostEfficientPath(startPosition, endPosition)
     pathInputSequence = ""
 
     # Convert path to joypad inputs
@@ -236,6 +350,10 @@ def goToLocation(location: Position):
     playerPosition = Position(**memory.readPositionData())
     path = writePathInputs(location)
     pathIndex = 0
+
+    if (not path):
+        print("No path has been found from " + str(playerPosition) + " to " + str(location))
+        return None
 
     # Unfortunately, the running animation time is not consistent
     # and we might bump into moving NPCs
