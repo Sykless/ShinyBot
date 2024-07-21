@@ -143,78 +143,72 @@ def sortBoulders(boulderList, endPosition, orientation):
 def getMostEfficientPath(start: Position, end: Position):
 
     # Boulders might block the way, we'll track them and process them if needed
-    while True:
+    possiblePath, blockingBoulders = astar(start, end, start.zone.map)
 
-        # Try to find a path again until all boulders have been processed
-        possiblePath, blockingBoulders = astar(start, end, start.zone.map)
+    # No path found, checking for boulders
+    if (not possiblePath and len(blockingBoulders) > 0):
+        
+        # Push the boulders close to endPosition first
+        blockingBoulders = sortBoulders(blockingBoulders, end)
+        playerPosition = blockingBoulders[0][0]
+        boulderPosition = blockingBoulders[0][1]
 
-        # No path found, checking for boulders
-        if (not possiblePath and len(blockingBoulders) > 0):
-            
-            # Push the boulders close to endPosition first
-            blockingBoulders = sortBoulders(blockingBoulders, end)
+        # Operations will depend on the player and boulders positions
+        xDiff = boulderPosition.X - playerPosition.X
+        yDiff = boulderPosition.Y - playerPosition.Y
 
-            # Retrieve every boulder actually blocking the way
-            for boulder in blockingBoulders:
-                playerPosition = boulder[0]
-                boulderPosition = boulder[1]
+        # Create a copy of the map since we'll edit it
+        newMap = boulderPosition.zone.map[:]
 
-                # Create a copy of the map since we'll edit it
-                newMap = boulderPosition.zone.map[:]
-                
-                # Operations will depend on the player and boulders positions
+        # Try to push the boulder all the way
+        while True:
+
+            # Push the boulder in the direction the player is facing
+            updatedBoulder = Position(boulderPosition.X + xDiff, boulderPosition.Y + yDiff, boulderPosition.zone)
+            updatedPlayer = Position(playerPosition.X + xDiff, playerPosition.Y + yDiff, playerPosition.zone)
+
+            # Update the map to take into account the pushed boulder
+            if (xDiff == 1):
+                newMap[boulderPosition.Y] = newMap[boulderPosition.Y][:boulderPosition.X] + "Ob" + newMap[boulderPosition.Y][boulderPosition.X+2:]
+            elif (xDiff == -1):
+                newMap[boulderPosition.Y] = newMap[boulderPosition.Y][:boulderPosition.X-1] + "bO" + newMap[boulderPosition.Y][boulderPosition.X+1:]
+            else:
+                newMap[boulderPosition.Y] = newMap[boulderPosition.Y][:boulderPosition.X] + "O" + newMap[boulderPosition.Y][boulderPosition.X+1:]
+                newMap[boulderPosition.Y + yDiff] = newMap[boulderPosition.Y + yDiff][:boulderPosition.X] + "b" + newMap[boulderPosition.Y + yDiff][boulderPosition.X+1:]
+
+            # Try to find a way now that the boulder has been pushed
+            possiblePath, newBlockingBoulders = astar(playerPosition, end, newMap)
+
+            # A path has been found, return it
+            if (possiblePath):
+                print("Found a path !\n")
+                return None # possiblePath
+
+            # No path has been found but boulder can still be pushed, keep trying
+            elif ((updatedPlayer, updatedBoulder) in newBlockingBoulders):
+                print("Still pushing the boulder... " + str(updatedBoulder))
+                boulderPosition = updatedBoulder
+                playerPosition = updatedPlayer
+
+            # Boulder has been pushed all the way and still no path found
+            # Try another boulder but keep the same map
+            elif (len(newBlockingBoulders) > 0):
+                print("\nCannot push the boulder anymore, trying another boulder")
+
+                # Push the boulders close to endPosition first
+                newBlockingBoulders = sortBoulders(newBlockingBoulders, end)
+
+                playerPosition = newBlockingBoulders[0][0]
+                boulderPosition = newBlockingBoulders[0][1]
                 xDiff = boulderPosition.X - playerPosition.X
                 yDiff = boulderPosition.Y - playerPosition.Y
 
-                # Try to push the boulder all the way
-                while True:
-
-                    # Push the boulder in the direction the player is facing
-                    updatedBoulder = Position(boulderPosition.X + xDiff, boulderPosition.Y + yDiff, boulderPosition.zone)
-                    updatedPlayer = Position(playerPosition.X + xDiff, playerPosition.Y + yDiff, playerPosition.zone)
-
-                    # Update the map to take into account the pushed boulder
-                    if (xDiff == 1):
-                        newMap[boulderPosition.Y] = newMap[boulderPosition.Y][:boulderPosition.X] + "Ob" + newMap[boulderPosition.Y][boulderPosition.X+2:]
-                    elif (xDiff == -1):
-                        newMap[boulderPosition.Y] = newMap[boulderPosition.Y][:boulderPosition.X-1] + "bO" + newMap[boulderPosition.Y][boulderPosition.X+1:]
-                    else:
-                        newMap[boulderPosition.Y] = newMap[boulderPosition.Y][:boulderPosition.X] + "O" + newMap[boulderPosition.Y][boulderPosition.X+1:]
-                        newMap[boulderPosition.Y + yDiff] = newMap[boulderPosition.Y + yDiff][:boulderPosition.X] + "b" + newMap[boulderPosition.Y + yDiff][boulderPosition.X+1:]
-
-                    # Try to find a way now that the boulder has been pushed
-                    possiblePath, newBlockingBoulders = astar(playerPosition, end, newMap)
-
-                    # A path has been found, return it
-                    if (possiblePath):
-                        print("Found a path !\n")
-                        return None # possiblePath
-
-                    # No path has been found but boulder can still be pushed, keep trying
-                    elif ((updatedPlayer, updatedBoulder) in newBlockingBoulders):
-                        print("Still pushing the boulder... " + str(updatedBoulder))
-                        boulderPosition = updatedBoulder
-                        playerPosition = updatedPlayer
-
-                    # Boulder has been pushed all the way and still no path found
-                    # Try another boulder but keep the same map
-                    elif (len(newBlockingBoulders) > 0):
-                        print("\nCannot push the boulder anymore, trying another boulder")
-
-                        # Push the boulders close to endPosition first
-                        newBlockingBoulders = sortBoulders(newBlockingBoulders, end)
-
-                        playerPosition = newBlockingBoulders[0][0]
-                        boulderPosition = newBlockingBoulders[0][1]
-                        xDiff = boulderPosition.X - playerPosition.X
-                        yDiff = boulderPosition.Y - playerPosition.Y
-
-                    # No boulder left to push and no 
-                    else:
-                        print("\nCannot push the boulder anymore, we definetly can't find a path\n")
-                        return None
-        else:
-            return possiblePath
+            # No boulder left to push and no path found
+            else:
+                print("\nCannot push the boulder anymore, we definetly can't find a path\n")
+                return None
+    else:
+        return possiblePath
 
 # Use A* algorithm to find most efficient path
 def astar(start: Position, end: Position, zoneMap):
