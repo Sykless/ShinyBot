@@ -10,10 +10,20 @@ from PIL import Image, ImageFile
 # https://stackoverflow.com/questions/42462431/oserror-broken-data-stream-when-reading-image-file
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
+WEATHER_COLOR = [
+    [243,235,227], # Snow
+    [97,138,186],  # Sand
+    [73,105,138]   # Ash
+]
+
+TRAINER_MINXPOSITION = 116
+TRAINER_MINYPOSITION = 74
+
 class Template:
     def __init__(self, name, positionX, positionY, width, height, threshold, mask = None):
         self.image = cv2.imread("src/python/data/img/" + name + ".png")
         self.mask = mask and cv2.imread("src/python/data/img/" + name + "-mask.png")
+        self.name = name
 
         self.positionX = positionX
         self.positionY = positionY
@@ -21,18 +31,31 @@ class Template:
         self.height = height
         self.threshold = threshold
 
-    def isOnScreen(self, screenshot):
-        return isTemplateInImage(screenshot[
+    def setPosition(self,x,y):
+        self.positionX = x
+        self.positionY = y
+
+    def getSubScreenshot(self, screenshot):
+        return screenshot[
                 self.positionY:self.positionY + self.height,
-                self.positionX:self.positionX + self.width],
-            self.image, self.threshold, mask = self.mask)[0]
+                self.positionX:self.positionX + self.width]
 
-trainerUp = Template("trainer-up", 119, 76, 17, 23, 3330000, mask = True)
-trainerDown = Template("trainer-down", 119, 76, 17, 23, 3330000, mask = True)
-trainerRight = Template("trainer-right", 120, 76, 17, 23, 5000000, mask = True)
-trainerLeft = Template("trainer-left", 119, 76, 17, 23, 5000000, mask = True)
+    def getPositionOnScreen(self,screenshot,mask):
+        return getTemplatePosition(self.getSubScreenshot(screenshot),
+            self.image, templatemask = mask)
+
+    def isOnScreen(self, screenshot):
+        return isTemplateInImage(self.getSubScreenshot(screenshot),
+            self.image, self.threshold, templatemask = self.mask)[0]
+
+trainer = Template("trainer", TRAINER_MINXPOSITION, TRAINER_MINYPOSITION, 26, 14, None, mask = True)
+trainerUp = Template("trainer-up", TRAINER_MINXPOSITION, TRAINER_MINYPOSITION, 18, 20, None, None)
+trainerDown = Template("trainer-down", TRAINER_MINXPOSITION, TRAINER_MINYPOSITION, 18, 20, None, None)
+trainerRight = Template("trainer-right", TRAINER_MINXPOSITION, TRAINER_MINYPOSITION, 18, 20, None, None)
+trainerLeft = Template("trainer-left", TRAINER_MINXPOSITION, TRAINER_MINYPOSITION, 18, 20, None, None)
+trainerOrientationMask = cv2.imread("src/python/data/img/trainer-orientation-mask.png")
+
 battleTouchscreen = Template("battle-touchscreen", 0, 192, 256, 192, 1, mask = True)
-
 poketch = Template("poketch", 224, 225, 32, 126, 1)
 pokemonMenu = Template("pokemon-menu", 0, 192, 208, 80, 1)
 hmAnimation = Template("hm-animation", 0, 56, 255, 80, 50000)
@@ -54,36 +77,75 @@ def getPageNumber(screenshot):
     else: return None
 
 def getPlayerPosition(screenshot):
-    # Facing left
-    if (trainerLeft.isOnScreen(screenshot)):
-        return "l"
 
-    # Facing right
-    elif (trainerRight.isOnScreen(screenshot)):
-        return "r"
+    # Get trainer position on subscreenshot
+    trainerPosition = trainer.getPositionOnScreen(screenshot, trainer.mask)[1]
 
-    # Facing down
-    elif (trainerDown.isOnScreen(screenshot)):
-        return "d"
+    # Calculate relative position on whole screen
+    xPosition = trainerPosition[0] + TRAINER_MINXPOSITION
+    yPosition = trainerPosition[1] + TRAINER_MINYPOSITION
 
-    # Facing up
-    elif (trainerUp.isOnScreen(screenshot)):
-        return "u"
+    # Apply relative position to trainer templates
+    trainerLeft.setPosition(xPosition,yPosition)
+    trainerRight.setPosition(xPosition,yPosition)
+    trainerDown.setPosition(xPosition,yPosition)
+    trainerUp.setPosition(xPosition,yPosition)
+
+    # Add weather particles to mask in order to ignore them
+    weatherMask = createMaskWithWeather(trainerLeft.getSubScreenshot(screenshot),
+                trainerOrientationMask.copy())
     
-    # Player not in the screenshot
-    else:
-        return None
+    # Compare trainer position templates to trainer in the screenshot
+    leftTemplateValue = (trainerLeft.getPositionOnScreen(screenshot, weatherMask), "l")
+    rightTemplateValue = (trainerRight.getPositionOnScreen(screenshot, weatherMask), "r")
+    downTemplateValue = (trainerDown.getPositionOnScreen(screenshot, weatherMask), "d")
+    upTemplateValue = (trainerUp.getPositionOnScreen(screenshot, weatherMask), "u")
 
-def isTemplateInImage(image, template, threshold, mask = None):
+    print(xPosition, yPosition)
+    print("leftTemplateValue : " + str(leftTemplateValue))
+    print("rightTemplateValue : " + str(rightTemplateValue))
+    print("downTemplateValue : " + str(downTemplateValue))
+    print("upTemplateValue : " + str(upTemplateValue))
+
+    # Lowest result is the closest result, so we sort all four results
+    sortedList = sorted([leftTemplateValue, rightTemplateValue, downTemplateValue, upTemplateValue], key=lambda x: x[0][0])
+
+    # Up template is really close to Down template, but the opposite is not true
+    # If Down template result is the lowest, it might actually be Up template if the two results are close
+    if (sortedList[0][1] == "d" and sortedList[1][1] == "u" and sortedList[0][0][0] / sortedList[1][0][0] > 0.70):
+        return "u"
+    # Default behavior : return the lowest result
+    else:
+        return sortedList[0][1]
+    
+def createMaskWithWeather(image, templatemask):
+
+    # Create new temporary mask masking the weather partcles (snow, sand, etc)
+    weatherMask = templatemask[:]
+
+    for weatherParticle in WEATHER_COLOR:
+        # Retrieve all weather particles from screenshot
+        (Y,X) = numpy.where(numpy.all(image == weatherParticle, axis=2))
+        snowflakeLocations = numpy.column_stack((Y,X))
+
+        # Apply them to the new mask
+        for snowflake in snowflakeLocations:
+            weatherMask[snowflake[0]][snowflake[1]] = [0,0,0]
+
+    return weatherMask
+
+def getTemplatePosition(image, templateImage, templatemask = None):
 
     # Template matching using TM_SQDIFF : Perfect match -> minimum value around 0.0
-    result = cv2.matchTemplate(image, template, cv2.TM_SQDIFF, mask = mask)
+    result = cv2.matchTemplate(image, templateImage, cv2.TM_SQDIFF, mask = templatemask)
 
     # Get best match
     min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
 
-    # print(min_val)
+    return min_val, min_loc
 
+def isTemplateInImage(image, templateImage, threshold, templatemask = None):
+    min_val, min_loc = getTemplatePosition(image, templateImage, templatemask)
     return min_val <= threshold, min_loc
 
 ITEM_CURRENT_LOCATION_SELECTOR = cv2.imread('src/python/data/img/item-current-location-selector.png')
