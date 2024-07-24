@@ -19,6 +19,11 @@ def writePathfindingInput(nodeList, playerDirection):
 
     # Only move if there are at least two nodes
     if (len(nodeList) > 1):
+
+        # Start the path stopped
+        stopped = True
+        frameByFrameInputSequence = ""
+
         for nodeId in range(len(nodeList)):
             node = nodeList[nodeId]
             position = node.position
@@ -39,21 +44,48 @@ def writePathfindingInput(nodeList, playerDirection):
 
                 print(node.cellType)
 
-                # First node : apply animation lag
-                if (nodeId == 1):
-                    frameByFrameInputSequence = inputButton * (
+                # Stopped : apply animation lag
+                if (stopped):
+                    frameByFrameInputSequence += inputButton * (
                         5 # 5 frames of input lag
                         + 6 * (inputButton != playerDirection) # 6 frames to turn around
                         + 6 # 6 frames to start run animation
                         - 5 # -5 frames to change direction at frame 1 of start animation
                     )
+                    
+                    # Start moving
+                    stopped = False
+
+                # Already moving
                 else:
                     # Ledge
                     if (node.cellType in ["L","R","D","U"]):
                         frameByFrameInputSequence += 15 * inputButton # Ledge jump animation
 
-                    # 8 frames per input during run animation
-                    frameByFrameInputSequence += 8 * inputButton
+                    # Rock smash
+                    elif (node.cellType == "r"):
+                        frameByFrameInputSequence += (5 * inputButton # Face the rock
+                            + 6 * "@"   # Turning animation
+                            + 5 * "@"   # Just for safety
+                            + 5 * "A"   # Interact with rock
+                            + 80 * "@"  # Wait for dialogue
+                            + 5 * "A"   # Use Rock Smash
+                            + 40 * "@"  # Rock Smash dialogue
+                            + 5 * "A"   # Skip dialogue
+                            + 125 * "@" # HM Animation
+                            + 100 * "@" # Rock Smash animation
+                        )
+
+                        # Start moving again to reach actual cell position
+                        frameByFrameInputSequence += inputButton * (
+                            5 # 5 frames of input lag
+                            + 6 # 6 frames to start run animation
+                            - 5 # -5 frames to change direction at frame 1 of start animation
+                        )
+
+                    # Regular cell
+                    elif (node.cellType == "O"):
+                        frameByFrameInputSequence += 8 * inputButton # 8 frames per input during run animation
 
             previousPosition = position
 
