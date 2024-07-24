@@ -2,9 +2,10 @@
 from pokemon import Pokemon
 from zone import Position
 
-
 import img
+import zone
 import utils
+import action
 import joypad
 import memory
 import pathfinding
@@ -18,16 +19,12 @@ NEXT_PAGE_BUTTON = 0
 PREVIOUS_PAGE_BUTTON = 1
 CANCEL_BUTTON = 2
 
-LITTORELLA_SHOP = Position(187,842)
-LITTORELLA_POKEMON_CENTER = Position(177,843)
-
-FELICITE_SHOP = Position(179,766)
-FELICITE_POKEMON_CENTER = Position(180,777)
-
-ROUTE_204_SOUTH = Position(171,720)
+playerPosition = Position(**memory.readPositionData())
+# pathfinding.goToLocation(Position(756,272,403))
+# action.flyToTown(zone.RIVAMAR_CITY)
 
 freeMode = True
-shinyBot = False
+shinyBot = True
 catchAllMode = False
 
 spinMode = False
@@ -39,7 +36,7 @@ loadedPokemonPid = 0
 jsonPokemonData = memory.readWildPokemonData()
 jsonTeamData = memory.readPokemonTeamData()
 
-if (freeMode):
+if (shinyBot and freeMode):
     print("Debug Screenshot mode")
 
 while shinyBot:
@@ -62,6 +59,7 @@ while shinyBot:
     if (freeMode):
         screenshot = img.getScreenshot()
         playerPosition = Position(**memory.readPositionData())
+        print(img.getPlayerPosition(screenshot))
 
     # Only apply new input if no input is found in memory
     elif (len(joypadInput) == 0):
@@ -93,7 +91,7 @@ while shinyBot:
 
             # Go back to shop
             elif (backToShop):
-                pathfinding.goToLocation(FELICITE_SHOP)
+                pathfinding.goToLocation(zone.FELICITE_TOWN.shopLocation)
 
         # New Pokedex entry : Press A
         elif (img.newPokedexEntry.isOnScreen(screenshot)):
