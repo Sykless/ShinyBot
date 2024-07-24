@@ -62,18 +62,18 @@ def writePathfindingInput(nodeList, playerDirection):
                     if (node.cellType in ["L","R","D","U"]):
                         frameByFrameInputSequence += 15 * inputButton # Ledge jump animation
 
-                    # Rock smash
-                    elif (node.cellType == "r"):
-                        frameByFrameInputSequence += (5 * inputButton # Face the rock
+                    # Rock smash - Cut
+                    elif (node.cellType in ["r","t"]):
+                        frameByFrameInputSequence += (5 * inputButton # Face the rock/tree
                             + 6 * "@"   # Turning animation
                             + 5 * "@"   # Just for safety
-                            + 5 * "A"   # Interact with rock
+                            + 5 * "A"   # Interact with rock/tree
                             + 80 * "@"  # Wait for dialogue
-                            + 5 * "A"   # Use Rock Smash
-                            + 40 * "@"  # Rock Smash dialogue
+                            + 5 * "A"   # Use Rock Smash/Cut
+                            + 40 * "@"  # Rock Smash/Cut dialogue
                             + 5 * "A"   # Skip dialogue
                             + 125 * "@" # HM Animation
-                            + 100 * "@" # Rock Smash animation
+                            + 100 * "@" # Obstacle destroyed animation
                         )
 
                         # Start moving again to reach actual cell position
