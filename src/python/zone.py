@@ -13,9 +13,10 @@ class Zone():
     def addDoor(self, door):
         self.doorList.append(door)
 
-    # Specifically for overworld map since it shares multiple zones
-    def setZoneList(self, zoneList):
-        self.zoneList = zoneList
+    def getDoorByDestination(self, zone):
+        for door in self.doorList:
+            if (door.destination.zone.zoneId == zone.zoneId):
+                return door
 
 class Position:
     def __init__(self, positionX, positionY, zone):
@@ -32,7 +33,9 @@ class Position:
         else:
             self.zone = None
             print("Unknown zone :", end = " ")
-            print(zone)
+
+    def setDistance(self, position):
+        self.distance = abs(self.X - position.X) + abs(self.Y - position.Y)
 
     def __eq__(self, other):
         if isinstance(other, Position):
@@ -41,6 +44,9 @@ class Position:
 
     def __str__(self):
         return "Position (" + str(self.X) + "," + str(self.Y) + ") à " + self.zone.name
+    
+    def __repr__(self):
+        return str(self)
 
 class Door():
     def __init__(self, position: Position, destination: Position):
