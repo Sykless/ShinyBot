@@ -38,6 +38,7 @@ class Template:
         return isTemplateInImage(self.getSubScreenshot(screenshot),
             self.image, self.threshold, templatemask = self.mask)[0]
 
+BLACK_COLOR = [0,0,0]
 WEATHER_COLOR = [
     [243,235,227], # Snow
     [97,138,186],  # Sand
@@ -87,7 +88,7 @@ useItem = Template("use-item", 8, 351, 192, 27, 1)
 newPokedexEntry = Template("new-pokedex-entry", 0, 0, 241, 15, 1)
 
 def printImage(image):
-    cv2.imshow("Image avec un nom hyper long pour tester", image)
+    cv2.imshow("Image avec un nom hyper long pour tester", cv2.resize(image, None, fx = 10, fy = 10, interpolation = cv2.INTER_CUBIC))
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
@@ -105,10 +106,92 @@ def isTemplateInImage(image, templateImage, threshold, templatemask = None):
     min_val, min_loc = getTemplatePosition(image, templateImage, templatemask)
     return min_val <= threshold, min_loc
 
+def getRedsValues(image):
+    # Get number of occurences for each pixel
+    colors, count = numpy.unique(image.reshape(-1,image.shape[-1]), axis=0, return_counts=True)
+
+    # Sort colors by number of occurrences in order to get the most common pixels
+    sorter = (-count).argsort()
+    sortedColors = colors[sorter]
+
+    # print(count)
+    # print(colors)
+    # print(sortedColors)
+
+    hsvLightRed = None
+    bgrLightRed = None
+
+    for bgrColor in sortedColors:
+        # print()
+        # print(bgrColor)
+
+        # Black pixel is most likely the most common pixel since we applied a mask, skip it
+        if (bgrColor != BLACK_COLOR).all():
+
+            # Get all locations of current color in the image
+            colorLocation = numpy.argwhere(image == bgrColor)
+
+            # Retrieve minimum and maximum position
+            minValues = numpy.min(colorLocation, axis=0)
+            maxValues = numpy.max(colorLocation, axis=0)
+
+            # print(minValues)
+            # print(maxValues)
+
+            # Red cap should be at least 8 pixels long but no longer than 15
+            # Also should be at least 4 pixels wide but no longer than 20
+            if (4 <= maxValues[0] - minValues[0] <= 20       
+                and 8 <= maxValues[1] - minValues[1] <= 15):
+
+                # print("Potential red")
+                # print(bgrColor)
+
+                # Convert pixel to HSV, easier to compare darker shades with Saturation and Brightness
+                hsvColor = convertBgrPixelToHsv(bgrColor)
+
+                # First pixel to match cap position conditions : keep it for later
+                if (bgrLightRed is None):
+                    bgrLightRed = bgrColor
+                    hsvLightRed = hsvColor
+
+                # Current color has higher saturation and lower brightness : current color is dark red
+                elif (hsvColor[1] > hsvLightRed[1] and hsvColor[2] < hsvLightRed[2]):
+                    return {"lightRed": bgrLightRed, "darkRed": bgrColor}
+                
+                # Current color has lower saturation and higher brightness : current color is light red
+                elif (hsvColor[1] < hsvLightRed[1] and hsvColor[2] > hsvLightRed[2]):
+                    return {"lightRed": bgrColor, "darkRed": bgrLightRed}
+                
+                # Higher saturation and brightness or lower saturation and brigthness : cannot compare
+                else:
+                    print("Cannot determine which red is darker : ")
+                    print(bgrLightRed)
+                    print(bgrColor)
+                    print()
+                    
+    return None
+            
+            
+def convertBgrPixelToHsv(pixel):
+    return cv2.cvtColor(numpy.uint8([[pixel]]), cv2.COLOR_BGR2HSV)[0][0]
+
+    
+
+
+
+
 def getPlayerPosition(screenshot):
 
-    redScreenshot = filterRed(trainer.getSubScreenshot(screenshot))
-    #printImage(redScreenshot)
+    # Make a first mask in order to only keep red-ish colors
+    redScreenshot = filterRedPixels(trainer.getSubScreenshot(screenshot))
+
+    # Retrieve cap colors (light red + dark red)
+    redColors = getRedsValues(redScreenshot)
+
+    # Change all light red pixels to green, dark red pixels to blue and the rest to black
+    capImage = filterCap(redScreenshot, redColors["lightRed"], redColors["darkRed"])
+
+    printImage(capImage)
 
     # Get trainer position on subscreenshot
     trainerPosition = trainer.getPositionOnScreen(redScreenshot, trainer.mask)[1]
@@ -170,30 +253,44 @@ def createMaskWithWeather(image, templatemask):
 
     return weatherMask
 
-def filterRed(image):
-    img_hsv=cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+def filterRedPixels(image):
+    hsvImage = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
-    # lower mask (0-10)
-    lower_red = numpy.array([0,50,50])
-    upper_red = numpy.array([15,255,255])
-    mask0 = cv2.inRange(img_hsv, lower_red, upper_red)
+    # Lower mask (Hue between 0 and 15)
+    lowerRed = numpy.array([0,50,50])
+    upperRed = numpy.array([15,255,255])
+    lowHueMask = cv2.inRange(hsvImage, lowerRed, upperRed)
 
-    # upper mask (170-180)
-    lower_red = numpy.array([150,20,20])
-    upper_red = numpy.array([180,255,255])
-    mask1 = cv2.inRange(img_hsv, lower_red, upper_red)
+    # Upper mask (Hue between 150 and 180)
+    lowerRed = numpy.array([150,20,20])
+    upperRed = numpy.array([180,255,255])
+    higHuehMask = cv2.inRange(hsvImage, lowerRed, upperRed)
 
-    # join my masks
-    mask = mask0+mask1
+    # Join the two masks
+    redMask = lowHueMask + higHuehMask
 
-    # set my output img to zero everywhere except my mask
-    output_img = image.copy()
-    output_img[numpy.where(mask==0)] = 0
-    output_hsv = img_hsv.copy()
-    output_hsv[numpy.where(mask==0)] = 0
+    # Set the pixels to black everywhere except the red mask
+    redImage = image.copy()
+    redImage[numpy.where(redMask == 0)] = 0
 
-    return output_img
+    return redImage
 
+def filterCap(image, lightRed, darkRed):
+
+    # Create masks for lightRed and darkRed colors
+    lightRedMask = numpy.all(image == lightRed, axis=2)
+    darkRedMask = numpy.all(image == darkRed, axis=2)
+
+    # Create a new image with only black pixels
+    blackImage = numpy.full_like(image, BLACK_COLOR)
+
+    # Apply lightRed mask and insert green pixels instead
+    blackImage[lightRedMask, :] = [0,255,0]
+
+    # Apply darkRed mask and insert blue pixels instead
+    blackImage[darkRedMask, :] = [255,0,0]
+
+    return blackImage
 
 
 def getPageNumber(screenshot):
