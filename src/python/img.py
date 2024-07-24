@@ -22,28 +22,19 @@ class Template:
         self.height = height
         self.threshold = threshold
 
-    def setPosition(self,x,y):
-        self.positionX = x
-        self.positionY = y
-
     def getSubScreenshot(self, screenshot):
         return screenshot[
                 self.positionY:self.positionY + self.height,
                 self.positionX:self.positionX + self.width]
 
-    def getPositionOnScreen(self,screenshot,mask):
-        return getTemplatePosition(screenshot, self.image, templatemask = mask)
+    def getNormedPositionOnScreen(self,screenshot):
+        return getTemplatePosition(screenshot, self.image, cv2.TM_SQDIFF_NORMED, templatemask = self.mask)
 
     def isOnScreen(self, screenshot):
         return isTemplateInImage(self.getSubScreenshot(screenshot),
             self.image, self.threshold, templatemask = self.mask)[0]
 
 BLACK_COLOR = [0,0,0]
-WEATHER_COLOR = [
-    [243,235,227], # Snow
-    [97,138,186],  # Sand
-    [73,105,138]   # Ash
-]
 
 ITEM_CURRENT_LOCATION_SELECTOR = cv2.imread('src/python/data/img/item-current-location-selector.png')
 MENU_CURRENT_LOCATION_SELECTOR = cv2.imread('src/python/data/img/menu-selector.png')
@@ -63,14 +54,12 @@ ITEM_SELECTION["width"] = 128
 ITEM_SELECTION["height"] = 48
 
 TRAINER_MINXPOSITION = 115
-TRAINER_MINYPOSITION = 74
+TRAINER_MINYPOSITION = 66
 
-trainer = Template("trainer", TRAINER_MINXPOSITION, TRAINER_MINYPOSITION, 26, 22, None, mask = True)
-trainerUp = Template("trainer-up", TRAINER_MINXPOSITION, TRAINER_MINYPOSITION, 18, 20, None, None)
-trainerDown = Template("trainer-down", TRAINER_MINXPOSITION, TRAINER_MINYPOSITION, 18, 20, None, None)
-trainerRight = Template("trainer-right", TRAINER_MINXPOSITION, TRAINER_MINYPOSITION, 18, 20, None, None)
-trainerLeft = Template("trainer-left", TRAINER_MINXPOSITION, TRAINER_MINYPOSITION, 18, 20, None, None)
-trainerOrientationMask = cv2.imread("src/python/data/img/trainer-orientation-mask.png")
+trainerUp = Template("trainer-up-bluegreen", TRAINER_MINXPOSITION, TRAINER_MINYPOSITION, 28, 32, None, mask = True)
+trainerDown = Template("trainer-down-bluegreen", TRAINER_MINXPOSITION, TRAINER_MINYPOSITION, 28, 32, None, mask = True)
+trainerRight = Template("trainer-right-bluegreen", TRAINER_MINXPOSITION, TRAINER_MINYPOSITION, 28, 32, None, mask = True)
+trainerLeft = Template("trainer-left-bluegreen", TRAINER_MINXPOSITION, TRAINER_MINYPOSITION, 28, 32, None, mask = True)
 
 battleTouchscreen = Template("battle-touchscreen", 0, 192, 256, 192, 1, mask = True)
 poketch = Template("poketch", 224, 225, 32, 126, 1)
@@ -87,24 +76,51 @@ thirdPage = Template("third-page", 183, 359, 6, 10, 1)
 useItem = Template("use-item", 8, 351, 192, 27, 1)
 newPokedexEntry = Template("new-pokedex-entry", 0, 0, 241, 15, 1)
 
-def printImage(image):
-    cv2.imshow("Image avec un nom hyper long pour tester", cv2.resize(image, None, fx = 10, fy = 10, interpolation = cv2.INTER_CUBIC))
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
 
-def getTemplatePosition(image, templateImage, templatemask = None):
+def isTemplateInImage(image, templateImage, threshold, templatemask = None):
+    min_val, min_loc = getTemplatePosition(image, templateImage, cv2.TM_SQDIFF, templatemask)
+    return min_val <= threshold, min_loc
+
+def getTemplatePosition(image, templateImage, matchingMethod, templatemask = None):
 
     # Template matching using TM_SQDIFF : Perfect match -> minimum value around 0.0
-    result = cv2.matchTemplate(image, templateImage, cv2.TM_SQDIFF, mask = templatemask)
+    result = cv2.matchTemplate(image, templateImage, matchingMethod, mask = templatemask)
 
     # Get best match
     min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
 
     return min_val, min_loc
 
-def isTemplateInImage(image, templateImage, threshold, templatemask = None):
-    min_val, min_loc = getTemplatePosition(image, templateImage, templatemask)
-    return min_val <= threshold, min_loc
+
+def getPlayerPosition(screenshot):
+
+    # Make a first mask in order to only keep red-ish colors on a trainer-centered subscreenshot
+    redScreenshot = filterRedPixels(trainerLeft.getSubScreenshot(screenshot))
+
+    # Retrieve cap colors (light red + dark red)
+    redColors = getRedsValues(redScreenshot)
+
+    # No red colour has been found 
+    if (redColors is None):
+        print("None")
+        return None
+
+    # Change all light red pixels to green, dark red pixels to blue and the rest to black
+    capImage = filterCap(redScreenshot, redColors["lightRed"], redColors["darkRed"])
+
+    # Compare trainer position templates to trainer in the screenshot
+    leftTemplateValue = (trainerLeft.getNormedPositionOnScreen(capImage), "l")
+    rightTemplateValue = (trainerRight.getNormedPositionOnScreen(capImage), "r")
+    downTemplateValue = (trainerDown.getNormedPositionOnScreen(capImage), "d")
+    upTemplateValue = (trainerUp.getNormedPositionOnScreen(capImage), "u")
+
+    # Lowest result is the closest result, so we sort all four results and take the first one
+    sortedList = sorted([upTemplateValue, leftTemplateValue, rightTemplateValue, downTemplateValue], key=lambda x: x[0][0])
+    orientation = sortedList[0][1]
+    print(orientation)
+
+    return orientation
+
 
 def getRedsValues(image):
     # Get number of occurences for each pixel
@@ -117,6 +133,7 @@ def getRedsValues(image):
     # print(count)
     # print(colors)
     # print(sortedColors)
+    # printImage(image)
 
     hsvLightRed = None
     bgrLightRed = None
@@ -129,19 +146,21 @@ def getRedsValues(image):
         if (bgrColor != BLACK_COLOR).all():
 
             # Get all locations of current color in the image
-            colorLocation = numpy.argwhere(image == bgrColor)
+            colorLocation = numpy.where(numpy.all(image == bgrColor, axis=2))
 
             # Retrieve minimum and maximum position
-            minValues = numpy.min(colorLocation, axis=0)
-            maxValues = numpy.max(colorLocation, axis=0)
+            minYposition = min(colorLocation[0])
+            maxYposition = max(colorLocation[0])
+            minXposition = min(colorLocation[1])
+            maxXposition = max(colorLocation[1])
 
-            # print(minValues)
-            # print(maxValues)
+            # print(minXposition, maxXposition)
+            # print(minYposition, maxYposition)
 
             # Red cap should be at least 8 pixels long but no longer than 15
-            # Also should be at least 4 pixels wide but no longer than 20
-            if (4 <= maxValues[0] - minValues[0] <= 20       
-                and 8 <= maxValues[1] - minValues[1] <= 15):
+            # Also should be at least 4 pixels wide but no longer than 22
+            if (4 <= maxYposition - minYposition <= 22       
+                and 8 <= maxXposition - minXposition <= 15):
 
                 # print("Potential red")
                 # print(bgrColor)
@@ -168,90 +187,11 @@ def getRedsValues(image):
                     print(bgrLightRed)
                     print(bgrColor)
                     print()
-                    
+                    printImage(image)
+
+    # No red colors found                
     return None
-            
-            
-def convertBgrPixelToHsv(pixel):
-    return cv2.cvtColor(numpy.uint8([[pixel]]), cv2.COLOR_BGR2HSV)[0][0]
 
-    
-
-
-
-
-def getPlayerPosition(screenshot):
-
-    # Make a first mask in order to only keep red-ish colors
-    redScreenshot = filterRedPixels(trainer.getSubScreenshot(screenshot))
-
-    # Retrieve cap colors (light red + dark red)
-    redColors = getRedsValues(redScreenshot)
-
-    # Change all light red pixels to green, dark red pixels to blue and the rest to black
-    capImage = filterCap(redScreenshot, redColors["lightRed"], redColors["darkRed"])
-
-    printImage(capImage)
-
-    # Get trainer position on subscreenshot
-    trainerPosition = trainer.getPositionOnScreen(redScreenshot, trainer.mask)[1]
-
-    # Calculate relative position on whole screen
-    xPosition = trainerPosition[0] + TRAINER_MINXPOSITION
-    yPosition = trainerPosition[1] + TRAINER_MINYPOSITION
-
-    # Apply relative position to trainer templates
-    trainerLeft.setPosition(xPosition,yPosition)
-    trainerRight.setPosition(xPosition,yPosition)
-    trainerDown.setPosition(xPosition,yPosition)
-    trainerUp.setPosition(xPosition,yPosition)
-
-    # Add weather particles to mask in order to ignore them
-    weatherMask = createMaskWithWeather(trainerLeft.getSubScreenshot(screenshot),
-                trainerOrientationMask.copy())
-    
-    # Compare trainer position templates to trainer in the screenshot
-    leftTemplateValue = (trainerLeft.getPositionOnScreen(trainerLeft.getSubScreenshot(screenshot), weatherMask), "l")
-    rightTemplateValue = (trainerRight.getPositionOnScreen(trainerRight.getSubScreenshot(screenshot), weatherMask), "r")
-    downTemplateValue = (trainerDown.getPositionOnScreen(trainerDown.getSubScreenshot(screenshot), weatherMask), "d")
-    upTemplateValue = (trainerUp.getPositionOnScreen(trainerUp.getSubScreenshot(screenshot), weatherMask), "u")
-
-    # Lowest result is the closest result, so we sort all four results
-    sortedList = sorted([leftTemplateValue, rightTemplateValue, downTemplateValue], key=lambda x: x[0][0])
-
-    # Up template is hard to differenciate from the other templates
-    # So if the lowest result is close to Up template result, we take Up as the closest
-    if (sortedList[0][1] == "d" and upTemplateValue[0][0] / sortedList[0][0][0] < 1.4
-        or sortedList[0][1] in ["l","r"] and upTemplateValue[0][0] / sortedList[0][0][0] < 1.05):
-        orientation = "u"
-    # Default behavior : return the lowest result
-    else:
-        orientation = sortedList[0][1]
-
-    print(xPosition, yPosition)
-    print("leftTemplateValue : " + str(leftTemplateValue))
-    print("rightTemplateValue : " + str(rightTemplateValue))
-    print("downTemplateValue : " + str(downTemplateValue))
-    print("upTemplateValue : " + str(upTemplateValue))
-    print(orientation)
-
-    return orientation
-    
-def createMaskWithWeather(image, templatemask):
-
-    # Create new temporary mask masking the weather partcles (snow, sand, etc)
-    weatherMask = templatemask[:]
-
-    for weatherParticle in WEATHER_COLOR:
-        # Retrieve all weather particles from screenshot
-        (Y,X) = numpy.where(numpy.all(image == weatherParticle, axis=2))
-        snowflakeLocations = numpy.column_stack((Y,X))
-
-        # Apply them to the new mask
-        for snowflake in snowflakeLocations:
-            weatherMask[snowflake[0]][snowflake[1]] = [0,0,0]
-
-    return weatherMask
 
 def filterRedPixels(image):
     hsvImage = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
@@ -274,6 +214,7 @@ def filterRedPixels(image):
     redImage[numpy.where(redMask == 0)] = 0
 
     return redImage
+
 
 def filterCap(image, lightRed, darkRed):
 
@@ -343,7 +284,16 @@ def getMenuPosition(screenshot):
         return round(location[1] / 24) + 1
     else:
         return 0
-    
+
+
+def convertBgrPixelToHsv(pixel):
+    return cv2.cvtColor(numpy.uint8([[pixel]]), cv2.COLOR_BGR2HSV)[0][0]
+
+def printImage(image):
+    cv2.imshow("image", image)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+
 def getScreenshot():
     while True:
         screenshotBytes = io.BytesIO(mmap.mmap(0, 64000, "screenshot"))
