@@ -102,7 +102,6 @@ def getPlayerPosition(screenshot):
 
     # No red colour has been found 
     if (redColors is None):
-        print("None")
         return None
 
     # Change all light red pixels to green, dark red pixels to blue and the rest to black
@@ -117,7 +116,6 @@ def getPlayerPosition(screenshot):
     # Lowest result is the closest result, so we sort all four results and take the first one
     sortedList = sorted([upTemplateValue, leftTemplateValue, rightTemplateValue, downTemplateValue], key=lambda x: x[0][0])
     orientation = sortedList[0][1]
-    print(orientation)
 
     return orientation
 

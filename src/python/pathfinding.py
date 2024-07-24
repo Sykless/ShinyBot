@@ -121,8 +121,7 @@ def isBoulderPushable(zoneMap, playerPosition, boulderPosition, orientation, blo
     return (zoneMap[boulderPosition.Y + orientation[0]][boulderPosition.X + orientation[1]] == "O" 
                 and (playerPosition, boulderPosition) not in blockingBoulders)
 
-
-def sortBoulders(boulderList, endPosition, orientation):
+def sortBoulders(boulderList, endPosition):
 
     # Calculate boulder distance to endPosition
     for boulder in boulderList:
@@ -247,12 +246,9 @@ def astar(start: Position, end: Position, zoneMap):
             path = []
             current = current_node
 
+            # Retrace back the complete path
             while current is not None:
-                # Don't add ledge node to the path, we don't walk on the ledge, only go through it
-                # The optimal way would be to calculate ledge cells jump animation during input frame calculation
-                # if (current.cellType not in ["l","u","r","d"]):
-                path.append(current.position)
-
+                path.append(current)
                 current = current.parent
 
             # Return reversed path
@@ -321,45 +317,19 @@ def astar(start: Position, end: Position, zoneMap):
             # Add the child to the open list
             open_list.append(child)
 
-    # We reached the end of the loop, maybe boulders are blocking the way
+    # We reached the end of the loop so no path has been found, maybe boulders are blocking the way
     return None, blockingBoulders
-
-def getPathCoordinates(startPosition, endPosition):
-    # Get most effective path from startPosition to endPosition
-    path = getMostEfficientPath(startPosition, endPosition)
-    pathInputSequence = ""
-
-    # Convert path to joypad inputs
-    if (path):
-        previousPosition = Position(startPosition.X, startPosition.Y, startPosition.zone)
-
-        for position in path:
-            diffY = position.Y - previousPosition.Y
-            diffX = position.X - previousPosition.X
-
-            if (diffY > 0):
-                pathInputSequence += "d"
-            elif (diffY < 0):
-                pathInputSequence += "u"
-            elif (diffX > 0):
-                pathInputSequence += "r"
-            elif (diffX < 0):
-                pathInputSequence += "l"
-
-            previousPosition = position
-
-    return path, pathInputSequence
 
 def writePathInputs(location: Position):
     screenshot = img.getScreenshot()
     playerPosition = Position(**memory.readPositionData())
     playerDirection = img.getPlayerPosition(screenshot)
 
-    # Retrieve all inputs needed to go to specified location
-    path, pathInputSequence = getPathCoordinates(playerPosition, location)
-    joypad.writeRunInput(pathInputSequence, playerDirection)
+    # Get most effective path from playerPosition to location
+    nodeList = getMostEfficientPath(playerPosition, location)
 
-    return path
+    # Retrieve all inputs needed to go to specified location
+    joypad.writePathfindingInput(nodeList, playerDirection)
 
 def goToLocation(location: Position):
 
@@ -367,6 +337,8 @@ def goToLocation(location: Position):
     playerPosition = Position(**memory.readPositionData())
     path = writePathInputs(location)
     pathIndex = 0
+
+    return None
 
     if (not path):
         print("No path has been found from " + str(playerPosition) + " to " + str(location))
@@ -378,7 +350,7 @@ def goToLocation(location: Position):
     #
     # Only stop path processing when all inputs have been pressed
     # and the player is at desired location
-    while memory.readJoypadData() or playerPosition != path[-1]:
+    while memory.readJoypadData() or playerPosition != path[-1].position:
         playerPosition = Position(**memory.readPositionData())
 
         # Non-0 PID : we're in a battle - stop pathfinding and let main script take over
@@ -388,10 +360,10 @@ def goToLocation(location: Position):
             break
 
         # Check character progression through the path
-        elif (path[pathIndex] != playerPosition):
+        elif (path[pathIndex].position != playerPosition):
 
             # Normal behavior : character went to next position
-            if (path[pathIndex + 1] == playerPosition):
+            if (path[pathIndex + 1].position == playerPosition):
                 pathIndex += 1
 
             # Wrong path : recalculate from current position
@@ -417,7 +389,7 @@ def goToLocation(location: Position):
             playerPosition = Position(**memory.readPositionData())
 
             # Check if player position is last path position
-            if (playerPosition != path[-1]):
+            if (playerPosition != path[-1].position):
 
                 # Calculate new path from new position
                 path = writePathInputs(location)

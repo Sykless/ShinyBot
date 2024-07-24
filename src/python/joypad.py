@@ -15,21 +15,47 @@ def writeInput(inputSequence, endSequence = None):
     print(frameByFrameInputSequence)
     memory.writeMemoryData("joypad", frameByFrameInputSequence)
 
-def writeRunInput(pathInputSequence, playerDirection):
+def writePathfindingInput(nodeList, playerDirection):
 
-    if (pathInputSequence):
-        # Determine how many frames the first input needs to be pressed
-        frameByFrameInputSequence = pathInputSequence[0] * ( 
-            5 # 5 frames of input lag
-        + 6 * (pathInputSequence[0] != playerDirection) # 6 frames to turn around
-        + 6 # 6 frames to start run animation
-        - 5 # -5 frames to change direction at frame 1 of start animation
-        )
+    # Only move if there are at least two nodes
+    if (len(nodeList) > 1):
+        for nodeId in range(len(nodeList)):
+            node = nodeList[nodeId]
+            position = node.position
 
-        # Process the rest of the inputs
-        for inputButton in pathInputSequence[1:]:
-            # 8 frames per input during run animation
-            frameByFrameInputSequence += 8 * inputButton
+            # Only start moving after the first position
+            if (nodeId > 0):
+                diffY = position.Y - previousPosition.Y
+                diffX = position.X - previousPosition.X
+
+                if (diffY > 0):
+                    inputButton = "d"
+                elif (diffY < 0):
+                    inputButton = "u"
+                elif (diffX > 0):
+                    inputButton = "r"
+                elif (diffX < 0):
+                    inputButton = "l"
+
+                print(node.cellType)
+
+                # First node : apply animation lag
+                if (nodeId == 1):
+                    frameByFrameInputSequence = inputButton * (
+                        5 # 5 frames of input lag
+                        + 6 * (inputButton != playerDirection) # 6 frames to turn around
+                        + 6 # 6 frames to start run animation
+                        - 5 # -5 frames to change direction at frame 1 of start animation
+                    )
+                else:
+                    # Ledge
+                    if (node.cellType in ["L","R","D","U"]):
+                        frameByFrameInputSequence += 15 * inputButton # Ledge jump animation
+
+                    # 8 frames per input during run animation
+                    frameByFrameInputSequence += 8 * inputButton
+
+            previousPosition = position
 
         print(frameByFrameInputSequence)
 
