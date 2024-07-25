@@ -4,7 +4,8 @@ FRAMES_RELEASE_TIME = 5
 
 ROCKSMASH = {"dialogue": 80, "useDialogue": 40, "animation": 100}
 CUT = {"dialogue": 80, "useDialogue": 40, "animation": 100}
-SURF = {"dialogue": 70, "useDialogue": 30, "animation": 35}
+SURF = {"dialogue": 70, "useDialogue": 30, "animation": 30}
+WATERFALL = {"dialogue": 70, "useDialogue": 35, "animation": 215}
 
 def writeInput(inputSequence, endSequence = None):
 
@@ -76,8 +77,28 @@ def writePathfindingInput(nodeList, playerDirection):
                     # Apply Surf inputs to start surfing
                     frameByFrameInputSequence += getHmInputs(SURF, inputButton)
 
-                    # Start moving again to reach actual cell position
-                    frameByFrameInputSequence += getStartingAnimationInputs(inputButton, playerDirection)
+                    # Start moving again
+                    playerDirection = inputButton
+                    stopped = True
+
+                # Waterfall
+                elif (node.cellType == "w"):
+
+                    # Going up : need to use Waterfall HM
+                    if (inputButton == "u"):
+                        # Apply Waterfall inputs to start swimming up
+                        frameByFrameInputSequence += getHmInputs(WATERFALL, inputButton)
+
+                    # Going down : just need to go down and wait for the animation to end
+                    else:
+                        frameByFrameInputSequence += 8 * inputButton + WATERFALL["animation"] * "@"
+
+                    # Skip next node since we already reached it
+                    skipNode = True
+
+                    # Start moving again
+                    playerDirection = inputButton
+                    stopped = True
 
                 # Rock climb
                 elif (node.cellType == "C"):
@@ -95,6 +116,10 @@ def writePathfindingInput(nodeList, playerDirection):
 
                     # Skip next node since we already reached it
                     skipNode = True
+
+                    # Start moving again
+                    playerDirection = inputButton
+                    stopped = True
 
                 # Land when previously on water
                 elif (node.cellType not in ["W","d"] and previousNode.cellType in ["W","d"]):
