@@ -172,11 +172,11 @@ def getRedsValues(image):
                     hsvLightRed = hsvColor
 
                 # Current color has higher saturation and lower brightness : current color is dark red
-                elif (hsvColor[1] >= hsvLightRed[1] and hsvColor[2] < hsvLightRed[2]):
+                elif (hsvColor[1] >= hsvLightRed[1] and hsvColor[2] <= hsvLightRed[2]):
                     return {"lightRed": bgrLightRed, "darkRed": bgrColor}
                 
                 # Current color has lower saturation and higher brightness : current color is light red
-                elif (hsvColor[1] <= hsvLightRed[1] and hsvColor[2] > hsvLightRed[2]):
+                elif (hsvColor[1] <= hsvLightRed[1] and hsvColor[2] >= hsvLightRed[2]):
                     return {"lightRed": bgrColor, "darkRed": bgrLightRed}
                 
                 # Higher saturation and brightness or lower saturation and brigthness : cannot compare
