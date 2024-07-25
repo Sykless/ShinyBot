@@ -172,11 +172,11 @@ def getRedsValues(image):
                     hsvLightRed = hsvColor
 
                 # Current color has higher saturation and lower brightness : current color is dark red
-                elif (hsvColor[1] > hsvLightRed[1] and hsvColor[2] < hsvLightRed[2]):
+                elif (hsvColor[1] >= hsvLightRed[1] and hsvColor[2] < hsvLightRed[2]):
                     return {"lightRed": bgrLightRed, "darkRed": bgrColor}
                 
                 # Current color has lower saturation and higher brightness : current color is light red
-                elif (hsvColor[1] < hsvLightRed[1] and hsvColor[2] > hsvLightRed[2]):
+                elif (hsvColor[1] <= hsvLightRed[1] and hsvColor[2] > hsvLightRed[2]):
                     return {"lightRed": bgrColor, "darkRed": bgrLightRed}
                 
                 # Higher saturation and brightness or lower saturation and brigthness : cannot compare
@@ -195,12 +195,12 @@ def filterRedPixels(image):
     hsvImage = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
     # Lower mask (Hue between 0 and 15)
-    lowerRed = numpy.array([0,50,50])
+    lowerRed = numpy.array([0,0,50])
     upperRed = numpy.array([15,255,255])
     lowHueMask = cv2.inRange(hsvImage, lowerRed, upperRed)
 
     # Upper mask (Hue between 150 and 180)
-    lowerRed = numpy.array([150,20,20])
+    lowerRed = numpy.array([150,0,20])
     upperRed = numpy.array([180,255,255])
     higHuehMask = cv2.inRange(hsvImage, lowerRed, upperRed)
 
