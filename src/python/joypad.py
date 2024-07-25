@@ -2,6 +2,10 @@ import memory
 
 FRAMES_RELEASE_TIME = 5
 
+ROCKSMASH = {"dialogue": 80, "useDialogue": 40, "animation": 100}
+CUT = {"dialogue": 80, "useDialogue": 40, "animation": 100}
+SURF = {"dialogue": 70, "useDialogue": 30, "animation": 35}
+
 def writeInput(inputSequence, endSequence = None):
 
     frameByFrameInputSequence = "".join(
@@ -18,79 +22,119 @@ def writeInput(inputSequence, endSequence = None):
 def writePathfindingInput(nodeList, playerDirection):
 
     # Only move if there are at least two nodes
-    if (len(nodeList) > 1):
+    if (nodeList is not None and len(nodeList) > 1):
 
-        # Start the path stopped
+        # Begin the path stopped and at second position
+        nodeId = 1
         stopped = True
+        skipNode = False
+        previousNode = nodeList[0]
         frameByFrameInputSequence = ""
 
-        for nodeId in range(len(nodeList)):
+        while (nodeId < len(nodeList)):
             node = nodeList[nodeId]
             position = node.position
 
             # Only start moving after the first position
-            if (nodeId > 0):
-                diffY = position.Y - previousPosition.Y
-                diffX = position.X - previousPosition.X
+            diffY = position.Y - previousNode.position.Y
+            diffX = position.X - previousNode.position.X
 
-                if (diffY > 0):
-                    inputButton = "d"
-                elif (diffY < 0):
-                    inputButton = "u"
-                elif (diffX > 0):
-                    inputButton = "r"
-                elif (diffX < 0):
-                    inputButton = "l"
+            if (diffY > 0):
+                inputButton = "d"
+            elif (diffY < 0):
+                inputButton = "u"
+            elif (diffX > 0):
+                inputButton = "r"
+            elif (diffX < 0):
+                inputButton = "l"
 
-                print(node.cellType)
+            print(position)
+            print(node.cellType)
+            print()
 
-                # Stopped : apply animation lag
-                if (stopped):
-                    frameByFrameInputSequence += inputButton * (
-                        5 # 5 frames of input lag
-                        + 6 * (inputButton != playerDirection) # 6 frames to turn around
-                        + 6 # 6 frames to start run animation
-                        - 5 # -5 frames to change direction at frame 1 of start animation
-                    )
+            # Stopped : apply animation lag
+            if (stopped):
+                stopped = False # Start moving
+                frameByFrameInputSequence += getStartingAnimationInputs(inputButton, playerDirection)
+
+            # Already moving
+            else:
+                # Ledge
+                if (node.cellType in ["L","R","D","U"]):
+                    frameByFrameInputSequence += 15 * inputButton # Ledge jump animation
+
+                # Rock smash - Cut
+                elif (node.cellType in ["r","t"]):
+                    # Apply Rock Smash/Cut inputs to destroy obstacle
+                    frameByFrameInputSequence += getHmInputs(ROCKSMASH, inputButton)
+
+                    # Start moving again to reach actual cell position
+                    frameByFrameInputSequence += getStartingAnimationInputs(inputButton, playerDirection)
+
+                # Water when not previously on water
+                elif (node.cellType in ["W","d"] and previousNode.cellType not in ["W","w","d"]):
+                    # Apply Surf inputs to start surfing
+                    frameByFrameInputSequence += getHmInputs(SURF, inputButton)
+
+                    # Start moving again to reach actual cell position
+                    frameByFrameInputSequence += getStartingAnimationInputs(inputButton, playerDirection)
+
+                # Rock climb
+                elif (node.cellType == "C"):
+
+                    # Calculate distance to rock climb end position
+                    position.setDistance(nodeList[nodeId + 1].position)
+
+                    # Rock climb animation depends on the number of rocks climbed
+                    rockClimbAnimation = {"dialogue": 70,
+                                            "useDialogue": 35,
+                                            "animation": 50 + 8*position.distance}
                     
-                    # Start moving
-                    stopped = False
+                    # Apply Rock climb inputs to start climbing
+                    frameByFrameInputSequence += getHmInputs(rockClimbAnimation, inputButton)
 
-                # Already moving
+                    # Skip next node since we already reached it
+                    skipNode = True
+
+                # Land when previously on water
+                elif (node.cellType not in ["W","d"] and previousNode.cellType in ["W","d"]):
+                    frameByFrameInputSequence += 18 * inputButton # Jump on the shore animation
+
+                # Regular cell
                 else:
-                    # Ledge
-                    if (node.cellType in ["L","R","D","U"]):
-                        frameByFrameInputSequence += 15 * inputButton # Ledge jump animation
+                    frameByFrameInputSequence += 8 * inputButton # 8 frames per input during run/swim animation
 
-                    # Rock smash - Cut
-                    elif (node.cellType in ["r","t"]):
-                        frameByFrameInputSequence += (5 * inputButton # Face the rock/tree
-                            + 6 * "@"   # Turning animation
-                            + 5 * "@"   # Just for safety
-                            + 5 * "A"   # Interact with rock/tree
-                            + 80 * "@"  # Wait for dialogue
-                            + 5 * "A"   # Use Rock Smash/Cut
-                            + 40 * "@"  # Rock Smash/Cut dialogue
-                            + 5 * "A"   # Skip dialogue
-                            + 125 * "@" # HM Animation
-                            + 100 * "@" # Obstacle destroyed animation
-                        )
-
-                        # Start moving again to reach actual cell position
-                        frameByFrameInputSequence += inputButton * (
-                            5 # 5 frames of input lag
-                            + 6 # 6 frames to start run animation
-                            - 5 # -5 frames to change direction at frame 1 of start animation
-                        )
-
-                    # Regular cell
-                    elif (node.cellType == "O"):
-                        frameByFrameInputSequence += 8 * inputButton # 8 frames per input during run animation
-
-            previousPosition = position
+            if (skipNode):
+                previousNode = nodeList[nodeId + 1]
+                nodeId += 2
+                skipNode = False
+            else:
+                previousNode = node
+                nodeId += 1
 
         print(frameByFrameInputSequence)
 
         # Set run flag to true and write input sequence
         memory.setMemoryFlag(runFlag = True)
         memory.writeMemoryData("joypad", frameByFrameInputSequence)
+
+def getHmInputs(hm, inputButton):
+    return  (8 * inputButton       # Face the tree/rock/water/etc
+        + 6 * "@"                  # Turning animation
+        + 5 * "@"                  # Just for safety
+        + 5 * "A"                  # Interact with tree/rock/water/etc
+        + hm["dialogue"] * "@"     # Wait for dialogue
+        + 5 * "A"                  # Use HM
+        + hm["useDialogue"] * "@"  # HM dialogue
+        + 5 * "A"                  # Skip dialogue
+        + 125 * "@"                # Trainer HM Animation
+        + hm["animation"] * "@"    # Actual HM Animation
+    )
+
+def getStartingAnimationInputs(inputButton, playerDirection):
+    return inputButton * (
+        5   # 5 frames of input lag
+        + 6 * (inputButton != playerDirection) # 6 frames to turn around
+        + 6 # 6 frames to start run animation
+        - 5 # -5 frames to change direction at frame 1 of start animation
+    )

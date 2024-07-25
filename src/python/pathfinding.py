@@ -121,6 +121,18 @@ def isBoulderPushable(zoneMap, playerPosition, boulderPosition, orientation, blo
     return (zoneMap[boulderPosition.Y + orientation[0]][boulderPosition.X + orientation[1]] == "O" 
                 and (playerPosition, boulderPosition) not in blockingBoulders)
 
+def getRockClimbEndPosition(zoneMap, playerPosition, orientation):
+    
+    # Try to find the first cell after rock climb
+    for i in range(1,11):
+
+        # Found the end position of rock climb
+        if (zoneMap[playerPosition.Y + i*orientation[0]][playerPosition.X + i*orientation[1]] != "C"):
+            return Position(playerPosition.X + i*orientation[1], playerPosition.Y + i*orientation[0], playerPosition.zone)
+        
+    # No position has been found after 10 cells, not theoretically possible
+    return playerPosition
+
 def sortBoulders(boulderList, endPosition):
 
     # Calculate boulder distance to endPosition
@@ -181,7 +193,7 @@ def getMostEfficientPath(start: Position, end: Position):
             # A path has been found, return it
             if (possiblePath):
                 print("Found a path !\n")
-                return None # possiblePath
+                return possiblePath
 
             # No path has been found but boulder can still be pushed, keep trying
             elif ((updatedPlayer, updatedBoulder) in newBlockingBoulders):
@@ -294,6 +306,10 @@ def astar(start: Position, end: Position, zoneMap):
             if (topCellValue == "S" and new_position["orientation"] == (-1, 0)):
                 continue
 
+            # Rock Climb : teleport to position after climbing
+            if (current_node.cellType == "C" and nextCellValue == "C"):
+                node_position = getRockClimbEndPosition(zoneMap, current_node.position, new_position["orientation"])
+
             # We can walk through the block : add node to the children list
             new_node = Node(node_position, zoneMap, current_node)
             children.append(new_node)
@@ -324,6 +340,8 @@ def writePathInputs(location: Position):
     screenshot = img.getScreenshot()
     playerPosition = Position(**memory.readPositionData())
     playerDirection = img.getPlayerPosition(screenshot)
+
+    print("Get most effective path from " + str(playerPosition) + " to " + str(location))
 
     # Get most effective path from playerPosition to location
     nodeList = getMostEfficientPath(playerPosition, location)
