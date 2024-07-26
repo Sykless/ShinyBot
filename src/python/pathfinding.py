@@ -15,6 +15,9 @@ PUZZLE_BOULDERS = [
     (Position(6,31,zone.ROUTEVICTOIRE_SALLEOUEST), Position(6,32,zone.ROUTEVICTOIRE_SALLEOUEST))
 ]
 
+PLAYER_POSITION = 0
+BOULDER_POSITION = 1
+
 CELL_COST = {
     # Traveling cells
     "O": 1, # Regular cell
@@ -78,6 +81,8 @@ class Node():
         self.g = 0
         self.h = 0
         self.f = 0
+
+        self.pushBoulder = False
 
         # Special process for bridges since two cells share the same position, see solid blocks processing
         if (parent and parent.isBelow):
@@ -161,8 +166,9 @@ def getMostEfficientPath(start: Position, end: Position):
         
         # Push the boulders close to endPosition first
         blockingBoulders = sortBoulders(blockingBoulders, end)
-        playerPosition = blockingBoulders[0][0]
-        boulderPosition = blockingBoulders[0][1]
+        playerPosition = blockingBoulders[0][PLAYER_POSITION]
+        boulderPosition = blockingBoulders[0][BOULDER_POSITION]
+        bouldersToPush = [(playerPosition, boulderPosition)]
 
         # Operations will depend on the player and boulders positions
         xDiff = boulderPosition.X - playerPosition.X
@@ -193,13 +199,42 @@ def getMostEfficientPath(start: Position, end: Position):
             # A path has been found, return it
             if (possiblePath):
                 print("Found a path !\n")
-                return possiblePath
+
+                # Create a path that goes from start to end while pushing all boulders in bouldersToPush
+                boulderPath = [Node(start, newMap)]
+                previousPosition = start
+
+                for boulder in bouldersToPush:
+
+                    # Go from previous position to boulder pushing position
+                    pathToPlayerPosition = astar(previousPosition, boulder[PLAYER_POSITION], newMap)[0]
+                    lastNode = pathToPlayerPosition[-1]
+
+                    # Remove start node to link it to the previous path
+                    pathToPlayerPosition.pop(0)
+                    
+                    # Go from boulder pushing position to boulder position while pushing it
+                    pushingBoulder = Node(boulder[BOULDER_POSITION], newMap, lastNode)
+                    pushingBoulder.pushBoulder = True
+                    pathToPlayerPosition.append(pushingBoulder)
+
+                    # Link subpath to global path
+                    boulderPath.extend(pathToPlayerPosition)
+                    previousPosition = boulder[BOULDER_POSITION]
+
+                # Go from last boulder to end, remove last boulder node to link it to the previous path
+                pathToEnd = astar(previousPosition, end, newMap)[0]
+                pathToEnd.pop(0)
+                boulderPath.extend(pathToEnd)
+
+                return boulderPath
 
             # No path has been found but boulder can still be pushed, keep trying
             elif ((updatedPlayer, updatedBoulder) in newBlockingBoulders):
                 print("Still pushing the boulder... " + str(updatedBoulder))
-                boulderPosition = updatedBoulder
                 playerPosition = updatedPlayer
+                boulderPosition = updatedBoulder
+                bouldersToPush.append((playerPosition, boulderPosition))
 
             # Boulder has been pushed all the way and still no path found
             # Try another boulder but keep the same map
@@ -208,9 +243,10 @@ def getMostEfficientPath(start: Position, end: Position):
 
                 # Push the boulders close to endPosition first
                 newBlockingBoulders = sortBoulders(newBlockingBoulders, end)
+                playerPosition = newBlockingBoulders[0][PLAYER_POSITION]
+                boulderPosition = newBlockingBoulders[0][BOULDER_POSITION]
+                bouldersToPush.append((playerPosition, boulderPosition))
 
-                playerPosition = newBlockingBoulders[0][0]
-                boulderPosition = newBlockingBoulders[0][1]
                 xDiff = boulderPosition.X - playerPosition.X
                 yDiff = boulderPosition.Y - playerPosition.Y
 

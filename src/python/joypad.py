@@ -29,6 +29,8 @@ def writePathfindingInput(nodeList, playerDirection):
         nodeId = 1
         stopped = True
         skipNode = False
+        strengthUsed = False
+
         previousNode = nodeList[0]
         frameByFrameInputSequence = ""
 
@@ -81,6 +83,26 @@ def writePathfindingInput(nodeList, playerDirection):
                     # Start moving again
                     playerDirection = inputButton
                     stopped = True
+
+                # Strength
+                elif (node.pushBoulder):
+
+                    if (not strengthUsed):
+                        # Apply Strength inputs to gain strength
+                        frameByFrameInputSequence += getStrengthInputs(inputButton)
+                        strengthUsed = True
+
+                        # Start moving to push the boulder
+                        frameByFrameInputSequence += getStartingAnimationInputs(inputButton, playerDirection)
+                    
+                    # Don't have to use HM, just push the boulder
+                    else:
+                        frameByFrameInputSequence += 8 * inputButton # 8 frames per input during run animation
+
+                    frameByFrameInputSequence += 35 * "@"  # Boulder being pushed
+
+                    # Start moving again to reach actual cell position
+                    frameByFrameInputSequence += getStartingAnimationInputs(inputButton, playerDirection)
 
                 # Waterfall
                 elif (node.cellType == "w"):
@@ -155,6 +177,22 @@ def getHmInputs(hm, inputButton):
         + 5 * "A"                  # Skip dialogue
         + 125 * "@"                # Trainer HM Animation
         + hm["animation"] * "@"    # Actual HM Animation
+    )
+
+def getStrengthInputs(inputButton):
+    return  (8 * inputButton  # Face the tree/rock/water/etc
+        + 6 * "@"             # Turning animation
+        + 5 * "@"             # Just for safety
+        + 5 * "A"             # Interact with tree/rock/water/etc
+        + 70 * "@"            # Wait for dialogue
+        + 5 * "A"             # Skip dialogue
+        + 35 * "@"            # Wait for dialogue
+        + 5 * "A"             # Use HM
+        + 30 * "@"            # HM dialogue
+        + 5 * "A"             # Skip dialogue
+        + 125 * "@"           # Trainer HM Animation
+        + 70 * "@"            # Use HM Dialogue
+        + 5 * "A"             # Skip dialogue
     )
 
 def getStartingAnimationInputs(inputButton, playerDirection):
