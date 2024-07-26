@@ -1,4 +1,5 @@
 import img
+import zone
 import joypad
 import memory
 import pokemon
@@ -14,6 +15,9 @@ MENU_OPTIONS = 6
 MENU_QUIT = 7
 
 RIGHT_ROW = 1
+
+BIKEFAST = 4
+BIKEREGULAR = 3
 
 def openMenu():
 
@@ -136,7 +140,93 @@ def flyToTown(town):
                             joypad.writeInput(pokemonSelectionSequence + "A")
 
                             
+def isTrainerOnBike(trainerPosition, stayOnBike = False):
 
+    bikeSpeed = None
+    zoneMap = trainerPosition.zone.map
+    cellValue = zoneMap[trainerPosition.Y][trainerPosition.X]
+
+    # Can only use bike on regular cell or grass
+    if (cellValue in ["O","G","A"]):
+
+        # Retrieve sprite current orientation and position
+        playerOrientation, spritePosition = img.getPlayerOrientation(img.getScreenshot())
+
+        # Press Y to use bike or go back on foot, then wait for animation to end
+        joypad.writeInput("Y")
+        waitFrames(20)
+
+        # Retrieve sprite new position
+        newSpritePosition = img.getPlayerOrientation(img.getScreenshot())[1]
+
+        # Sprite hasn't moved, we can't use bike
+        if (newSpritePosition == spritePosition):
+            joypad.writeInput("Y") # Skip potential dialogue
+            return False, None
+
+        # If facing right or down, bike sprite goes forward
+        elif (playerOrientation in ["r","d"]):
+            isOnBike = (newSpritePosition[0] > spritePosition[0])
+
+        # If facing left or up, bike sprite goes backwards
+        elif (playerOrientation in ["l","u"]):
+            isOnBike = (newSpritePosition[0] < spritePosition[0])
+
+        # Started on bike, go back to test speed
+        if (not isOnBike):
+            joypad.writeInput("Y")
+            waitFrames(20)
+
+        # Search for free cells to check the bike speed
+        freeCells = []
+
+        # Sort the orientations to start with the current orientation
+        for orientation in sorted([(1,0,"r"), (-1,0,"l"), (0,1,"d"), (0,-1,"u")], key=lambda x: abs(ord(x[2]) - ord(playerOrientation))):
+
+            # Check if we can go on the next 2 cells on bike
+            for i in range(0,3):
+                cell = zoneMap[trainerPosition.Y + i * orientation[1]][trainerPosition.X + i * orientation[0]]
+
+                # Three cells in a row : keep that orientation
+                if (cell not in ["O","G","A"]):
+                    break
+                elif (i == 2):
+                    # Make sure we're not running into a sign during the speed test
+                    if (orientation[2] != "u" or zoneMap[trainerPosition.Y-3][trainerPosition.X] != "s"):
+                        freeCells = orientation
+
+            if (len(freeCells) > 0):
+                break
+
+        # Found 2 free cells to test speed
+        if (len(freeCells) > 0):
+            # Enough input frames to move 1 cell with fast bike and 2 cells with regular bike 
+            bikeSpeedTestInputs = (joypad.getStartingAnimationInputs(freeCells[2], playerOrientation) + 2 * freeCells[2])
+            joypad.writeRawInput(bikeSpeedTestInputs)
+
+            # Check position after moving animation
+            waitFrames(12 + len(bikeSpeedTestInputs))
+            newPlayerPosition = zone.getPlayerPosition()
+            newPlayerPosition.setDistanceTo(trainerPosition)
+
+            # Speed bike
+            if (newPlayerPosition.distance == 1):
+                bikeSpeed = BIKEFAST
+            # Regular bike
+            elif (newPlayerPosition.distance == 2):
+                bikeSpeed = BIKEREGULAR
+
+        # Started on foot, go back to original state
+        if (isOnBike and not stayOnBike):
+            joypad.writeInput("Y")
+            waitFrames(20)
+
+        # Return original state (on foot/bike) and bike speed
+        return not isOnBike, bikeSpeed
+
+    # Cannot be on bike on this cell
+    else:
+        return False, None
 
 
 
