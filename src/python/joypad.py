@@ -62,7 +62,8 @@ def writePathfindingInput(nodeList, playerDirection):
             else:
                 # Ledge
                 if (node.cellType in ["L","R","D","U"]):
-                    frameByFrameInputSequence += 15 * inputButton # Ledge jump animation
+                    frameByFrameInputSequence += (8 * inputButton # Run animation
+                        + 16 * inputButton)                       # Ledge jump animation
 
                 # Rock smash - Cut
                 elif (node.cellType in ["r","t"]):
