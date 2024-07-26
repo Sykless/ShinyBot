@@ -17,8 +17,11 @@ def writeInput(inputSequence, endSequence = None):
     if (endSequence):
         frameByFrameInputSequence += endSequence
     
-    print(frameByFrameInputSequence)
-    memory.writeMemoryData("joypad", frameByFrameInputSequence)
+    writeRawInput(frameByFrameInputSequence)
+
+def writeRawInput(inputSequence):
+    print(inputSequence)
+    memory.writeMemoryData("joypad", inputSequence)
 
 def writePathfindingInput(nodeList, playerDirection):
 
@@ -127,7 +130,7 @@ def writePathfindingInput(nodeList, playerDirection):
                 elif (node.cellType == "C"):
 
                     # Calculate distance to rock climb end position
-                    position.setDistance(nodeList[nodeId + 1].position)
+                    position.getDistanceTo(nodeList[nodeId + 1].position)
 
                     # Rock climb animation depends on the number of rocks climbed
                     rockClimbAnimation = {"dialogue": 70,

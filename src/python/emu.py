@@ -61,20 +61,20 @@ while shinyBot:
     # Debug screenshot mode : only save the screenshot
     if (freeMode):
         screenshot = img.getScreenshot()
-        playerPosition = Position(**memory.readPositionData())
+        playerPosition = zone.getPlayerPosition()
         print(img.getPlayerPosition(screenshot))
 
     # Only apply new input if no input is found in memory
     elif (len(joypadInput) == 0):
         screenshot = img.getScreenshot()
-        playerPosition = Position(**memory.readPositionData())
+        playerPosition = zone.getPlayerPosition()
         
         # Overworld
         if (img.poketch.isOnScreen(screenshot)):
 
             # Spin to encounter wild Pokemon
             if (spinMode):
-                playerDirection = img.getPlayerPosition(screenshot)
+                playerDirection = img.getPlayerOrientation(screenshot)[0]
 
                 # Facing left : Input up for 5 frames and release for 5 frames
                 if (playerDirection == "l"):

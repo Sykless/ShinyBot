@@ -142,7 +142,7 @@ def sortBoulders(boulderList, endPosition):
 
     # Calculate boulder distance to endPosition
     for boulder in boulderList:
-        boulder[1].setDistance(endPosition)
+        boulder[1].setDistanceTo(endPosition)
 
     # Sort by distance to endPosition
     sortedList = sorted(boulderList, key=lambda x: x[1].distance)
@@ -374,8 +374,8 @@ def astar(start: Position, end: Position, zoneMap):
 
 def writePathInputs(location: Position):
     screenshot = img.getScreenshot()
-    playerPosition = Position(**memory.readPositionData())
-    playerDirection = img.getPlayerPosition(screenshot)
+    playerPosition = zone.getPlayerPosition()
+    playerDirection = img.getPlayerOrientation(screenshot)[0]
 
     print("Get most effective path from " + str(playerPosition) + " to " + str(location))
 
@@ -388,7 +388,7 @@ def writePathInputs(location: Position):
 def goToLocation(location: Position):
 
     # Calculate path from current position
-    playerPosition = Position(**memory.readPositionData())
+    playerPosition = zone.getPlayerPosition()
     path = writePathInputs(location)
     pathIndex = 0
 
@@ -405,7 +405,7 @@ def goToLocation(location: Position):
     # Only stop path processing when all inputs have been pressed
     # and the player is at desired location
     while memory.readJoypadData() or playerPosition != path[-1].position:
-        playerPosition = Position(**memory.readPositionData())
+        playerPosition = zone.getPlayerPosition()
 
         # Non-0 PID : we're in a battle - stop pathfinding and let main script take over
         if (memory.readWildPokemonData().get("pid",0) != 0):
@@ -440,7 +440,7 @@ def goToLocation(location: Position):
             waitFrames(12) # Wait 12 frames (9 for a full animation cycle + 3 for stop running animation)
 
             # Get final position after player stopped moving
-            playerPosition = Position(**memory.readPositionData())
+            zone.getPlayerPosition()
 
             # Check if player position is last path position
             if (playerPosition != path[-1].position):

@@ -1,3 +1,5 @@
+import memory
+
 OVERWORLD_ID = 999
 ZONELIST = {}
 
@@ -34,7 +36,7 @@ class Position:
             self.zone = None
             print("Unknown zone :", end = " ")
 
-    def setDistance(self, position):
+    def setDistanceTo(self, position):
         self.distance = abs(self.X - position.X) + abs(self.Y - position.Y)
 
     def __eq__(self, other):
@@ -69,6 +71,9 @@ class Town():
         self.shopLocation = shopPosition
         if shopZone is not None:
             self.shopMap = open('src/python/data/map/' + name + '-shop.map').readlines()
+
+def getPlayerPosition():
+    return Position(**memory.readPositionData())
 
 # Overworld
 EAST = Zone("East", OVERWORLD_ID, "east")
