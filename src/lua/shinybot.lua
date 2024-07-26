@@ -24,6 +24,9 @@ local flags = {
 -- Calculate PID memory addresses needed for data processing
 refreshPID()
 
+-- Get wild Pokemon encrypted data from PID address to display PID
+wildPokemon = decryptPokemonData(opposingPidAddress)
+
 console.log("pointer : 0x" .. getHexValue(pointer))
 console.log("Ally PID address : 0x" .. getHexValue(allyPidAddress))
 console.log("Ally PID : 0x" .. getHexValue(memory.read_u32_le(allyPidAddress)))
@@ -77,7 +80,7 @@ while true do
     comm.mmfWrite("positionData", json.encode({["positionData"] = position}) .. "\x00")
 
     -- Debug : display position on screen
-    gui.text(0,0, string.format("X: %d, Y: %d, Zone : %d", position.positionX, position.positionY, position.zone))
+    gui.text(0,0, string.format("X: %d, Y: %d, Zone : %d, PID : %d", position.positionX, position.positionY, position.zone, wildPokemon.pid))
     
     -- Input button retrieved from memory
     inputFromMemory(flags.runInput)
