@@ -20,7 +20,7 @@ PREVIOUS_PAGE_BUTTON = 1
 CANCEL_BUTTON = 2
 
 playerPosition = Position(**memory.readPositionData())
-# pathfinding.goToLocation(Position(756,272,403))
+memory.clearMemoryData("joypad")
 # action.flyToTown(zone.RIVAMAR_CITY)
 
 freeMode = True
@@ -48,11 +48,14 @@ while shinyBot:
         # Convert JSON data to Pokemon object
         pokemon = Pokemon(**jsonPokemonData)
         loadedPokemonPid = pokemon.pid
-          
+
+        # Stop pathfinding
+        memory.clearMemoryData("joypad")
+
         print("New wild Pokemon !")
         print(pokemon)
 
-    # Check input previsouy saved
+    # Check input previously saved
     joypadInput = memory.readJoypadData()
 
     # Debug screenshot mode : only save the screenshot
