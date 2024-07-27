@@ -73,7 +73,7 @@ while shinyBot:
 
             # Spin to encounter wild Pokemon
             if (spinMode):
-                playerDirection = img.getPlayerOrientation(screenshot)[0]
+                playerDirection = zone.getPlayerOrientation()
 
                 # Facing left : Input up for 5 frames and release for 5 frames
                 if (playerDirection == "l"):

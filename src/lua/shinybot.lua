@@ -39,6 +39,7 @@ comm.mmfWrite("pokemonTeamData", string.rep("\x00", 20480))
 comm.mmfWrite("wildPokemonData", string.rep("\x00", 20480))
 comm.mmfWrite("bagData", string.rep("\x00", 20480))
 comm.mmfWrite("positionData", string.rep("\x00", 20480))
+comm.mmfWrite("orientationData", string.rep("\x00", 20480))
 comm.mmfWrite("flagsData", "0" .. string.rep("\x00", 20480))
 
 -- Set screenshot memory file name
@@ -75,9 +76,13 @@ while true do
         comm.mmfWrite("bagData", json.encode({["bagData"] = bag}) .. "\x00")
     end
 
-    -- Save player position every frames
+    -- Save player position at every frame
     position = retrievePosition()
     comm.mmfWrite("positionData", json.encode({["positionData"] = position}) .. "\x00")
+
+    -- Save player orientation at every frame
+    orientation = retrieveOrientation()
+    comm.mmfWrite("orientationData", json.encode({["orientationData"] = orientation}) .. "\x00")
 
     -- Debug : display position on screen
     gui.text(0,0, string.format("X: %d, Y: %d, Zone : %d, PID : %d", position.positionX, position.positionY, position.zone, wildPokemon.pid))

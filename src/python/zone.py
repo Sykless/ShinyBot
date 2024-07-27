@@ -91,8 +91,16 @@ class City():
         if shopZone is not None:
             self.shopMap = open('src/python/data/map/city/' + name + '-shop.map').readlines()
 
+class Orientation():
+    def __init__(self, wantedOrientation, currentOrientation):
+        self.wantedOrientation = wantedOrientation
+        self.currentOrientation = currentOrientation
+
 def getPlayerPosition():
     return Position(**memory.readPositionData())
+
+def getPlayerOrientation():
+    return Orientation(**memory.readOrientationData())
 
 # Separation between Pokemon League and Overword is purely based on Y position
 def checkLiguePokemon(positionY):

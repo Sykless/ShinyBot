@@ -373,9 +373,8 @@ def astar(start: Position, end: Position, zoneMap):
     return None, blockingBoulders
 
 def writePathInputs(location: Position):
-    screenshot = img.getScreenshot()
     playerPosition = zone.getPlayerPosition()
-    playerDirection = img.getPlayerOrientation(screenshot)[0]
+    playerDirection = zone.getPlayerOrientation()
 
     print("Get most effective path from " + str(playerPosition) + " to " + str(location))
 

@@ -16,6 +16,9 @@ def readBagData():
 def readPositionData():
     return readJsonData("positionData")
 
+def readOrientationData():
+    return readJsonData("orientationData")
+
 def readJoypadData():
     return readMemoryData("joypad")
 

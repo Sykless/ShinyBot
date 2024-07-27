@@ -62,6 +62,22 @@ function retrievePosition()
     }
 end
 
+-- Player orientation seems to always be at the same memory address
+-- However just in case :
+-- If 0x1294 offset is used, 0x022A1CC0 - 0x1294 = 0x022A0A2C 
+-- 02 2A 0A 2C cannot be found ni memory, however 02 2A 0A A4 can be found at position 0x2B6D60
+-- and is close enough, so we might check there if orientation memory address is not static
+
+ORIENTATION = {"u","d","l","r"}
+ORIENTATION_ADDRESS = 0x022A1CC0
+
+function retrieveOrientation()
+    return {
+        wantedOrientation = ORIENTATION[1 + memory.read_u16_le(ORIENTATION_ADDRESS)],
+        currentOrientation = ORIENTATION[1 + memory.read_u16_le(ORIENTATION_ADDRESS + 8)]
+    }
+end
+
 -- opposingPidAddress may vary so we must refresh its value from time to time
 function refreshPID()
     -- Pointer : Reference address
