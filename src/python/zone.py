@@ -1,7 +1,12 @@
+import img
 import memory
 
 OVERWORLD_ID = 999
 ZONELIST = {}
+
+LIGUEPOKEMON_ID = 172
+PISTECYCLABLE_ID = 350
+ROUTE213_ID = 373
 
 class Zone():
     def __init__(self, name, zoneId, mapFile, canBike, canFly):
@@ -12,7 +17,6 @@ class Zone():
         
         self.canBike = canBike
         self.canFly = canFly
-        
 
     def addDoor(self, door):
         self.doorList.append(door)
@@ -30,9 +34,22 @@ class Position:
         # Provide actual Zone object
         if isinstance(zone, Zone):
             self.zone = zone
+
         # Provide Zone ID, search for the Zone object in ZONELIST
         elif (isinstance(zone, int) and zone in ZONELIST):
-            self.zone = ZONELIST[zone]
+
+            # Check exceptions before going in ZONELIST
+            if (zone == LIGUEPOKEMON_ID):
+                self.zone = checkLiguePokemon(positionY)
+
+            elif (zone == ROUTE213_ID):
+                self.zone = checkRoute213(positionX, positionY)
+
+            elif (zone == PISTECYCLABLE_ID):
+                self.zone = checkPisteCyclable(positionX, positionY)
+            else:
+                self.zone = ZONELIST[zone]
+
         # Not Zone object nor known ZoneID
         else:
             self.zone = None
@@ -76,6 +93,44 @@ class City():
 
 def getPlayerPosition():
     return Position(**memory.readPositionData())
+
+# Separation between Pokemon League and Overword is purely based on Y position
+def checkLiguePokemon(positionY):
+    return LIGUEPOKEMON if positionY < 592 else EAST
+
+# Directly check on Route 213 map if we're on it
+def checkRoute213(positionX, positionY):
+    return SOUTHEAST if ROUTE213.map[positionY][positionX] == " " else ROUTE213
+
+# Cycling Road shares positions with Route 206 so differentiate them is more complex
+def checkPisteCyclable(positionX, positionY):
+
+    # Too high for Route 206 or too low for Cycling Road
+    if (positionY < 606):
+        return PISTECYCLABLE
+    elif (positionY > 681):
+        return SOUTHCENTER
+    
+    # Overlap between Cycling Road and Route 206
+    elif (299 <= positionX <= 306):
+        if (PISTECYCLABLE.map[positionY][positionX] in ["X","N"]):
+            return SOUTHCENTER
+        elif (SOUTHCENTER.map[positionY][positionX] in ["X","N"]):
+            return PISTECYCLABLE
+        # Blind spot : no real reason to be here on route 206, so most likely on Cycling Road
+        elif (648 <= positionY <= 654):
+            return PISTECYCLABLE
+        # Can be under or on the bridge, check if trainer is visible
+        else:
+            screenshot = img.getScreenshot()
+            spritePosition = img.getPlayerOrientation(screenshot)[1]
+
+            # Player not visible, we're under the bridge
+            return SOUTHCENTER if spritePosition is None else PISTECYCLABLE
+            
+    # Every Cycling Road position has been checked, we're on Overworld
+    else:
+        return SOUTHCENTER
 
 # Overworld
 EAST = Zone("East", OVERWORLD_ID, "overworld/east", True, True)
@@ -796,8 +851,7 @@ ZONELIST = {
     346: NORTHWEST, # Route 204 - Nord
     347: NORTHWEST, # Route 205 - Ouest
     349: NORTHWEST, # Route 205 - Est
-    350: SOUTHCENTER, # Route 206
-    350: PISTECYCLABLE,
+    350: [SOUTHCENTER, PISTECYCLABLE], # Route 206 / Piste Cyclable
     351: ROUTE206_PASSAGECHARBOURG,
     353: SOUTHCENTER, # Route 207
     354: ROUTE208, # Route 208

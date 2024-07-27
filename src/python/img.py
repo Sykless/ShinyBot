@@ -102,7 +102,7 @@ def getPlayerOrientation(screenshot):
 
     # No red colour has been found 
     if (redColors is None):
-        return None
+        return None, None
 
     # Change all light red pixels to green, dark red pixels to blue and the rest to black
     capImage = filterCap(redScreenshot, redColors["lightRed"], redColors["darkRed"])
