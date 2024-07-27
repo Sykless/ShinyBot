@@ -216,6 +216,12 @@ def isTrainerOnBike(trainerPosition, stayOnBike = False):
             elif (newPlayerPosition.distance == 2):
                 bikeSpeed = BIKEREGULAR
 
+            # Go back to original position
+            oppositeDirection = {"l":"r", "r":"l", "u":"d", "d":"u"}[freeCells[2]]
+            goBackToPositionInputs = (joypad.getStartingAnimationInputs(oppositeDirection, None) + 2 * oppositeDirection)
+            joypad.writeRawInput(goBackToPositionInputs)
+            waitFrames(12 + len(goBackToPositionInputs))
+
         # Started on foot, go back to original state
         if (isOnBike and not stayOnBike):
             joypad.writeInput("Y")
