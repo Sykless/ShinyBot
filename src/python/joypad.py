@@ -7,6 +7,16 @@ CUT = {"dialogue": 80, "useDialogue": 40, "animation": 100}
 SURF = {"dialogue": 70, "useDialogue": 30, "animation": 30}
 WATERFALL = {"dialogue": 70, "useDialogue": 35, "animation": 215}
 
+# Frames needed to move 1 cell
+# Bike Speed   : 12 -> 8  -> 6  -> 4  -> 4
+# Bike Regular : 6  -> 6  -> 6  -> 6  -> 6
+# Walk         : 16 -> 16 -> 16 -> 16 -> 16
+# Run          : 8  -> 8  -> 8  -> 8  -> 8
+
+def writeRawInput(inputSequence):
+    print(inputSequence)
+    memory.writeMemoryData("joypad", inputSequence)
+
 def writeInput(inputSequence, endSequence = None):
 
     frameByFrameInputSequence = "".join(
@@ -18,10 +28,6 @@ def writeInput(inputSequence, endSequence = None):
         frameByFrameInputSequence += endSequence
     
     writeRawInput(frameByFrameInputSequence)
-
-def writeRawInput(inputSequence):
-    print(inputSequence)
-    memory.writeMemoryData("joypad", inputSequence)
 
 def writePathfindingInput(nodeList, playerDirection):
 
@@ -183,10 +189,10 @@ def getHmInputs(hm, inputButton):
     )
 
 def getStrengthInputs(inputButton):
-    return  (8 * inputButton  # Face the tree/rock/water/etc
+    return  (8 * inputButton  # Face the boulder
         + 6 * "@"             # Turning animation
         + 5 * "@"             # Just for safety
-        + 5 * "A"             # Interact with tree/rock/water/etc
+        + 5 * "A"             # Interact with boulder
         + 70 * "@"            # Wait for dialogue
         + 5 * "A"             # Skip dialogue
         + 35 * "@"            # Wait for dialogue

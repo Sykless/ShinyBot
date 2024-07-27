@@ -60,7 +60,7 @@ def openMenu():
             else:
                 return menuPosition
             
-def flyToTown(town):
+def flyToCity(city):
 
     # Need to open menu first
     menuPosition = openMenu()
@@ -110,17 +110,17 @@ def flyToTown(town):
                     else:
                         cursorPosition = img.getMapCursorPosition(screenshot)
 
-                        # Map menu : move cursor to selected town
+                        # Map menu : move cursor to selected city
                         if (cursorPosition):
 
                             # Find closest Fly coordinates
                             closestDistance = 99
                             closestPosition = [0,0]
 
-                            for townPosition in town.flyCoordinates:
-                                if (abs(townPosition[0] - cursorPosition[0]) + abs(townPosition[1] - cursorPosition[1]) < closestDistance):
-                                    closestDistance = abs(townPosition[0] - cursorPosition[0]) + abs(townPosition[1] - cursorPosition[1])
-                                    closestPosition = townPosition
+                            for cityPosition in city.flyCoordinates:
+                                if (abs(cityPosition[0] - cursorPosition[0]) + abs(cityPosition[1] - cursorPosition[1]) < closestDistance):
+                                    closestDistance = abs(cityPosition[0] - cursorPosition[0]) + abs(cityPosition[1] - cursorPosition[1])
+                                    closestPosition = cityPosition
 
                             # Generate input sequence from closest position
                             pokemonSelectionSequence = ""
@@ -136,7 +136,7 @@ def flyToTown(town):
                             if (moveY < 0):
                                 pokemonSelectionSequence += "u" * (moveY * -1)
 
-                            # Play input sequence and press A to fly to the selected town
+                            # Play input sequence and press A to fly to the selected city
                             joypad.writeInput(pokemonSelectionSequence + "A")
 
                             

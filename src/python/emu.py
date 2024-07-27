@@ -1,6 +1,5 @@
 
 from pokemon import Pokemon
-from zone import Position
 
 import img
 import zone
@@ -19,9 +18,9 @@ NEXT_PAGE_BUTTON = 0
 PREVIOUS_PAGE_BUTTON = 1
 CANCEL_BUTTON = 2
 
-playerPosition = Position(**memory.readPositionData())
 memory.clearMemoryData("joypad")
 # action.flyToTown(zone.RIVAMAR_CITY)
+playerPosition = zone.getPlayerPosition()
 
 freeMode = True
 shinyBot = True
@@ -94,7 +93,7 @@ while shinyBot:
 
             # Go back to shop
             elif (backToShop):
-                pathfinding.goToLocation(zone.FELICITE_TOWN.shopLocation)
+                pathfinding.goToLocation(zone.FELICITE_CITY.shopLocation)
 
         # New Pokedex entry : Press A
         elif (img.newPokedexEntry.isOnScreen(screenshot)):
