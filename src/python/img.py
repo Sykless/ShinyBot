@@ -186,7 +186,7 @@ def getRedsValues(image):
                     print(bgrLightRed)
                     print(bgrColor)
                     print()
-                    printImage(image)
+                    # printImage(image)
 
     # No red colors found                
     return None

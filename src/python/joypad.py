@@ -61,9 +61,9 @@ def writePathfindingInput(nodeList, playerDirection):
             elif (diffX < 0):
                 inputButton = "l"
 
-            print(position)
-            print(node.cellType)
-            print()
+            # print(position)
+            # print(node.cellType)
+            # print()
 
             # Stopped : apply animation lag
             if (stopped):
