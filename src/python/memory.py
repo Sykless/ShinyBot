@@ -13,11 +13,8 @@ def readWildPokemonData():
 def readBagData():
     return readJsonData("bagData")
 
-def readPositionData():
-    return readJsonData("positionData")
-
-def readOrientationData():
-    return readJsonData("orientationData")
+def readPlayerData():
+    return readJsonData("playerData")
 
 def readJoypadData():
     return readMemoryData("joypad")

@@ -1,9 +1,11 @@
 
 from pokemon import Pokemon
+from utils import waitFrames
 
 import img
 import zone
 import utils
+import player
 import action
 import joypad
 import memory
@@ -20,7 +22,7 @@ CANCEL_BUTTON = 2
 
 memory.clearMemoryData("joypad")
 # action.flyToTown(zone.RIVAMAR_CITY)
-playerPosition = zone.getPlayerPosition()
+# playerPosition = zone.getPlayerPosition()
 
 freeMode = True
 shinyBot = True
@@ -60,35 +62,34 @@ while shinyBot:
     # Debug screenshot mode : only save the screenshot
     if (freeMode):
         screenshot = img.getScreenshot()
-        playerPosition = zone.getPlayerPosition()
-        print(img.getPlayerPosition(screenshot))
+        playerData = player.getPlayerData()
+        print(playerData)
+        waitFrames(5)
 
     # Only apply new input if no input is found in memory
     elif (len(joypadInput) == 0):
         screenshot = img.getScreenshot()
-        playerPosition = zone.getPlayerPosition()
+        playerData = player.getPlayerData()
         
         # Overworld
         if (img.poketch.isOnScreen(screenshot)):
 
             # Spin to encounter wild Pokemon
             if (spinMode):
-                playerDirection = zone.getPlayerOrientation()
-
                 # Facing left : Input up for 5 frames and release for 5 frames
-                if (playerDirection == "l"):
+                if (playerData.orientation == "l"):
                     joypad.writeInput("u")
 
                 # Facing right : Input down for 5 frames and release for 5 frames
-                elif (playerDirection == "r"):
+                elif (playerData.orientation == "r"):
                     joypad.writeInput("d")
 
                 # Facing down : Input left for 5 frames and release for 5 frames
-                elif (playerDirection == "d"):
+                elif (playerData.orientation == "d"):
                     joypad.writeInput("l")
 
                 # Facing up : Input right for 5 frames and release for 5 frames
-                elif (playerDirection == "u"):
+                elif (playerData.orientation == "u"):
                     joypad.writeInput("r")
 
             # Go back to shop

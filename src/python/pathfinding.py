@@ -3,6 +3,7 @@ from utils import waitFrames
 
 import img
 import zone
+import player
 import joypad
 import memory
 
@@ -373,21 +374,20 @@ def astar(start: Position, end: Position, zoneMap):
     return None, blockingBoulders
 
 def writePathInputs(location: Position):
-    playerPosition = zone.getPlayerPosition()
-    playerDirection = zone.getPlayerOrientation()
+    playerData = player.getPlayerData()
 
-    print("Get most effective path from " + str(playerPosition) + " to " + str(location))
+    print("Get most effective path from " + str(playerData.position) + " to " + str(location))
 
     # Get most effective path from playerPosition to location
-    nodeList = getMostEfficientPath(playerPosition, location)
+    nodeList = getMostEfficientPath(playerData.position, location)
 
     # Retrieve all inputs needed to go to specified location
-    joypad.writePathfindingInput(nodeList, playerDirection)
+    joypad.writePathfindingInput(nodeList, playerData.orientation)
 
 def goToLocation(location: Position):
 
     # Calculate path from current position
-    playerPosition = zone.getPlayerPosition()
+    playerPosition = player.getPlayerData().position
     path = writePathInputs(location)
     pathIndex = 0
 

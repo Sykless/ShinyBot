@@ -64,7 +64,7 @@ class Position:
         return False
 
     def __str__(self):
-        return "Position (" + str(self.X) + "," + str(self.Y) + " à " + self.zone.name
+        return "(" + str(self.X) + "," + str(self.Y) + ") à " + self.zone.name
     
     def __repr__(self):
         return str(self)
@@ -95,12 +95,6 @@ class Orientation():
     def __init__(self, wantedOrientation, currentOrientation):
         self.wantedOrientation = wantedOrientation
         self.currentOrientation = currentOrientation
-
-def getPlayerPosition():
-    return Position(**memory.readPositionData())
-
-def getPlayerOrientation():
-    return Orientation(**memory.readOrientationData())
 
 # Separation between Pokemon League and Overword is purely based on Y position
 def checkLiguePokemon(positionY):
@@ -679,73 +673,73 @@ AIREDECOMBAT_CITY = City("airedecombat", 188, 189, 191, [[18,7],[19,7]], Positio
 AIREDESURVIE_CITY = City("airedesurvie", 450, 452, 451, [[19,4]], Position(659,338,SECTEURCOMBAT_NORTHWEST), Position(663,338,SECTEURCOMBAT_NORTHWEST))
 AIREDEDETENTE_CITY = City("airededetente", 457, 459, None, [[24,8]], Position(802,472,SECTEURCOMBAT_SOUTHEAST), None)
 
-ZONEIDLIST = [
-    3,   # Féli-Cité
-    33,  # Joliberges
-    45,  # Charbourg
-    65,  # Vestigion
-    86,  # Unionpolis
-    120, # Verchamps
-    132, # Voilaroc
-    150, # Rivamar
-    165, # Frimapic
-    172, # Ligue Pokémon - Extérieur
-    188, # Aire de Combat
-    200, # Les Eoliennes
-    204, # Forge Fuego - Extérieur
-    260, # Ile Pleine Lune
-    262, # Mont Abrupt - Extérieur
-    274, # Paradis Fleuri
-    288, # Ile de Fer
-    320, # Ile Nouvellune
-    334, # Rive Lac Vérité
-    336, # Rive Lac Courage
-    340, # Rive Lac Savoir
-    341, # Chemin Source
-    342, # Route 201
-    343, # Route 202
-    344, # Route 203
-    345, # Route 204 - Sud
-    346, # Route 204 - Nord
-    347, # Route 205 - Ouest
-    349, # Route 205 - Est
-    350, # Route 206
-    353, # Route 207
-    354, # Route 208
-    356, # Route 209
-    362, # Route 210 - Sud
-    363, # Route 210 - Nord
-    365, # Route 211 - Ouest
-    366, # Route 211 - Est
-    367, # Route 212 - Nord
-    371, # Route 212 - Sud
-    373, # Route 213
-    380, # Route 214
-    382, # Route 215
-    383, # Route 216
-    385, # Route 217
-    388, # Route 218
-    391, # Route 219
-    392, # Route 221
-    395, # Route 222
-    399, # Route 224
-    400, # Route 225
-    403, # Route 227
-    406, # Route 228
-    407, # Route 229
-    411, # Bonaugure
-    418, # Littorella
-    426, # Floraville
-    433, # Bonville
-    442, # Célestia
-    450, # Aire de Survie
-    457, # Aire de Détente
-    467, # Route 220
-    468, # Route 223
-    469, # Route 226
-    471, # Route 230
-    472  # Passage Marin
-]
+ZONEIDLIST = {
+    3:   "Féli-Cité",
+    33:  "Joliberges",
+    45:  "Charbourg",
+    65:  "Vestigion",
+    86:  "Unionpolis",
+    120: "Verchamps",
+    132: "Voilaroc",
+    150: "Rivamar",
+    165: "Frimapic",
+    172: "Ligue Pokémon - Extérieur",
+    188: "Aire de Combat",
+    200: "Les Eoliennes",
+    204: "Forge Fuego - Extérieur",
+    260: "Ile Pleine Lune",
+    262: "Mont Abrupt - Extérieur",
+    274: "Paradis Fleuri",
+    288: "Ile de Fer",
+    320: "Ile Nouvellune",
+    334: "Rive Lac Vérité",
+    336: "Rive Lac Courage",
+    340: "Rive Lac Savoir",
+    341: "Chemin Source",
+    342: "Route 201",
+    343: "Route 202",
+    344: "Route 203",
+    345: "Route 204 - Sud",
+    346: "Route 204 - Nord",
+    347: "Route 205 - Ouest",
+    349: "Route 205 - Est",
+    350: "Route 206",
+    353: "Route 207",
+    354: "Route 208",
+    356: "Route 209",
+    362: "Route 210 - Sud",
+    363: "Route 210 - Nord",
+    365: "Route 211 - Ouest",
+    366: "Route 211 - Est",
+    367: "Route 212 - Nord",
+    371: "Route 212 - Sud",
+    373: "Route 213",
+    380: "Route 214",
+    382: "Route 215",
+    383: "Route 216",
+    385: "Route 217",
+    388: "Route 218",
+    391: "Route 219",
+    392: "Route 221",
+    395: "Route 222",
+    399: "Route 224",
+    400: "Route 225",
+    403: "Route 227",
+    406: "Route 228",
+    407: "Route 229",
+    411: "Bonaugure",
+    418: "Littorella",
+    426: "Floraville",
+    433: "Bonville",
+    442: "Célestia",
+    450: "Aire de Survie",
+    457: "Aire de Détente",
+    467: "Route 220",
+    468: "Route 223",
+    469: "Route 226",
+    471: "Route 230",
+    472: "Passage Marin",
+}
 
 ZONELIST = {
     3: SOUTHWEST, # Féli-Cité

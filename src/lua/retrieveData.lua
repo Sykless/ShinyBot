@@ -31,8 +31,8 @@ function retrieveBagSection(sectionId)
     return bagSection
 end
 
+-- Retrieve each bag section
 function retrieveBag()
-    -- Retrieve each bag section
     local bagData = {
         generalItems = retrieveBagSection("GENERAL_ITEMS"),
         keyItems = retrieveBagSection("KEY_ITEMS"),
@@ -48,33 +48,36 @@ function retrieveBag()
 end
 
 MAP_POINTER = 0x021C0974
-
-function retrievePosition()
-
-    local mapAddress = memory.read_u32_le(MAP_POINTER) + 0x1294
-    local positionXAddress = mapAddress + 8
-    local positionYAddress = mapAddress + 12
-
-    return {
-        zone = memory.read_u16_le(mapAddress),
-        positionX = memory.read_u16_le(positionXAddress),
-        positionY = memory.read_u16_le(positionYAddress)
-    }
-end
-
--- Player orientation seems to always be at the same memory address
--- However just in case :
--- If 0x1294 offset is used, 0x022A1CC0 - 0x1294 = 0x022A0A2C 
--- 02 2A 0A 2C cannot be found ni memory, however 02 2A 0A A4 can be found at position 0x2B6D60
--- and is close enough, so we might check there if orientation memory address is not static
-
+BIKE_ADDRESS = 0x0227F740
+BIKESPEED_ADDRESS = 0x0227F73C
+ORIENTATION_ADDRESS = 0x022A1CC8
 ORIENTATION = {"u","d","l","r"}
-ORIENTATION_ADDRESS = 0x022A1CC0
 
-function retrieveOrientation()
+function retrievePlayerData()
+    local zoneAddress = memory.read_u32_le(MAP_POINTER) + 0x1294
+    local positionXAddress = zoneAddress + 8
+    local positionYAddress = zoneAddress + 12
+
+    orientationValue = memory.read_u16_le(ORIENTATION_ADDRESS)
+
+    -- This is the only value we actually need to be sure of, since we're using it as an array id
+    if (orientationValue >= 0 and orientationValue <= 3) then
+        orientation = ORIENTATION[orientationValue + 1]
+    else
+        orientation = "d" -- Default orientation is down
+    end
+
     return {
-        wantedOrientation = ORIENTATION[1 + memory.read_u16_le(ORIENTATION_ADDRESS)],
-        currentOrientation = ORIENTATION[1 + memory.read_u16_le(ORIENTATION_ADDRESS + 8)]
+        zone = memory.read_u16_le(zoneAddress),
+        positionX = memory.read_u16_le(positionXAddress),
+        positionY = memory.read_u16_le(positionYAddress),
+        orientation = orientation,
+        
+        -- This memory address is actually used for multiple states, only state = 1 (isOnBike) is useful to us
+        isOnBike = memory.read_u16_le(BIKE_ADDRESS) == 1,
+
+        -- Add 3 to convert 0 -> 1 values to speed 3 and 4 (bike speeds used in the game)
+        bikeSpeed = memory.read_u8(BIKESPEED_ADDRESS) + 3,
     }
 end
 
