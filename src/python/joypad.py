@@ -39,6 +39,7 @@ def writePathfindingInput(nodeList, playerDirection):
         stopped = True
         skipNode = False
         strengthUsed = False
+        destroyedObstacle = []
 
         previousNode = nodeList[0]
         frameByFrameInputSequence = ""
@@ -78,11 +79,19 @@ def writePathfindingInput(nodeList, playerDirection):
 
                 # Rock smash - Cut
                 elif (node.cellType in ["r","t"]):
-                    # Apply Rock Smash/Cut inputs to destroy obstacle
-                    frameByFrameInputSequence += getHmInputs(ROCKSMASH, inputButton)
 
-                    # Start moving again to reach actual cell position
-                    frameByFrameInputSequence += getStartingAnimationInputs(inputButton, playerDirection)
+                    # Check if the obstacle has already been destroyed
+                    if (node.position in destroyedObstacle):
+                        frameByFrameInputSequence += 8 * inputButton # 8 frames per input during run animation
+                    else:
+                        # Apply Rock Smash/Cut inputs to destroy obstacle
+                        frameByFrameInputSequence += getHmInputs(ROCKSMASH, inputButton)
+
+                        # Start moving again to reach actual cell position
+                        frameByFrameInputSequence += getStartingAnimationInputs(inputButton, inputButton)
+
+                        # Obstacle is destroyed, we can ignore it if we go through it next time
+                        destroyedObstacle.append(node.position)
 
                 # Water when not previously on water
                 elif (node.cellType in ["W","d"] and previousNode.cellType not in ["W","w","d"]):
@@ -136,7 +145,7 @@ def writePathfindingInput(nodeList, playerDirection):
                 elif (node.cellType == "C"):
 
                     # Calculate distance to rock climb end position
-                    position.getDistanceTo(nodeList[nodeId + 1].position)
+                    position.setDistanceTo(nodeList[nodeId + 1].position)
 
                     # Rock climb animation depends on the number of rocks climbed
                     rockClimbAnimation = {"dialogue": 70,
