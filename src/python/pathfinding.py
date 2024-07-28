@@ -491,6 +491,10 @@ def goToLocation(location: Position):
             if (path[pathIndex + 1].position == playerPosition):
                 pathIndex += 1
 
+            # Specific case : we're using Rock Climb, no need to do anything
+            elif (playerPosition.zone.map[playerPosition.Y][playerPosition.X] == "C"):
+                continue
+
             # Wrong path : recalculate from current position
             else:
                 # Calculate path from new position to the rest of the correct path
