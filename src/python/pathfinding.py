@@ -23,11 +23,11 @@ CELL_COST = {
     # Traveling cells
     "O": 1, # Regular cell
     "Z": 1, # Zone (door, cave entrance)
-    "S": 2, # Swamp
-    "1": 1, # 1-depth snow
-    "2": 2, # 2-depth snow
-    "3": 3, # 3-depth snow
-    "4": 4, # 4-depth snow
+    "S": 10, # Swamp
+    "1": 2, # 1-depth snow
+    "2": 3, # 2-depth snow
+    "3": 4, # 3-depth snow
+    "4": 5, # 4-depth snow
     "V": 1, # Bike slope
     "G": 3, # Grass
     "g": 5, # Tall grass
