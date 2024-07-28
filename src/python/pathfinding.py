@@ -102,10 +102,44 @@ class Node():
         return False
 
     def __str__(self):
-        return str(self.position) + " - " + self.cellType + "\n"
+        return (str(self.position) + " - " + self.cellType 
+            + (" (parent = (" + str(self.parent.position.X) + "," + str(self.parent.position.Y) + "))" if self.parent else "")
+            + (" PUSH !" if self.pushBoulder else "") + "\n")
 
     def __repr__(self):
         return str(self)
+
+def updateMapWithPushedBoulders(zoneMap, boulderPosition, playerPosition):
+        
+    # Operations will depend on the player and boulders positions
+    xDiff = boulderPosition.X - playerPosition.X
+    yDiff = boulderPosition.Y - playerPosition.Y
+
+    # Update the map to take into account the pushed boulder
+    if (xDiff == 1):
+        zoneMap[boulderPosition.Y] = zoneMap[boulderPosition.Y][:boulderPosition.X] + "Ob" + zoneMap[boulderPosition.Y][boulderPosition.X+2:]
+    elif (xDiff == -1):
+        zoneMap[boulderPosition.Y] = zoneMap[boulderPosition.Y][:boulderPosition.X-1] + "bO" + zoneMap[boulderPosition.Y][boulderPosition.X+1:]
+    else:
+        zoneMap[boulderPosition.Y] = zoneMap[boulderPosition.Y][:boulderPosition.X] + "O" + zoneMap[boulderPosition.Y][boulderPosition.X+1:]
+        zoneMap[boulderPosition.Y + yDiff] = zoneMap[boulderPosition.Y + yDiff][:boulderPosition.X] + "b" + zoneMap[boulderPosition.Y + yDiff][boulderPosition.X+1:]
+
+
+def getMapAtCurrentState(processedNodes):
+
+    # Check every already processed node for pushed boulders
+    if (len(processedNodes) > 0):
+
+        # Retrieve original map from starting position
+        originalMap = processedNodes[0].position.zone.map
+        updatedMap = originalMap[:]
+
+        # If a boulder has been pushed, update the map accordingly
+        for node in processedNodes:
+            if (node.pushBoulder): 
+                updateMapWithPushedBoulders(updatedMap, node.position, node.parent.position)
+
+        return updatedMap
 
 def areThreeSideCellsFree(zoneMap, currentPosition, orientation):
 
@@ -154,13 +188,14 @@ def sortBoulders(boulderList, endPosition):
             sortedList.remove(boulder)
             sortedList.append(boulder)
 
-    print(sortedList)
     return sortedList
 
-def getMostEfficientPath(start: Position, end: Position):
+def getMostEfficientPath(start: Position, end: Position, zoneMap):
+
+    print("Get most effective path from " + str(start) + " to " + str(end))
 
     # Boulders might block the way, we'll track them and process them if needed
-    possiblePath, blockingBoulders = astar(start, end, start.zone.map)
+    possiblePath, blockingBoulders = astar(start, end, zoneMap)
 
     # No path found, checking for boulders
     if (not possiblePath and len(blockingBoulders) > 0):
@@ -176,7 +211,7 @@ def getMostEfficientPath(start: Position, end: Position):
         yDiff = boulderPosition.Y - playerPosition.Y
 
         # Create a copy of the map since we'll edit it
-        newMap = boulderPosition.zone.map[:]
+        newMap = zoneMap[:]
 
         # Try to push the boulder all the way
         while True:
@@ -186,20 +221,17 @@ def getMostEfficientPath(start: Position, end: Position):
             updatedPlayer = Position(playerPosition.X + xDiff, playerPosition.Y + yDiff, playerPosition.zone)
 
             # Update the map to take into account the pushed boulder
-            if (xDiff == 1):
-                newMap[boulderPosition.Y] = newMap[boulderPosition.Y][:boulderPosition.X] + "Ob" + newMap[boulderPosition.Y][boulderPosition.X+2:]
-            elif (xDiff == -1):
-                newMap[boulderPosition.Y] = newMap[boulderPosition.Y][:boulderPosition.X-1] + "bO" + newMap[boulderPosition.Y][boulderPosition.X+1:]
-            else:
-                newMap[boulderPosition.Y] = newMap[boulderPosition.Y][:boulderPosition.X] + "O" + newMap[boulderPosition.Y][boulderPosition.X+1:]
-                newMap[boulderPosition.Y + yDiff] = newMap[boulderPosition.Y + yDiff][:boulderPosition.X] + "b" + newMap[boulderPosition.Y + yDiff][boulderPosition.X+1:]
+            updateMapWithPushedBoulders(newMap, boulderPosition, playerPosition)
 
             # Try to find a way now that the boulder has been pushed
             possiblePath, newBlockingBoulders = astar(playerPosition, end, newMap)
 
             # A path has been found, return it
             if (possiblePath):
-                print("Found a path !\n")
+                # print("Found a path !\n")
+
+                # Create a new map and update it everytime a boulder is pushed
+                newMap = zoneMap[:]
 
                 # Create a path that goes from start to end while pushing all boulders in bouldersToPush
                 boulderPath = [Node(start, newMap)]
@@ -219,6 +251,9 @@ def getMostEfficientPath(start: Position, end: Position):
                     pushingBoulder.pushBoulder = True
                     pathToPlayerPosition.append(pushingBoulder)
 
+                    # Update the map to take into account the pushed boulder
+                    updateMapWithPushedBoulders(newMap, boulder[BOULDER_POSITION], boulder[PLAYER_POSITION])
+
                     # Link subpath to global path
                     boulderPath.extend(pathToPlayerPosition)
                     previousPosition = boulder[BOULDER_POSITION]
@@ -232,7 +267,7 @@ def getMostEfficientPath(start: Position, end: Position):
 
             # No path has been found but boulder can still be pushed, keep trying
             elif ((updatedPlayer, updatedBoulder) in newBlockingBoulders):
-                print("Still pushing the boulder... " + str(updatedBoulder))
+                # print("Still pushing the boulder... " + str(updatedBoulder))
                 playerPosition = updatedPlayer
                 boulderPosition = updatedBoulder
                 bouldersToPush.append((playerPosition, boulderPosition))
@@ -240,7 +275,7 @@ def getMostEfficientPath(start: Position, end: Position):
             # Boulder has been pushed all the way and still no path found
             # Try another boulder but keep the same map
             elif (len(newBlockingBoulders) > 0):
-                print("\nCannot push the boulder anymore, trying another boulder")
+                # print("\nCannot push the boulder anymore, trying another boulder")
 
                 # Push the boulders close to endPosition first
                 newBlockingBoulders = sortBoulders(newBlockingBoulders, end)
@@ -373,42 +408,79 @@ def astar(start: Position, end: Position, zoneMap):
     # We reached the end of the loop so no path has been found, maybe boulders are blocking the way
     return None, blockingBoulders
 
-def writePathInputs(location: Position):
+
+def writePathInputsFromCurrentState(nodeList, breakNodeId):
+
+    # Make sure player is not moving anymore
+    memory.clearMemoryData("joypad") # Clear input
+    waitFrames(25) # Wait 25 frames (time needed to completely stop on speed bike)
+
+    # Get final position after player stopped moving
     playerData = player.getPlayerData()
+    print("Wrong path ! Start again from " + str(playerData.position))
 
-    print("Get most effective path from " + str(playerData.position) + " to " + str(location))
+    # Split the original nodeList into processed and remaining nodes
+    processedNodes = nodeList[:breakNodeId]
+    remainingNodes = nodeList[breakNodeId:]
 
-    # Get most effective path from playerPosition to location
-    nodeList = getMostEfficientPath(playerData.position, location)
+    # Update the map to take into account the pushed boulder
+    updatedMap = getMapAtCurrentState(processedNodes)
+
+    # Go from player position to first node of the remaining nodes
+    firstNode = remainingNodes.pop(0)
+    nodeList = getMostEfficientPath(playerData.position, firstNode.position, updatedMap)
+    nodeList.extend(remainingNodes)
+    print(nodeList)
 
     # Retrieve all inputs needed to go to specified location
     joypad.writePathfindingInput(nodeList, playerData.orientation)
+
+    return nodeList
+
+def writePathInputs(location):
+
+    # Get most effective path from player position to location
+    playerData = player.getPlayerData()
+
+    # Location is a position, just get path to this location
+    nodeList = getMostEfficientPath(playerData.position, location, location.zone.map)
+    print(nodeList)
+
+    # Retrieve all inputs needed to go to specified location
+    joypad.writePathfindingInput(nodeList, playerData.orientation)
+
+    return nodeList
+
 
 def goToLocation(location: Position):
 
     # Calculate path from current position
     playerPosition = player.getPlayerData().position
     path = writePathInputs(location)
-    pathIndex = 0
-
-    return None
 
     if (not path):
         print("No path has been found from " + str(playerPosition) + " to " + str(location))
         return None
 
+    pathIndex = 0
+
     # Unfortunately, the running animation time is not consistent
-    # and we might bump into moving NPCs
+    # and we might bump into walls or moving NPCs, ecounter wild Pokémon, etc
     # So we need to make sure the player follows the right path
     #
     # Only stop path processing when all inputs have been pressed
     # and the player is at desired location
     while memory.readJoypadData() or playerPosition != path[-1].position:
-        playerPosition = zone.getPlayerPosition()
+        playerPosition = player.getPlayerData().position
 
         # Non-0 PID : we're in a battle - stop pathfinding and let main script take over
         if (memory.readWildPokemonData().get("pid",0) != 0):
-            print("Not in overworld !")
+            print("Encountered wild Pokémon")
+            memory.clearMemoryData("joypad") # Clear input
+            break
+
+        # Reached the end, clear all inputs and go back to main loop
+        elif (playerPosition == path[-1].position):
             memory.clearMemoryData("joypad") # Clear input
             break
 
@@ -421,31 +493,19 @@ def goToLocation(location: Position):
 
             # Wrong path : recalculate from current position
             else:
-                print("Wrong path !")
-
-                # Make sure player is not moving anymore
-                memory.clearMemoryData("joypad") # Clear input
-                waitFrames(12) # Wait 12 frames (9 for a full animation cycle + 3 for stop running animation)
-
-                # Calculate new path from new position
-                path = writePathInputs(location)
+                # Calculate path from new position to the rest of the correct path
+                path = writePathInputsFromCurrentState(path, pathIndex + 1)
                 pathIndex = 0
 
-        # Pressed all inputs : check if we're at desired location
+        # No more inputs left to process
         elif (not memory.readJoypadData()):
-            print("Not arrived !")
-
-            # Make sure player is not moving anymore
-            waitFrames(12) # Wait 12 frames (9 for a full animation cycle + 3 for stop running animation)
-
-            # Get final position after player stopped moving
-            zone.getPlayerPosition()
-
-            # Check if player position is last path position
-            if (playerPosition != path[-1].position):
-
-                # Calculate new path from new position
-                path = writePathInputs(location)
+            
+            # Reached the end, go back to main loop
+            if (playerPosition == path[-1].position):
+                break
+            # Not at the desired location, calculate path from this position to the rest of the correct path
+            else:
+                path = writePathInputsFromCurrentState(path, pathIndex + 1)
                 pathIndex = 0
 
     # Stop running after location has been reached
