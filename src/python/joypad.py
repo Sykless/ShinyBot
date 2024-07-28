@@ -164,7 +164,12 @@ def writePathfindingInput(nodeList, playerDirection):
 
                 # Land when previously on water
                 elif (node.cellType not in ["W","d"] and previousNode.cellType in ["W","d"]):
-                    frameByFrameInputSequence += 18 * inputButton # Jump on the shore animation
+                    frameByFrameInputSequence += (10 * inputButton # Jump on the shore animation
+                                                 + 10 * "@")       # Release direction mid-animation in case we need to turn
+                    
+                    # Start moving again
+                    playerDirection = inputButton
+                    stopped = True
 
                 # Regular cell
                 else:
