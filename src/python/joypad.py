@@ -111,7 +111,7 @@ def writePathfindingInput(nodeList, playerDirection):
                         strengthUsed = True
 
                         # Start moving to push the boulder
-                        frameByFrameInputSequence += getStartingAnimationInputs(inputButton, playerDirection)
+                        frameByFrameInputSequence += getStartingAnimationInputs(inputButton, inputButton)
                     
                     # Don't have to use HM, just push the boulder
                     else:
@@ -120,7 +120,7 @@ def writePathfindingInput(nodeList, playerDirection):
                     frameByFrameInputSequence += 35 * "@"  # Boulder being pushed
 
                     # Start moving again to reach actual cell position
-                    frameByFrameInputSequence += getStartingAnimationInputs(inputButton, playerDirection)
+                    frameByFrameInputSequence += getStartingAnimationInputs(inputButton, inputButton)
 
                 # Waterfall
                 elif (node.cellType == "w"):
