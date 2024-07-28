@@ -491,8 +491,13 @@ def goToLocation(location: Position):
             if (path[pathIndex + 1].position == playerPosition):
                 pathIndex += 1
 
-            # Specific case : we're using Rock Climb, no need to do anything
+            # Specific case : we don't keep track of Rock Climb positions, false positive
             elif (playerPosition.zone.map[playerPosition.Y][playerPosition.X] == "C"):
+                continue
+
+            # Specific case : Waterfall position is skipped, false positive
+            elif (path[pathIndex + 1].cellType == "w"):
+                pathIndex += 1
                 continue
 
             # Wrong path : recalculate from current position
