@@ -59,8 +59,7 @@ function decryptBlockA(pokemonData, pidAddress, shiftValue, checksum)
     end
 
     -- National Pokédex ID (START-0x09)
-    pokemonData["pokedexID"] = decryptData(pidAddress + BlockAoffset + START)
-    pokemonData["name"] = POKEMON_NAMES[pokemonData["pokedexID"]]
+    pokemonData["pokedexId"] = decryptData(pidAddress + BlockAoffset + START)
 
     -- Held Item (0x0A-0x0B)
     pokemonData["item"] = decryptData(pidAddress + BlockAoffset + START + 2)
@@ -82,7 +81,7 @@ function decryptBlockA(pokemonData, pidAddress, shiftValue, checksum)
     -- Friendship/Steps to Hatch - Ability (0x14-0x15)
     local friendship_ability = decryptData(pidAddress + BlockAoffset + START + 12)
     pokemonData["friendship"] = getBits(friendship_ability, 0, 8)
-    pokemonData["ability"] = ABILITY_LIST[getBits(friendship_ability, 8, 8)]
+    pokemonData["abilityId"] = getBits(friendship_ability, 8, 8)
 
     -- Markings - Original Language (0x16-0x17)
     local markings_originalLanguage = decryptData(pidAddress + BlockAoffset + START + 14)
@@ -140,20 +139,20 @@ function decryptBlockB(pokemonData, pidAddress, shiftValue, checksum)
     end
 
     -- Move 1 ID (0x28-0x29)
-    local move1Name = MOVE_NAMES[decryptData(pidAddress + BlockBoffset + START)]
-    if (move1Name) then pokemonData["moves"][1] = {name = move1Name} end
+    local move1Id = decryptData(pidAddress + BlockBoffset + START)
+    if (move1Id > 0) then pokemonData["moves"][1] = {id = move1Id} end
 
     -- Move 2 ID (0x2A-0x2B)
-    local move2Name = MOVE_NAMES[decryptData(pidAddress + BlockBoffset + START + 2)]
-    if (move2Name) then pokemonData["moves"][2] = {name = move2Name} end
+    local move2Id = decryptData(pidAddress + BlockBoffset + START + 2)
+    if (move2Id > 0) then pokemonData["moves"][2] = {id = move2Id} end
 
     -- Move 3 ID (0x2C-0x2D)
-    local move3Name = MOVE_NAMES[decryptData(pidAddress + BlockBoffset + START + 4)]
-    if (move3Name) then pokemonData["moves"][3] = {name = move3Name} end
+    local move3Id = decryptData(pidAddress + BlockBoffset + START + 4)
+    if (move3Id > 0) then pokemonData["moves"][3] = {id = move3Id} end
 
     -- Move 4 ID (0x2E-0x2F)
-    local move4Name = MOVE_NAMES[decryptData(pidAddress + BlockBoffset + START + 6)]
-    if (move4Name) then pokemonData["moves"][4] = {name = move4Name} end
+    local move4Id = decryptData(pidAddress + BlockBoffset + START + 6)
+    if (move4Id > 0) then pokemonData["moves"][4] = {id = move4Id} end
     
     -- Move 1-2 Current PP (0x30-0x31)
     local move12pp = decryptData(pidAddress + BlockBoffset + START + 8)
@@ -327,7 +326,7 @@ function decryptBlockD(pokemonData, pidAddress, shiftValue, checksum)
     -- Pokérus - Poké Ball (0x82-0x83)
     local pokerusPokeball = decryptData(pidAddress + BlockDoffset + START + 26)
     pokemonData["pokerus"] = getBits(pokerusPokeball, 0, 8)
-    pokemonData["pokeball"] = ITEM_NAMES[getBits(pokerusPokeball, 8, 8)]
+    pokemonData["pokeballId"] = getBits(pokerusPokeball, 8, 8)
 
     -- Met At Level - Female OT Gender (0x84-0x85)
     local metLevelFemaleOT = decryptData(pidAddress + BlockDoffset + START + 28)

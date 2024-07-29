@@ -19,7 +19,7 @@ function retrieveBagSection(sectionId)
 
         if (itemData > 0) then
             local item = {}
-            item["name"] = ITEM_NAMES[getBits(itemData,0,16)]
+            item["id"] = getBits(itemData,0,16)
             item["quantity"] = getBits(itemData,16,16)
 
             bagSection[i + 1] = item

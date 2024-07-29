@@ -26,15 +26,3 @@ def getShinyValue(pid, OTId, OtSecretId):
     shinyValue = xorPid ^ xorOT
 
     return shinyValue
-
-def getPokeballLocation():
-     # Read JSON Bag data from memory file and convert it to Bag object
-    bag = Bag(**memory.readBagData())
-    pokeballLocation = -1
-
-    # Search for Poké Ball location
-    for ballId in range(len(bag.balls)):
-        if (bag.balls[ballId].name == "Poké Ball"):
-            pokeballLocation = ballId
-
-    return pokeballLocation
