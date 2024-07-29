@@ -456,6 +456,11 @@ def goToLocation(location: Position):
 
     # Calculate path from current position
     playerPosition = player.getPlayerData().position
+
+    # We only manage pathfinding within the same zone for now
+    if (playerPosition.zone.zoneId != location.zone.zoneId):
+        return None
+
     path = writePathInputs(location)
 
     if (not path):
@@ -479,8 +484,8 @@ def goToLocation(location: Position):
             memory.clearMemoryData("joypad") # Clear input
             break
 
-        # Reached the end, clear all inputs and go back to main loop
-        elif (playerPosition == path[-1].position):
+        # Reached the end or went to another zone, clear all inputs and go back to main loop
+        elif (playerPosition == path[-1].position or playerPosition.zone.zoneId != path[-1].position.zone.zoneId):
             memory.clearMemoryData("joypad") # Clear input
             break
 
