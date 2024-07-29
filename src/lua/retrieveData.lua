@@ -50,6 +50,7 @@ end
 MAP_POINTER = 0x021C0974
 BIKE_ADDRESS = 0x0227F740
 BIKESPEED_ADDRESS = 0x0227F73C
+REPELSTEPS_ADDRESS = 0x022864A3
 ORIENTATION_ADDRESS = 0x022A1CC8
 ORIENTATION = {"u","d","l","r"}
 
@@ -58,13 +59,12 @@ function retrievePlayerData()
     local positionXAddress = zoneAddress + 8
     local positionYAddress = zoneAddress + 12
 
-    orientationValue = memory.read_u16_le(ORIENTATION_ADDRESS)
+    local orientation = "d" -- Default orientation is down
+    local orientationValue = memory.read_u16_le(ORIENTATION_ADDRESS)
 
     -- This is the only value we actually need to be sure of, since we're using it as an array id
     if (orientationValue >= 0 and orientationValue <= 3) then
         orientation = ORIENTATION[orientationValue + 1]
-    else
-        orientation = "d" -- Default orientation is down
     end
 
     return {
@@ -72,6 +72,7 @@ function retrievePlayerData()
         positionX = memory.read_u16_le(positionXAddress),
         positionY = memory.read_u16_le(positionYAddress),
         orientation = orientation,
+        repelSteps = memory.readbyte(REPELSTEPS_ADDRESS),
         
         -- This memory address is actually used for multiple states, only state = 1 (isOnBike) is useful to us
         isOnBike = memory.read_u16_le(BIKE_ADDRESS) == 1,
