@@ -6,6 +6,12 @@ class Item:
         self.name = ITEM_NAMES[id]
         self.quantity = quantity
 
+    def __str__(self):
+        return self.name + " x" + str(self.quantity) + " (" + str(self.id) + ")\n"
+    
+    def __repr__(self):
+        return str(self)
+
 class Bag:
     def __init__(self, generalItems, keyItems, TMHM, mail, medecine, berries, balls, battleItems):
         self.generalItems = [Item(**jsonItem) for jsonItem in generalItems]
@@ -31,60 +37,64 @@ def getPokeballLocation():
             pokeballLocation = ballId
 
     return pokeballLocation
+    
+ITEM_NAMES = [
+    # Balls
+    "unknown", "Master Ball", "Hyper Ball", "Super Ball", "Poké Ball", "Safari Ball", "Filet Ball", "Scuba Ball", "Faiblo Ball", "Bis Ball", "Chrono Ball", "Luxe Ball",
+    "Honor Ball", "Sombre Ball", "Soin Ball", "Rapide Ball", "Mémoire Ball",
 
-ITEM_NAMES = ["unknown","Master Ball","Ultra Ball","Great Ball","Poké Ball","Safari Ball","Net Ball","Dive Ball","Nest Ball",
-    "Repeat Ball","Timer Ball","Luxury Ball","Premier Ball","Dusk Ball","Heal Ball","Quick Ball","Cherish Ball","Potion",
-    "Antidote","Burn Heal","Ice Heal","Awakening","Parlyz Heal","Full Restore","Max Potion","Hyper Potion","Super Potion",
-    "Full Heal","Revive","Max Revive","Fresh Water","Soda Pop","Lemonade","Moomoo Milk","EnergyPowder","Energy Root",
-    "Heal Powder","Revival Herb","Ether","Max Ether","Elixir","Max Elixir","Lava Cookie","Berry Juice","Sacred Ash",
-    "HP Up","Protein","Iron","Carbos","Calcium","Rare Candy","PP Up","Zinc","PP Max","Old Gateau","Guard Spec.",
-    "Dire Hit","X Attack","X Defense","X Speed","X Accuracy","X Special","X Sp. Def","Poké Doll","Fluffy Tail",
-    "Blue Flute","Yellow Flute","Red Flute","Black Flute","White Flute","Shoal Salt","Shoal Shell","Red Shard",
-    "Blue Shard","Yellow Shard","Green Shard","Super Repel","Max Repel","Escape Rope","Repel","Sun Stone","Moon Stone",
-    "Fire Stone","Thunderstone","Water Stone","Leaf Stone","TinyMushroom","Big Mushroom","Pearl","Big Pearl","Stardust",
-    "Star Piece","Nugget","Heart Scale","Honey","Growth Mulch","Damp Mulch","Stable Mulch","Gooey Mulch","Root Fossil",
-    "Claw Fossil","Helix Fossil","Dome Fossil","Old Amber","Armor Fossil","Skull Fossil","Rare Bone","Shiny Stone",
-    "Dusk Stone","Dawn Stone","Oval Stone","Odd Keystone","Griseous Orb","unknown","unknown","unknown","unknown",
-    "unknown","unknown","unknown","unknown","unknown","unknown","unknown","unknown","unknown","unknown","unknown",
-    "unknown","unknown","unknown","unknown","unknown","unknown","unknown","Adamant Orb","Lustrous Orb","Grass Mail",
-    "Flame Mail","Bubble Mail","Bloom Mail","Tunnel Mail","Steel Mail","Heart Mail","Snow Mail","Space Mail","Air Mail",
-    "Mosaic Mail","Brick Mail","Cheri Berry","Chesto Berry","Pecha Berry","Rawst Berry","Aspear Berry","Leppa Berry",
-    "Oran Berry","Persim Berry","Lum Berry","Sitrus Berry","Figy Berry","Wiki Berry","Mago Berry","Aguav Berry",
-    "Iapapa Berry","Razz Berry","Bluk Berry","Nanab Berry","Wepear Berry","Pinap Berry","Pomeg Berry","Kelpsy Berry",
-    "Qualot Berry","Hondew Berry","Grepa Berry","Tamato Berry","Cornn Berry","Magost Berry","Rabuta Berry","Nomel Berry",
-    "Spelon Berry","Pamtre Berry","Watmel Berry","Durin Berry","Belue Berry","Occa Berry","Passho Berry","Wacan Berry",
-    "Rindo Berry","Yache Berry","Chople Berry","Kebia Berry","Shuca Berry","Coba Berry","Payapa Berry","Tanga Berry",
-    "Charti Berry","Kasib Berry","Haban Berry","Colbur Berry","Babiri Berry","Chilan Berry","Liechi Berry","Ganlon Berry",
-    "Salac Berry","Petaya Berry","Apicot Berry","Lansat Berry","Starf Berry","Enigma Berry","Micle Berry","Custap Berry",
-    "Jaboca Berry","Rowap Berry","BrightPowder","White Herb","Macho Brace","Exp. Share","Quick Claw","Soothe Bell",
-    "Mental Herb","Choice Band","King's Rock","SilverPowder","Amulet Coin","Cleanse Tag","Soul Dew","DeepSeaTooth",
-    "DeepSeaScale","Smoke Ball","Everstone","Focus Band","Lucky Egg","Scope Lens","Metal Coat","Leftovers","Dragon Scale",
-    "Light Ball","Soft Sand","Hard Stone","Miracle Seed","BlackGlasses","Black Belt","Magnet","Mystic Water","Sharp Beak",
-    "Poison Barb","NeverMeltIce","Spell Tag","TwistedSpoon","Charcoal","Dragon Fang","Silk Scarf","Up-Grade","Shell Bell",
-    "Sea Incense","Lax Incense","Lucky Punch","Metal Powder","Thick Club","Stick","Red Scarf","Blue Scarf","Pink Scarf",
-    "Green Scarf","Yellow Scarf","Wide Lens","Muscle Band","Wise Glasses","Expert Belt","Light Clay","Life Orb","Power Herb",
-    "Toxic Orb","Flame Orb","Quick Powder","Focus Sash","Zoom Lens","Metronome","Iron Ball","Lagging Tail","Destiny Knot",
-    "Black Sludge","Icy Rock","Smooth Rock","Heat Rock","Damp Rock","Grip Claw","Choice Scarf","Sticky Barb","Power Bracer",
-    "Power Belt","Power Lens","Power Band","Power Anklet","Power Weight","Shed Shell","Big Root","Choice Specs","Flame Plate",
-    "Splash Plate","Zap Plate","Meadow Plate","Icicle Plate","Fist Plate","Toxic Plate","Earth Plate","Sky Plate","Mind Plate",
-    "Insect Plate","Stone Plate","Spooky Plate","Draco Plate","Dread Plate","Iron Plate","Odd Incense","Rock Incense",
-    "Full Incense","Wave Incense","Rose Incense","Luck Incense","Pure Incense","Protector","Electirizer","Magmarizer",
-    "Dubious Disc","Reaper Cloth","Razor Claw","Razor Fang","TM01","TM02","TM03","TM04","TM05","TM06","TM07","TM08","TM09",
-    "TM10","TM11","TM12","TM13","TM14","TM15","TM16","TM17","TM18","TM19","TM20","TM21","TM22","TM23","TM24","TM25","TM26",
-    "TM27","TM28","TM29","TM30","TM31","TM32","TM33","TM34","TM35","TM36","TM37","TM38","TM39","TM40","TM41","TM42","TM43",
-    "TM44","TM45","TM46","TM47","TM48","TM49","TM50","TM51","TM52","TM53","TM54","TM55","TM56","TM57","TM58","TM59","TM60",
-    "TM61","TM62","TM63","TM64","TM65","TM66","TM67","TM68","TM69","TM70","TM71","TM72","TM73","TM74","TM75","TM76","TM77",
-    "TM78","TM79","TM80","TM81","TM82","TM83","TM84","TM85","TM86","TM87","TM88","TM89","TM90","TM91","TM92","HM01","HM02",
-    "HM03","HM04","HM05","HM06","HM07","HM08","Explorer Kit","Loot Sack","Rule Book","Poké Radar","Point Card","Journal",
-    "Seal Case","Fashion Case","Seal Bag","Pal Pad","Works Key","Old Charm","Galactic Key","Red Chain","Town Map","Vs. Seeker",
-    "Coin Case","Old Rod","Good Rod","Super Rod","Sprayduck","Poffin Case","Bicycle","Suite Key","Oak's Letter","Lunar Wing",
-    "Member Card","Azure Flute","S.S. Ticket","Contest Pass","Magma Stone","Parcel","Coupon 1","Coupon 2","Coupon 3",
-    "Storage Key","SecretPotion","Vs. Recorder","Gracidea","Secret Key","Apricorn Box","Unown Report","Berry Pots",
-    "Dowsing MCHN","Blue Card","SlowpokeTail","Clear Bell","Card Key","Basement Key","SquirtBottle","Red Scale","Lost Item",
-    "Pass","Machine Part","Silver Wing","Rainbow Wing","Mystery Egg","Red Apricorn","Ylw Apricorn","Blu Apricorn","Grn Apricorn",
-    "Pnk Apricorn","Wht Apricorn","Blk Apricorn","Fast Ball","Level Ball","Lure Ball","Heavy Ball","Love Ball","Friend Ball",
-    "Moon Ball","Sport Ball","Park Ball","Photo Album","GB Sounds","Tidal Bell","RageCandyBar","Data Card 01","Data Card 02",
-    "Data Card 03","Data Card 04","Data Card 05","Data Card 06","Data Card 07","Data Card 08","Data Card 09","Data Card 10",
-    "Data Card 11","Data Card 12","Data Card 13","Data Card 14","Data Card 15","Data Card 16","Data Card 17","Data Card 18",
-    "Data Card 19","Data Card 20","Data Card 21","Data Card 22","Data Card 23","Data Card 24","Data Card 25","Data Card 26",
-    "Data Card 27","Jade Orb","Lock Capsule","Red Orb","Blue Orb","Enigma Stone"]
+    # Heal Items
+    "Potion", "Antidote", "Anti-Brûle", "Antigel", "Réveil", "Anti-Para", "Guérison", "Potion Max", "Hyper Potion", "Super Potion", "Total Soin", "Rappel", "Rappel Max",
+    "Eau Fraîche", "Soda Cool", "Limonade", "Lait Meumeu", "Poudrénergie", "Racinénergie", "Poudre Soin", "Herbe Rappel", "Huile", "Huile Max", "Elixir", "Max Elixir",
+    "Lava Cookie", "Jus de Baie", "Cendresacrée", "PV Plus", "Protéine", "Fer", "Carbone", "Calcium", "Super Bonbon", "PP Plus", "Zinc", "PP Max", "Vieux Gâteau",
+
+    # Battle Items
+    "Défense Spéc", "Muscle +", "Attaque +", "Défense +", "Vitesse +", "Précision +", "Spécial +", "Déf. Spé. +", "Poképoupée", "Queue Skitty", "Flûte Bleue",
+    "Flûte Jaune", "Flûte Rouge",
+
+    # Items
+    "Flûte Noire", "Flûteblanche", "Sel Tréfonds", "Co. Tréfonds", "Tesson Rouge", "Tesson Bleu", "Tesson Jaune", "Tesson Vert", "Superepousse", "Max Repousse",
+    "Corde Sortie", "Repousse", "Pierresoleil", "Pierre Lune", "Pierre Feu", "Pierrefoudre", "Pierre Eau", "Pierreplante", "Petit Champi", "Gros Champi", "Perle",
+    "Grande Perle", "Pouss.Etoile", "Morc. Etoile", "Pépite", "Ecaillecoeur", "Miel", "Fertipousse", "Fertihumide", "Fertistable", "Fertiglu", "Foss. Racine", "Foss. Griffe",
+    "Nautile", "Fossile Dôme", "Vieil Ambre", "Foss. Armure", "Foss. Crâne", "Os Rare", "Pierre Éclat", "Pierre Nuit", "Pierre Aube", "Pierre Ovale", "Clé de Voûte",
+    "Orbe Platiné", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown",
+    "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "unknown", "Orbe Adamant", "Orbe Perlé",
+
+    # Mail
+    "Lettre Herbe", "Lettre Feu", "Lettre Mer", "Lett. Pétale", "Lettre Mine", "Lettre Acier", "Lettre Coeur", "Lettre Neige", "Lettre Cosmo", "Lettre Avion",
+    "Lettremosaïk", "Lettre Brik",
+
+    # Berries
+    "Baie Ceriz", "Baie Maron", "Baie Pêcha", "Baie Fraive", "Baie Willia", "Baie Mepo", "Baie Oran", "Baie Kika", "Baie Prine", "Baie Sitrus", "Baie Figuy", "Baie Wiki",
+    "Baie Mago", "Baie Gowav", "Baie Papaya", "Baie Framby", "Baie Remu", "Baie Nanab", "Baie Repoi", "Baie Nanana", "Baie Grena", "Baie Alga", "Baie Qualot", "Baie Lonme",
+    "Baie Résin", "Baie Tamato", "Baie Siam", "Baie Mangou", "Baie Rabuta", "Baie Tronci", "Baie Kiwan", "Baie Palma", "Baie Stekpa", "Baie Durin", "Baie Myrte", "Baie Chocco",
+    "Baie Pocpoc", "Baie Parma", "Baie Ratam", "Baie Nanone", "Baie Pomroz", "Baie Kébia", "Baie Jouca", "Baie Cobaba", "Baie Yapap", "Baie Panga", "Baie Charti", "Baie Sédra",
+    "Baie Fraigo", "Baie Lampou", "Baie Babiri", "Baie Zalis", "Baie Lichii", "Baie Lingan", "Baie Sailak", "Baie Pitaye", "Baie Abriko", "Baie Lansat", "Baie Frista",
+    "Baie Enigma", "Baie Micle", "Baie Chérim", "Baie Jacoba", "Baie Pommo",
+
+    # Held Items
+    "Poudreclaire", "Herbeblanche", "Brac. Macho", "Multi Exp", "Vive Griffe", "Grelot Zen", "Herbe Mental", "Bandeau Choix", "Roche Royale", "Poudre Arg.", "Pièce Rune",
+    "Rune Purif.", "Rosée Ame", "Dent Océan", "Ecailleocéan", "Boule Fumée", "Pierre Stase", "Bandeau", "Oeuf Chance", "Lentilscope", "Peau Metal", "Restes", "EcailleDraco",
+    "Ballelumière", "Sable Doux", "Pierre Dure", "Grain Mirac", "Lunet.Noires", "Ceint.Noire", "Aimant", "Eau Mystique", "Bec Pointu", "Pic Venin", "Glacéternel", "Rune Sort",
+    "Cuillertordu", "Charbon", "Croc Dragon", "Mouch. Soie", "Améliorator", "Grelot Coque", "Encens Mer", "Encens Doux", "Poing Chance", "Poudre Métal", "Masse Os", "Bâton",
+    "Foul. Rouge", "Foul. Bleu", "Foul. Rose", "Foul. Vert", "Foul. Jaune", "Loupe", "Band. Muscle", "Lunet. Sages", "Ceinture Pro", "Lumargile", "Orbe Vie", "Herbe Pouv.",
+    "Orbe Toxique", "Orbe Flamme", "Poudre Vite", "Ceint. Force", "Lentil. Zoom", "Métronome", "Balle Fer", "Ralentiqueue", "Noeud Destin", "Boue Noire", "Roche Glace",
+    "Roche Lisse", "Roche Chaude", "Roche Humide", "Accro Griffe", "Mouch. Choix", "Piquants", "Poign. Pouv.", "Ceint. Pouv.", "Lent. Pouv.", "Band. Pouv.", "Chaîne Pouv.",
+    "Poids Pouv.", "Carapace Mue", "Grosseracine", "Lunet. Choix", "Plaque Flam", "Plaque Hydro", "Plaque Volt", "Plaque Herbe", "Plaque Glace", "Plaque Poing", "Plaque Toxic",
+    "Plaque Terre", "Plaque Ciel", "Plaquesprit", "Plaquinsect", "Plaque Roc", "Plaque Fantô", "Plaque Draco", "Plaque Ombre", "Plaque Fer", "Bizar.Encens", "Encens Roc",
+    "Encens Plein", "Encens Vague", "Encens Fleur", "Encens Veine", "Encens Pur", "Protecteur", "Electiriseur", "Magmariseur", "CD Douteux", "Tissu Fauche", "Grif. Rasoir",
+    "Croc Rasoir",
+
+    # TM
+    "CT01", "CT02", "CT03", "CT04", "CT05", "CT06", "CT07", "CT08", "CT09", "CT10", "CT11", "CT12", "CT13", "CT14", "CT15", "CT16", "CT17", "CT18", "CT19", "CT20", "CT21",
+    "CT22", "CT23", "CT24", "CT25", "CT26", "CT27", "CT28", "CT29", "CT30", "CT31", "CT32", "CT33", "CT34", "CT35", "CT36", "CT37", "CT38", "CT39", "CT40", "CT41", "CT42",
+    "CT43", "CT44", "CT45", "CT46", "CT47", "CT48", "CT49", "CT50", "CT51", "CT52", "CT53", "CT54", "CT55", "CT56", "CT57", "CT58", "CT59", "CT60", "CT61", "CT62", "CT63",
+    "CT64", "CT65", "CT66", "CT67", "CT68", "CT69", "CT70", "CT71", "CT72", "CT73", "CT74", "CT75", "CT76", "CT77", "CT78", "CT79", "CT80", "CT81", "CT82", "CT83", "CT84",
+    "CT85", "CT86", "CT87", "CT88", "CT89", "CT90", "CT91", "CT92", "CS01", "CS02", "CS03", "CS04", "CS05", "CS06", "CS07", "CS08",
+
+    # Key Items
+    "Explorakit", "Sac Butin", "Livre Règles", "Poké Radar", "Carte Points", "Journal", "Boîte Sceaux", "Coffret Mode", "Sac Sceaux", "Registre Ami", "Clé Centrale",
+    "Vieux Grigri", "Clé Galaxie", "Chaîne Rouge", "Carte", "Cherche VS", "Boîte Jetons", "Canne", "Super Canne", "Méga Canne", "Kwakarrosoir", "Boîte Poffin", "Bicyclette",
+    "Clé Chambre", "Lettre Chen", "Lun'Aile", "Carte Membre", "Flûte Azur", "Passe Bateau", "Passe Concours", "Pierre Magma", "Colis", "Bon 1", "Bon 2", "Bon 3", "Clé Stockage",
+    "Potion Secrète", "Magnéto VS", "Gracidée", "Clé Secrète"
+]
