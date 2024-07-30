@@ -498,8 +498,7 @@ def goToLocation(location: Position):
             memory.setMemoryFlag(runFlag = False)
 
             # Wait for the dialogue to be displayed and skip it
-            joypad.writeRawInput(50 * "@") 
-            joypad.writeInput("A")
+            joypad.writeInput("@@@@A")
 
             # Use Repel and go back to overworld
             action.useRepel() 

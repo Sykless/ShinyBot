@@ -26,10 +26,14 @@ function inputFromMemory(runFlag)
 
         local joypadMap = BUTTON_MAPPING[buttonPress]
 
+        -- Can't seem to figure out why, but joypadMap["B"] stays True across method calls
+        -- So I need to manually set it to False
         if (runFlag) then
             joypadMap["B"] = "True"
+        elseif (buttonPress ~= "B") then
+            joypadMap["B"] = "False"
         end
-    
+
         joypad.set(joypadMap)
     
         -- Erase first input with \x00 null character and shift the rest to the left
