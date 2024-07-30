@@ -2,7 +2,9 @@ from zone import Position
 from utils import waitFrames
 
 import img
+import game
 import zone
+import action
 import player
 import joypad
 import memory
@@ -455,7 +457,8 @@ def writePathInputs(location):
 def goToLocation(location: Position):
 
     # Calculate path from current position
-    playerPosition = player.getPlayerData().position
+    playerData = player.getPlayerData()
+    playerPosition = playerData.position
 
     # We only manage pathfinding within the same zone for now
     if (playerPosition.zone.zoneId != location.zone.zoneId):
@@ -467,6 +470,8 @@ def goToLocation(location: Position):
         print("No path has been found from " + str(playerPosition) + " to " + str(location))
         return None
 
+    gameData = game.getGameData()
+    isRepelActive = (gameData.repelSteps > 0)
     pathIndex = 0
 
     # Unfortunately, the running animation time is not consistent
@@ -476,6 +481,8 @@ def goToLocation(location: Position):
     # Only stop path processing when all inputs have been pressed
     # and the player is at desired location
     while memory.readJoypadData() or playerPosition != path[-1].position:
+        gameData = game.getGameData()
+        playerData = player.getPlayerData()
         playerPosition = player.getPlayerData().position
 
         # Non-0 PID : we're in a battle - stop pathfinding and let main script take over
@@ -483,6 +490,20 @@ def goToLocation(location: Position):
             print("Encountered wild Pokémon")
             memory.clearMemoryData("joypad") # Clear input
             break
+
+        # Repel no longer active, stop moving and use another one
+        elif (isRepelActive and gameData.repelSteps == 0):
+            # Clear input
+            memory.clearMemoryData("joypad") 
+            memory.setMemoryFlag(runFlag = False)
+
+            # Wait for the dialogue to be displayed and skip it
+            joypad.writeRawInput(50 * "@") 
+            joypad.writeInput("A")
+
+            # Use Repel and go back to overworld
+            action.useRepel() 
+            memory.setMemoryFlag(runFlag = True)
 
         # Reached the end or went to another zone, clear all inputs and go back to main loop
         elif (playerPosition == path[-1].position or playerPosition.zone.zoneId != path[-1].position.zone.zoneId):
