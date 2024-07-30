@@ -7,6 +7,7 @@ CLOSEBAGMENU = 24
 class Game:
     def __init__(self, repelSteps, selectedBagSection, selectedBagItemId):
         self.repelSteps = repelSteps
+        self.selectedBagSection = None
 
         # Data only valid if in the bag menu
         if (0 <= selectedBagSection <= 7):

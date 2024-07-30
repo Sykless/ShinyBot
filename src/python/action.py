@@ -1,5 +1,7 @@
 import img
+import bag
 import zone
+import game
 import joypad
 import memory
 import pokemon
@@ -22,7 +24,7 @@ BIKEREGULAR = 3
 def openMenu():
 
     # If not on overworld, don't even try to open menu, just mash B
-    openMenuTries = 3 * (1 - int(img.poketch.isOnScreen(img.getScreenshot())))
+    openMenuTries = 3 * (not img.poketch.isOnScreen(img.getScreenshot()))
     mashExitTries = 0
     waitAfterPress = False
 
@@ -59,7 +61,102 @@ def openMenu():
             # Menu open, exit function
             else:
                 return menuPosition
-            
+
+# Go up or down depending on current menu position, then press A to open Pokemon menu
+def goToMenuSection(menuSection, menuPosition):
+    menuNavigationSequence = ""
+    cursorDifferential = menuSection - menuPosition
+
+    if (cursorDifferential < 0):
+        menuNavigationSequence = "u" * (cursorDifferential * -1)
+    elif (cursorDifferential > 0):
+        menuNavigationSequence = "d" * cursorDifferential
+
+    # Go up or down depending on current menu position, then press A to open Pokemon menu
+    joypad.writeInput(menuNavigationSequence + "A")
+
+
+def useRepel():
+
+    # Check if we have repel in the bag
+    repelPosition = bag.getRepelLocation()
+
+    if (repelPosition is not None):
+
+        # Need to open menu first
+        menuPosition = openMenu()
+
+        # Cannot open menu, let the main loop handle it
+        if (menuPosition > 0):
+
+            # Open bag menu
+            goToMenuSection(MENU_BAG, menuPosition)
+
+            bagOpened = False
+            repelUsed = False
+
+            while True:
+                # Only apply new input if no input is found in memory
+                if (len(memory.readJoypadData()) == 0):
+                    screenshot = img.getScreenshot()
+
+                    # Bag menu has been opened
+                    if (not bagOpened and img.bagTouchscreen.isOnScreen(screenshot)):
+                        waitFrames(10) #  Small lag after Bag menu is displayed
+                        bagOpened = True
+
+                    # Repel has been used, go back to main menu
+                    elif (repelUsed):
+
+                        # Exit bag
+                        if (img.bagTouchscreen.isOnScreen(screenshot)):
+                            joypad.writeInput("B")
+                        
+                        # We're back on the overworld after repel has been used, exit menu
+                        elif (img.poketch.isOnScreen(screenshot)):
+                            waitFrames(10) # Small lag after closing the bag
+                            joypad.writeInput("B") # Exit menu
+                            return None
+
+                    # Cursor is visible, we can move between sections or items
+                    elif (bagOpened and img.bagItemSelector.isOnScreen(screenshot)):
+
+                        # Repel hasn't been used, move the cursor and use it
+                        if (not repelUsed):
+                            gameData = game.getGameData()
+
+                            # We're in the Items section, search for Repel
+                            if (gameData.selectedBagSection == bag.ITEMS_SECTION):
+                                currentPosition = bag.findItemInBag(gameData.selectedBagItem.id)
+                                positionDiff = currentPosition - repelPosition
+
+                                # Move the cusor by the difference between current and Repel position
+                                if (positionDiff > 0):
+                                    joypad.writeInput("u" * positionDiff)
+                                elif (positionDiff < 0):
+                                    joypad.writeInput("d" * (-1 * positionDiff))
+
+                                # Found Repel : use it and skip dialogue
+                                else:
+                                    joypad.writeInput("AA@@@A")
+                                    repelUsed = True
+
+                            # Go left or right depending on the current bag section
+                            elif (gameData.selectedBagSection < bag.MAIL_SECTION):
+                                joypad.writeInput("l")
+                            else:
+                                joypad.writeInput("r")
+        
+        # Menu not opened, let the main loop handle it
+        else:
+            return None
+        
+    # No repel in the bag, TODO go buy some
+    else:
+        print("No repel in the bag !")
+        return None
+
+
 def flyToCity(city):
 
     # Need to open menu first
@@ -73,16 +170,9 @@ def flyToCity(city):
 
         # Fly is available
         if (pokemonPosition is not None):
-            menuNavigationSequence = ""
-            cursorDifferential = MENU_POKEMON - menuPosition
 
-            if (cursorDifferential < 0):
-                menuNavigationSequence = "u" * (cursorDifferential * -1)
-            elif (cursorDifferential > 0):
-                menuNavigationSequence = "d" * cursorDifferential
-
-            # Go up or down depending on current menu position, then press A to open Pokemon menu
-            joypad.writeInput(menuNavigationSequence + "A")
+            # Open Pokémon menu
+            goToMenuSection(MENU_POKEMON, menuPosition)
 
             while True:
                 # Only apply new input if no input is found in memory
@@ -91,7 +181,7 @@ def flyToCity(city):
                     
                     # Pokemon menu : go to map menu through Fly
                     if (img.pokemonMenu.isOnScreen(screenshot)):
-                        waitFrames(20) #  Small lag after Pokémon menu is displayed
+                        waitFrames(20) # Small lag after Pokémon menu is displayed
                         pokemonSelectionSequence = ""
 
                         # Only press right if pokemonPosition is odd
@@ -138,3 +228,8 @@ def flyToCity(city):
 
                             # Play input sequence and press A to fly to the selected city
                             joypad.writeInput(pokemonSelectionSequence + "A")
+        
+        # No Pokémon with Fly, TODO go to the nearest Pokémon Center
+        else:
+            print("No flying Pokémon !")
+            return None
