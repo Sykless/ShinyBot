@@ -127,7 +127,13 @@ def useRepel():
 
                             # We're in the Items section, search for Repel
                             if (gameData.selectedBagSection == bag.ITEMS_SECTION):
-                                currentPosition = bag.findItemInBag(gameData.selectedBagItem.id)
+
+                                # If we're on the close bag button, our current position is after every item
+                                if (gameData.closeBag):
+                                    currentPosition = len(bag.getBagData().items[bag.ITEMS_SECTION])
+                                else:
+                                    currentPosition = bag.findItemInBag(gameData.selectedBagItem.id)
+
                                 positionDiff = currentPosition - repelPosition
 
                                 # Move the cusor by the difference between current and Repel position
