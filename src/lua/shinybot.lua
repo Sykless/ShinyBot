@@ -38,6 +38,7 @@ comm.mmfWrite("joypad", string.rep("\x00", 20480))
 comm.mmfWrite("pokemonTeamData", string.rep("\x00", 20480))
 comm.mmfWrite("wildPokemonData", string.rep("\x00", 20480))
 comm.mmfWrite("bagData", string.rep("\x00", 20480))
+comm.mmfWrite("gameData", string.rep("\x00", 20480))
 comm.mmfWrite("playerData", string.rep("\x00", 20480))
 comm.mmfWrite("flagsData", "0" .. string.rep("\x00", 20480))
 
@@ -75,12 +76,16 @@ while true do
         comm.mmfWrite("bagData", json.encode({["bagData"] = bag}) .. "\x00")
     end
 
+    -- Save game data (current selection, repel steps remaining, etc) at every frame
+    gameData = retrieveGameData()
+    comm.mmfWrite("gameData", json.encode({["gameData"] = gameData}) .. "\x00")
+
     -- Save player data (position, orientation, bike speed, etc) at every frame
     playerData = retrievePlayerData()
     comm.mmfWrite("playerData", json.encode({["playerData"] = playerData}) .. "\x00")
 
     -- Debug : display position on screen
-    gui.text(0,0, string.format("X: %d, Y: %d, Zone : %d, Bike speed : %d, Repel steps : %d, PID : %d", playerData.positionX, playerData.positionY, playerData.zone, playerData.bikeSpeed, playerData.repelSteps, wildPokemon.pid))
+    gui.text(0,0, string.format("X: %d, Y: %d, Zone : %d, Bike speed : %d, Repel steps : %d, PID : %d", playerData.positionX, playerData.positionY, playerData.zone, playerData.bikeSpeed, gameData.repelSteps, wildPokemon.pid))
     
     -- Input button retrieved from memory
     inputFromMemory(flags.runInput)

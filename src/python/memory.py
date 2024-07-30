@@ -16,6 +16,9 @@ def readBagData():
 def readPlayerData():
     return readJsonData("playerData")
 
+def readGameData():
+    return readJsonData("gameData")
+
 def readJoypadData():
     return readMemoryData("joypad")
 

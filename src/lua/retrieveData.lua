@@ -31,6 +31,17 @@ function retrieveBagSection(sectionId)
     return bagSection
 end
 
+SELECTEDBAGSECTION_ADDRESS = 0X022A69E4
+SELECTEDBAGITEM_ADDRESS = 0x0227179C
+
+function retrieveGameData()
+    return {
+        repelSteps = memory.readbyte(REPELSTEPS_ADDRESS),
+        selectedBagSection = memory.readbyte(SELECTEDBAGSECTION_ADDRESS),
+        selectedBagItemId = memory.readbyte(SELECTEDBAGITEM_ADDRESS)
+    }
+end
+
 -- Retrieve each bag section
 function retrieveBag()
     local bagData = {
@@ -41,7 +52,7 @@ function retrieveBag()
         medecine = retrieveBagSection("MEDECINE"),
         berries = retrieveBagSection("BERRIES"),
         balls = retrieveBagSection("BALLS"),
-        battleItems = retrieveBagSection("BATTLEITEMS")
+        battleItems = retrieveBagSection("BATTLEITEMS"),
     }
 
     return bagData
@@ -72,7 +83,6 @@ function retrievePlayerData()
         positionX = memory.read_u16_le(positionXAddress),
         positionY = memory.read_u16_le(positionYAddress),
         orientation = orientation,
-        repelSteps = memory.readbyte(REPELSTEPS_ADDRESS),
         
         -- This memory address is actually used for multiple states, only state = 1 (isOnBike) is useful to us
         isOnBike = memory.read_u16_le(BIKE_ADDRESS) == 1,

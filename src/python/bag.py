@@ -1,7 +1,8 @@
+import img
 import memory
 
 class Item:
-    def __init__(self, id, quantity):
+    def __init__(self, id, quantity = None):
         self.id = id
         self.name = ITEM_NAMES[id]
         self.quantity = quantity
@@ -37,7 +38,37 @@ def getPokeballLocation():
             pokeballLocation = ballId
 
     return pokeballLocation
+
+# Selected item is only coded on a byte, so we have to add 256 for higher ids
+def getItemFromBagId(selectedBagSection, selectedBagItemId):
+    # TM/HM - Key Items
+    if (selectedBagSection in [3,7]):
+        return Item(selectedBagItemId + 256)
     
+    # Heal Items - Balls - Berries - Mail - Battle Items
+    elif (selectedBagSection in [1,2,4,5,6]):
+        return Item(selectedBagItemId)
+
+    # Items
+    else:
+        # Blind spot : Can be 68 -> 71 or 324 -> 327
+        if (68 <= selectedBagItemId <= 71):
+
+            # Clear those blind spots by directly checking the screenshot
+            screenshot = img.getScreenshot()
+
+            match selectedBagItemId:
+                case 68: return Item(68 + 256 * img.cdDouteuxSelected.isOnScreen(screenshot))
+                case 69: return Item(69 + 256 * img.tissuFaucheSelected.isOnScreen(screenshot))
+                case 70: return Item(70 + 256 * img.griffeRasoirSelected.isOnScreen(screenshot))
+                case 71: return Item(71 + 256 * img.crocRasoirSelected.isOnScreen(screenshot))
+
+        # Rest of the IDs, add 256 if needed
+        elif (selectedBagItemId > 71):
+            return Item(selectedBagItemId)
+        elif (selectedBagItemId < 68):
+            return Item(selectedBagItemId + 256)
+
 ITEM_NAMES = [
     # Balls
     "unknown", "Master Ball", "Hyper Ball", "Super Ball", "Poké Ball", "Safari Ball", "Filet Ball", "Scuba Ball", "Faiblo Ball", "Bis Ball", "Chrono Ball", "Luxe Ball",
@@ -96,5 +127,5 @@ ITEM_NAMES = [
     "Explorakit", "Sac Butin", "Livre Règles", "Poké Radar", "Carte Points", "Journal", "Boîte Sceaux", "Coffret Mode", "Sac Sceaux", "Registre Ami", "Clé Centrale",
     "Vieux Grigri", "Clé Galaxie", "Chaîne Rouge", "Carte", "Cherche VS", "Boîte Jetons", "Canne", "Super Canne", "Méga Canne", "Kwakarrosoir", "Boîte Poffin", "Bicyclette",
     "Clé Chambre", "Lettre Chen", "Lun'Aile", "Carte Membre", "Flûte Azur", "Passe Bateau", "Passe Concours", "Pierre Magma", "Colis", "Bon 1", "Bon 2", "Bon 3", "Clé Stockage",
-    "Potion Secrète", "Magnéto VS", "Gracidée", "Clé Secrète"
+    "Potionsecret", "Magnéto VS", "Gracidée", "Clé Secrète"
 ]

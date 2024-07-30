@@ -26,6 +26,9 @@ class Template:
         return screenshot[
                 self.positionY:self.positionY + self.height,
                 self.positionX:self.positionX + self.width]
+    
+    def getPositionOnScreen(self,screenshot):
+        return getTemplatePosition(screenshot, self.image, cv2.TM_SQDIFF, templatemask = self.mask)
 
     def getNormedPositionOnScreen(self,screenshot):
         return getTemplatePosition(screenshot, self.image, cv2.TM_SQDIFF_NORMED, templatemask = self.mask)
@@ -61,13 +64,21 @@ trainerDown = Template("trainer-down-bluegreen", TRAINER_MINXPOSITION, TRAINER_M
 trainerRight = Template("trainer-right-bluegreen", TRAINER_MINXPOSITION, TRAINER_MINYPOSITION, 28, 32, None, mask = True)
 trainerLeft = Template("trainer-left-bluegreen", TRAINER_MINXPOSITION, TRAINER_MINYPOSITION, 28, 32, None, mask = True)
 
+bagTouchscreen = Template("bag-menu-touchscreen", 0, 192, 256, 192, 1, mask = True)
+bagItemSelector = Template("bagitem-selector", 105, 15, 158, 113, 1, mask = True)
+cdDouteuxSelected = Template("cd-douteux-selected", 106, 15, 64, 113, 1)
+tissuFaucheSelected = Template("tissu-fauche-selected", 106, 15, 73, 113, 1)
+griffeRasoirSelected = Template("griffe-rasoir.selected", 106, 15, 68, 113, 1)
+crocRasoirSelected = Template("croc-rasoir-selected", 106, 15, 67, 113, 1)
+closeBagMenuSelected = Template("close-bag-selected", 106, 15, 42, 113, 1)
+
 battleTouchscreen = Template("battle-touchscreen", 0, 192, 256, 192, 1, mask = True)
 poketch = Template("poketch", 224, 225, 32, 126, 1)
 pokemonMenu = Template("pokemon-menu", 0, 192, 208, 80, 1)
 hmAnimation = Template("hm-animation", 0, 56, 255, 80, 50000)
 runaway = Template("runaway", 100, 354, 56, 30, 1)
-insideBag = Template("inside-bag", 135, 208, 114, 58, 1)
-insideBalls = Template("inside-balls", 91, 348, 74, 32, 1)
+insideBag = Template("inside-battle-bag-menu", 135, 208, 114, 58, 1)
+insideBalls = Template("inside-battle-balls-menu", 91, 348, 74, 32, 1)
 pokeballLastUsed = Template("pokeball-last-used", 8, 352, 192, 26, 1)
 
 firstPage = Template("first-page", 183, 359, 6, 10, 1)
