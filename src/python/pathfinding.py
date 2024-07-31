@@ -40,7 +40,7 @@ CELL_COST = {
     "t": 5, # Tree
     "r": 5, # Rock
     "W": 5, # Water
-    "w": 10, # Waterfall
+    "w": 7, # Waterfall
     "C": 5, # Climb
 
     # Height-depending cells
@@ -322,6 +322,10 @@ def astar(start: Position, end: Position, zoneMap):
     # Boulders might block the way, we'll track them and process them if needed
     blockingBoulders = []
 
+    # Cell cost might change if repel is active or if we're on a bike
+    repelActive = game.getGameData().repelSteps > 0
+    canUseBike = start.zone.canBike
+
     # Create start and end node
     start_node = Node(start, zoneMap)
     end_node = Node(end, zoneMap)
@@ -428,7 +432,15 @@ def astar(start: Position, end: Position, zoneMap):
 
             # If surfing, reduce water cells cost and increase the rest
             if (child.parent.isSurfing):
-                cellCost += (4 if child.cellType not in ["W","w","d"] else -4)
+                cellCost += (4 if child.cellType not in ["W","w","d"] else -2)
+            
+            # If repel is active, reduce encounter cells cost
+            if (repelActive):
+                cellCost -= (2 if child.cellType in ["W","G","g"] else 0)
+
+            # If on bike, increase non-bike cells cost
+            if (canUseBike):
+                cellCost += (2 if child.cellType in ["W","S","1","2","3","4","g"] else 0)
 
             # Create the f, g, and h values
             child.g = current_node.g + cellCost
