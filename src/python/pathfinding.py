@@ -409,7 +409,7 @@ def astar(start: Position, end: Position, zoneMap):
                     continue
 
             # Don't go up if a sign is just above since it triggers a dialogue
-            if (topCellValue == "S" and new_position["orientation"] == (-1, 0)):
+            if (topCellValue == "s" and new_position["orientation"] == (-1, 0)):
                 continue
 
             # Rock Climb : teleport to position after climbing
