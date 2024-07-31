@@ -29,17 +29,15 @@ def writeInput(inputSequence, endSequence = None):
     
     writeRawInput(frameByFrameInputSequence)
 
-def writePathfindingInput(nodeList, playerDirection):
+def writePathfindingInput(nodeList, playerDirection, strengthUsed = False, destroyedObstacles = []):
 
     # Only move if there are at least two nodes
     if (nodeList is not None and len(nodeList) > 1):
 
-        # Begin the path stopped and at second position
+        # Begin the path stopped and at second node
         nodeId = 1
         stopped = True
         skipNode = False
-        strengthUsed = False
-        destroyedObstacle = []
 
         previousNode = nodeList[0]
         frameByFrameInputSequence = ""
@@ -81,7 +79,7 @@ def writePathfindingInput(nodeList, playerDirection):
                 elif (node.cellType in ["r","t"]):
 
                     # Check if the obstacle has already been destroyed
-                    if (node.position in destroyedObstacle):
+                    if (node.position in destroyedObstacles):
                         frameByFrameInputSequence += 8 * inputButton # 8 frames per input during run animation
                     else:
                         # Apply Rock Smash/Cut inputs to destroy obstacle
@@ -91,7 +89,7 @@ def writePathfindingInput(nodeList, playerDirection):
                         frameByFrameInputSequence += getStartingAnimationInputs(inputButton, inputButton)
 
                         # Obstacle is destroyed, we can ignore it if we go through it next time
-                        destroyedObstacle.append(node.position)
+                        destroyedObstacles.append(node.position)
 
                 # Water when not previously on water
                 elif (node.cellType in ["W","d"] and previousNode.cellType not in ["W","w","d"]):

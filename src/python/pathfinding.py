@@ -136,12 +136,20 @@ def getMapAtCurrentState(processedNodes):
         originalMap = processedNodes[0].position.zone.map
         updatedMap = originalMap[:]
 
+        # Keep track of boulders and obstacles for the input process
+        pushedBoulder = False
+        destroyedObstacles = []
+
         # If a boulder has been pushed, update the map accordingly
         for node in processedNodes:
             if (node.pushBoulder): 
                 updateMapWithPushedBoulders(updatedMap, node.position, node.parent.position)
+                pushedBoulder = True
 
-        return updatedMap
+            if (node.cellType in ["r","t"]):
+                destroyedObstacles.append(node.position)
+
+        return updatedMap, pushedBoulder, destroyedObstacles
 
 def areThreeSideCellsFree(zoneMap, currentPosition, orientation):
 
@@ -425,8 +433,8 @@ def writePathInputsFromCurrentState(nodeList, breakNodeId):
     processedNodes = nodeList[:breakNodeId]
     remainingNodes = nodeList[breakNodeId:]
 
-    # Update the map to take into account the pushed boulder
-    updatedMap = getMapAtCurrentState(processedNodes)
+    # Update the map to take into account the pushed boulder and destroyed obstacles
+    updatedMap, strengthUsed, destroyedObstacles = getMapAtCurrentState(processedNodes)
 
     # Go from player position to first node of the remaining nodes
     firstNode = remainingNodes.pop(0)
@@ -435,7 +443,7 @@ def writePathInputsFromCurrentState(nodeList, breakNodeId):
     print(nodeList)
 
     # Retrieve all inputs needed to go to specified location
-    joypad.writePathfindingInput(nodeList, playerData.orientation)
+    joypad.writePathfindingInput(nodeList, playerData.orientation, strengthUsed, destroyedObstacles)
 
     return nodeList
 
