@@ -92,7 +92,7 @@ def writePathfindingInput(nodeList, playerDirection, strengthUsed = False, destr
                         destroyedObstacles.append(node.position)
 
                 # Water when not previously on water
-                elif (node.cellType in ["W","d"] and previousNode.cellType not in ["W","w","d"]):
+                elif (node.isSurfing and not previousNode.isSurfing):
                     # Apply Surf inputs to start surfing
                     frameByFrameInputSequence += getHmInputs(SURF, inputButton)
 
@@ -161,9 +161,9 @@ def writePathfindingInput(nodeList, playerDirection, strengthUsed = False, destr
                     stopped = True
 
                 # Land when previously on water
-                elif (node.cellType not in ["W","d"] and previousNode.cellType in ["W","d"]):
+                elif (not node.isSurfing and previousNode.isSurfing):
                     frameByFrameInputSequence += (10 * inputButton # Jump on the shore animation
-                                                 + 10 * "@")       # Release direction mid-animation in case we need to turn
+                                                 + 20 * "@")       # Release direction mid-animation to completely stop
                     
                     # Start moving again
                     playerDirection = inputButton

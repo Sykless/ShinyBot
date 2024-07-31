@@ -40,7 +40,7 @@ CELL_COST = {
     "t": 5, # Tree
     "r": 5, # Rock
     "W": 5, # Water
-    "w": 5, # Waterfall
+    "w": 10, # Waterfall
     "C": 5, # Climb
 
     # Height-depending cells
@@ -48,7 +48,7 @@ CELL_COST = {
     "a": 1, # Above ground (bike bridge)
     "@": 1, # Above solid block (bridge)
     "B": 1, # Below bridge
-    "d": 1, # Below bridge on water
+    "d": 5, # Below bridge on water
 
     # Orientation-depending cells
     "D": 2, # One-way ledge to go down
@@ -86,12 +86,21 @@ class Node():
         self.f = 0
 
         self.pushBoulder = False
+        self.isSurfing = self.cellType in ["W","w","d"]
 
         # Special process for bridges since two cells share the same position, see solid blocks processing
         if (parent and parent.isBelow):
             # If you were below a bridge, you're leaving when not on Above or Below cell
             self.isBelow = self.cellType in ["A","a","@","B","d"]
             self.isAbove = False
+
+            # Can only start/stop surfing through B and d cells
+            if (self.cellType == "d" and parent.cellType == "B"):
+                self.isSurfing = True
+            elif (self.cellType == "B" and parent.cellType == "d"):
+                self.isSurfing = False
+            else:
+                self.isSurfing = parent.isSurfing
         else:
             # If you were not, above/below condition just depends on current cell value
             self.isBelow = self.cellType in ["B","d"]
@@ -105,8 +114,12 @@ class Node():
 
     def __str__(self):
         return (str(self.position) + " - " + self.cellType 
+            + (" is below" if self.isBelow else " is not below")
+            + (" and is above !" if self.isAbove else " and is not above !")
             + (" (parent = (" + str(self.parent.position.X) + "," + str(self.parent.position.Y) + "))" if self.parent else "")
-            + (" PUSH !" if self.pushBoulder else "") + "\n")
+            + (" PUSH !" if self.pushBoulder else "")
+            + (" SURF !" if self.isSurfing else "")
+            + "\n")
 
     def __repr__(self):
         return str(self)
@@ -377,12 +390,19 @@ def astar(start: Position, end: Position, zoneMap):
                     continue
 
             # If on a bridge, don't go on Below cells
-            if (current_node.isAbove and nextCellValue == "B"):
+            if (current_node.isAbove and nextCellValue in ["B","d"]):
                 continue
 
-            # If under a bridge, only leave by passing on a Below cell
-            if (current_node.isBelow and current_node.cellType == "A" and nextCellValue not in ["A","B"]):
-                continue
+            # If under a bridge
+            if (current_node.isBelow):
+
+                # Only leave by passing on a Below cell (d if surfing, B if not)
+                if (current_node.cellType in ["a","A"] and nextCellValue not in ["a","A",("d" if current_node.isSurfing else "B")]):
+                    continue
+
+                # Don't go on blocked below cells
+                if (current_node.cellType in ["B","d"] and nextCellValue == "@"):
+                    continue
 
             # Don't go up if a sign is just above since it triggers a dialogue
             if (topCellValue == "S" and new_position["orientation"] == (-1, 0)):
@@ -403,8 +423,15 @@ def astar(start: Position, end: Position, zoneMap):
             if len([closed_child for closed_child in closed_list if closed_child == child]) > 0:
                 continue
 
+            # Default cell cost is 999, basically solid block
+            cellCost = CELL_COST.get(child.cellType, 999)
+
+            # If surfing, reduce water cells cost and increase the rest
+            if (child.parent.isSurfing):
+                cellCost += (4 if child.cellType not in ["W","w","d"] else -4)
+
             # Create the f, g, and h values
-            child.g = current_node.g + CELL_COST.get(child.cellType, 999) # Default cell cost is 999, basically solid block
+            child.g = current_node.g + cellCost
             child.h = abs(child.position.Y - end_node.position.Y) + abs(child.position.X - end_node.position.X) # Manhattan distance
             child.f = child.g + child.h
 
