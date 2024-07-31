@@ -1,6 +1,9 @@
 import memory
 from zone import Position
 
+LOW_BIKESPEED = 3
+HIGH_BIKESPEED = 4
+
 class Player:
     def __init__(self, positionX, positionY, zone, orientation, isOnBike, bikeSpeed):
         self.position = Position(positionX, positionY, zone)

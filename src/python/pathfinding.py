@@ -450,7 +450,7 @@ def writePathInputsFromCurrentState(nodeList, breakNodeId):
 
     # Make sure player is not moving anymore
     memory.clearMemoryData("joypad") # Clear input
-    waitFrames(25) # Wait 25 frames (time needed to completely stop on speed bike)
+    waitFrames(15) # Wait 15 frames (time needed to completely stop on speed bike)
 
     # Get final position after player stopped moving
     playerData = player.getPlayerData()
