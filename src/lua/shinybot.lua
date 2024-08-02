@@ -17,10 +17,6 @@ local pokemonTeam = {}
 local wildPokemon = {}
 local bag = {}
 
-local flags = {
-    runInput = false
-}
-
 -- Calculate PID memory addresses needed for data processing
 refreshPID()
 
@@ -41,7 +37,6 @@ comm.mmfWrite("bagData", string.rep("\x00", 20480))
 comm.mmfWrite("gameData", string.rep("\x00", 20480))
 comm.mmfWrite("playerData", string.rep("\x00", 20480))
 comm.mmfWrite("runSections", string.rep("\x00", 20480))
-comm.mmfWrite("flagsData", "0" .. string.rep("\x00", 20480))
 
 -- Set screenshot memory file name
 comm.mmfWrite("screenshot", string.rep("\x00", 64000))
@@ -50,8 +45,6 @@ comm.mmfSetFilename("screenshot")
 while true do
     -- Save a screenshot in memory file every frame
     comm.mmfScreenshot()
-
-    flags = readFlagsFromMemory()
 
     -- Save pokemon and bag data every second
     if emu.framecount() % 60 == 0 then
@@ -89,7 +82,7 @@ while true do
     gui.text(0,0, string.format("X: %d, Y: %d, Zone : %d, Bike speed : %d, Repel steps : %d, PID : %d", playerData.positionX, playerData.positionY, playerData.zone, playerData.bikeSpeed, gameData.repelSteps, wildPokemon.pid))
     
     -- Input button retrieved from memory
-    inputFromMemory(flags.runInput)
+    inputFromMemory()
 
     -- Next frame
     emu.frameadvance()

@@ -42,7 +42,7 @@ function readRunSectionsFromMemory()
     return runSectionsInt
 end
 
-function inputFromMemory(runFlag)
+function inputFromMemory()
     -- Read data from memory file sent by Python script
     local mmfJoypad = comm.mmfRead("joypad", 20480)
     local joypadInput = string.match(mmfJoypad, "[^\x00]+") -- Get everything before the first null \x00 character
@@ -97,13 +97,6 @@ function inputFromMemory(runFlag)
         runSectionId = -1
         processedInputs = 0
     end
-end
-
-function readFlagsFromMemory()
-    local mmfFlags = comm.mmfRead("flagsData", 20480)
-    return {
-        runInput = string.sub(mmfFlags,1,1) == "1"
-    }
 end
 
 -- 32 bits multiplication, see http://www.sunshine2k.de/coding/c/mul32x32.html

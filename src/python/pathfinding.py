@@ -657,16 +657,9 @@ def goToLocation(location: Position):
 
         # Repel no longer active, stop moving and use another one
         elif (isRepelActive and gameData.repelSteps == 0):
-            # Clear input
-            memory.clearMemoryData("joypad") 
-            memory.setMemoryFlag(runFlag = False)
-
-            # Wait for the dialogue to be displayed and skip it
-            joypad.writeInput("@@@@A")
-
-            # Use Repel and go back to overworld
-            action.useRepel() 
-            memory.setMemoryFlag(runFlag = True)
+            memory.clearMemoryData("joypad") # Clear input
+            joypad.writeInput("@@@@A") # Wait for the dialogue to be displayed and skip it
+            action.useRepel() # Use Repel and go back to overworld
 
         # Reached the end or went to another zone, clear all inputs and go back to main loop
         elif (playerPosition == path[-1].position or playerPosition.zone.zoneId != path[-1].position.zone.zoneId):
@@ -705,6 +698,3 @@ def goToLocation(location: Position):
             else:
                 path = writePathInputsFromCurrentState(path, pathIndex + 1)
                 pathIndex = 0
-
-    # Stop running after location has been reached
-    memory.setMemoryFlag(runFlag = False)

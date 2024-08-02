@@ -18,6 +18,10 @@ def writeRawInput(inputSequence):
     print(inputSequence)
     memory.writeMemoryData("joypad", inputSequence)
 
+def writeRunSections(runSectionsString):
+    print(runSectionsString)
+    memory.writeMemoryData("runSections", runSectionsString)
+
 def writeInput(inputSequence, endSequence = None):
 
     frameByFrameInputSequence = "".join(
@@ -275,8 +279,7 @@ def writePathfindingInput(nodeList, playerDirection, strengthUsed = False, destr
 
         print(frameByFrameInputSequence)
 
-        # Set run flag to true and write input sequence
-        memory.setMemoryFlag(runFlag = False)
+        # Write input sequence
         memory.writeMemoryData("joypad", frameByFrameInputSequence)
 
 
