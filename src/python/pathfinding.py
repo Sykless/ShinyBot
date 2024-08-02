@@ -67,10 +67,10 @@ SOLID_BLOCKS = [
 ]
 
 DIRECTIONS = [
+    {"orientation": (-1, 0), "solidLedges": ["D","L","R"]}, # Up
     {"orientation": (0, -1), "solidLedges": ["D","U","R"]}, # Left
     {"orientation": (0, 1),  "solidLedges": ["D","L","U"]}, # Right
-    {"orientation": (-1, 0), "solidLedges": ["D","L","R"]}, # Up
-    {"orientation": (1, 0),  "solidLedges": ["L","U","R"]}  # Down
+    {"orientation": (1, 0),  "solidLedges": ["L","U","R"]}, # Down
 ]
 
 # Node class for A* Pathfinding
@@ -86,6 +86,9 @@ class Node():
         self.f = 0
 
         self.pushBoulder = False
+        self.onABikeSlope = False
+        self.bikeSlopeDestination = None
+        self.bikeSlopeMomentumCell = None
         self.isSurfing = self.cellType in ["W","w","d"]
 
         # Special process for bridges since two cells share the same position, see solid blocks processing
@@ -119,6 +122,7 @@ class Node():
             + (" (parent = (" + str(self.parent.position.X) + "," + str(self.parent.position.Y) + "))" if self.parent else "")
             + (" PUSH !" if self.pushBoulder else "")
             + (" SURF !" if self.isSurfing else "")
+            + (" ON A SLOPE !" + (" (destination = " + str(self.bikeSlopeDestination) + ")" if self.bikeSlopeDestination else "") if self.onABikeSlope else "")
             + "\n")
 
     def __repr__(self):
@@ -140,18 +144,17 @@ def updateMapWithPushedBoulders(zoneMap, boulderPosition, playerPosition):
         zoneMap[boulderPosition.Y + yDiff] = zoneMap[boulderPosition.Y + yDiff][:boulderPosition.X] + "b" + zoneMap[boulderPosition.Y + yDiff][boulderPosition.X+1:]
 
 
-def getMapAtCurrentState(processedNodes):
+def getMapAtCurrentState(processedNodes, originalMap):
+
+    # Keep track of boulders and obstacles for the input process
+    pushedBoulder = False
+    destroyedObstacles = []
+
+    # Create a copy of the original map that we can updatz
+    updatedMap = originalMap[:]
 
     # Check every already processed node for pushed boulders
     if (len(processedNodes) > 0):
-
-        # Retrieve original map from starting position
-        originalMap = processedNodes[0].position.zone.map
-        updatedMap = originalMap[:]
-
-        # Keep track of boulders and obstacles for the input process
-        pushedBoulder = False
-        destroyedObstacles = []
 
         # If a boulder has been pushed, update the map accordingly
         for node in processedNodes:
@@ -162,7 +165,7 @@ def getMapAtCurrentState(processedNodes):
             if (node.cellType in ["r","t"]):
                 destroyedObstacles.append(node.position)
 
-        return updatedMap, pushedBoulder, destroyedObstacles
+    return updatedMap, pushedBoulder, destroyedObstacles
 
 def areThreeSideCellsFree(zoneMap, currentPosition, orientation):
 
@@ -196,6 +199,23 @@ def getRockClimbEndPosition(zoneMap, playerPosition, orientation):
     # No position has been found after 10 cells, not theoretically possible
     return playerPosition
 
+def findSlopeDestinationCell(slopePosition):
+    # Check for the furthest free cell up the slope 
+    if (slopePosition.zone.map[slopePosition.Y - 3][slopePosition.X] == "X"):
+        return Position(slopePosition.X, slopePosition.Y - 2, slopePosition.zone)
+    elif (slopePosition.zone.map[slopePosition.Y - 4][slopePosition.X] == "X"):
+        return Position(slopePosition.X, slopePosition.Y - 3, slopePosition.zone)
+    else:
+        return Position(slopePosition.X, slopePosition.Y - 4, slopePosition.zone)
+
+def findSlopeMomentumCell(slopePosition):
+    zoneMap = slopePosition.zone.map
+
+    # Search for a close free cell to gain momentum in order to go up the slope
+    for orientation in [(1,0),(0,-1),(0,1)]: # Down, Left, Right
+        if (zoneMap[slopePosition.Y + 1 + orientation[0]][slopePosition.X + orientation[1]] in ["O","G","B"]):
+            return Position(slopePosition.X + orientation[1], slopePosition.Y + 1 + orientation[0], slopePosition.zone)
+
 def sortBoulders(boulderList, endPosition):
 
     # Calculate boulder distance to endPosition
@@ -215,7 +235,7 @@ def sortBoulders(boulderList, endPosition):
 
 def getMostEfficientPath(start: Position, end: Position, zoneMap):
 
-    print("Get most effective path from " + str(start) + " to " + str(end))
+    print("Get most effective path from " + str(start) + " to " + str(end) + " (" + zoneMap[end.Y][end.X] + ")")
 
     # Boulders might block the way, we'll track them and process them if needed
     possiblePath, blockingBoulders = astar(start, end, zoneMap)
@@ -359,7 +379,32 @@ def astar(start: Position, end: Position, zoneMap):
 
             # Retrace back the complete path
             while current is not None:
-                path.append(current)
+
+                # Add nodes following a specific path for bike slopes
+                if (current.bikeSlopeDestination and current.bikeSlopeDestination == path[-1].position):
+                    slopePath = []
+                    slopePath.append(current)
+                    slopePath.append(Node(current.bikeSlopeMomentumCell, zoneMap, slopePath[-1])) # Momentum Cell
+                    slopePath.append(Node(current.position, zoneMap, slopePath[-1])) # Cell in front of the slope
+                    
+                    slopeDestinationId = 1
+
+                    # Add nodes until we're at the top
+                    while (path[-1].position.Y < current.position.Y - slopeDestinationId):
+                        slopePath.append(Node(Position(current.position.X, current.position.Y - slopeDestinationId, current.position.zone), zoneMap, slopePath[-1]))
+                        slopeDestinationId += 1
+
+                    for node in slopePath:
+                        node.onABikeSlope = True
+
+                    path[-1].onABikeSlope = True
+                    path[-1].parent = slopePath[-1]
+                    path.extend(slopePath[::-1])
+
+                # Regular node processing
+                else:
+                    path.append(current)
+                
                 current = current.parent
 
             # Return reversed path
@@ -411,6 +456,14 @@ def astar(start: Position, end: Position, zoneMap):
             # Don't go up if a sign is just above since it triggers a dialogue
             if (topCellValue == "s" and new_position["orientation"] == (-1, 0)):
                 continue
+            
+            # Go up the slope, teleport up to three cells after the slope
+            if (nextCellValue == "V" and new_position["orientation"] == (-1, 0)):
+
+                # Search for specific cells needed to go up the slope
+                current_node.bikeSlopeDestination = findSlopeDestinationCell(node_position)
+                current_node.bikeSlopeMomentumCell = findSlopeMomentumCell(node_position)
+                node_position = current_node.bikeSlopeDestination
 
             # Rock Climb : teleport to position after climbing
             if (current_node.cellType == "C" and nextCellValue == "C"):
@@ -442,7 +495,7 @@ def astar(start: Position, end: Position, zoneMap):
             if (canUseBike):
                 cellCost += (2 if child.cellType in ["W","S","1","2","3","4","g"] else 0)
 
-            # Create the f, g, and h values
+            # Create the f, g, and h values (see A* algorith processing for more details)
             child.g = current_node.g + cellCost
             child.h = abs(child.position.Y - end_node.position.Y) + abs(child.position.X - end_node.position.X) # Manhattan distance
             child.f = child.g + child.h
@@ -468,12 +521,16 @@ def writePathInputsFromCurrentState(nodeList, breakNodeId):
     playerData = player.getPlayerData()
     print("Wrong path ! Start again from " + str(playerData.position))
 
+    # If we need a new path while on a bike slope, start the go-up-the-slope sequence again
+    while (breakNodeId >= 0 and nodeList[breakNodeId].onABikeSlope):
+        breakNodeId -= 1
+
     # Split the original nodeList into processed and remaining nodes
     processedNodes = nodeList[:breakNodeId]
     remainingNodes = nodeList[breakNodeId:]
 
     # Update the map to take into account the pushed boulder and destroyed obstacles
-    updatedMap, strengthUsed, destroyedObstacles = getMapAtCurrentState(processedNodes)
+    updatedMap, strengthUsed, destroyedObstacles = getMapAtCurrentState(processedNodes, nodeList[0].position.zone.map)
 
     # Go from player position to first node of the remaining nodes
     firstNode = remainingNodes.pop(0)

@@ -46,6 +46,7 @@ def writePathfindingInput(nodeList, playerDirection, strengthUsed = False, destr
         bikeSpeed = playerData.bikeSpeed
 
         frameByFrameInputSequence = ""
+        skipTwoNodes = False
         skipNode = False
 
         while (nodeId < len(nodeList)):
@@ -74,7 +75,8 @@ def writePathfindingInput(nodeList, playerDirection, strengthUsed = False, destr
                     isOnBike = True
                     
                 stopped = False # Start moving
-                frameByFrameInputSequence += getStartingAnimationInputs(inputButton, playerDirection, isOnBike, bikeSpeed)
+                frameByFrameInputSequence += getStartingAnimationInputs(inputButton, playerDirection, isOnBike, bikeSpeed) # Start moving lag
+                bikeSpeed = player.LOW_BIKESPEED
 
             # Already moving
             else:
@@ -105,7 +107,7 @@ def writePathfindingInput(nodeList, playerDirection, strengthUsed = False, destr
                     frameByFrameInputSequence += getHmInputs(SURF, inputButton)
                     isOnBike = False
 
-                    # Start moving again
+                    # Prepare to start moving again
                     playerDirection = inputButton
                     stopped = True
 
@@ -144,7 +146,7 @@ def writePathfindingInput(nodeList, playerDirection, strengthUsed = False, destr
                     # Skip next node since we already reached it
                     skipNode = True
 
-                    # Start moving again
+                    # Prepare to start moving again
                     playerDirection = inputButton
                     stopped = True
 
@@ -165,7 +167,7 @@ def writePathfindingInput(nodeList, playerDirection, strengthUsed = False, destr
                     # Skip next node since we already reached it
                     skipNode = True
 
-                    # Start moving again
+                    # Prepare to start moving again
                     playerDirection = inputButton
                     stopped = True
 
@@ -174,7 +176,7 @@ def writePathfindingInput(nodeList, playerDirection, strengthUsed = False, destr
                     frameByFrameInputSequence += (10 * inputButton # Jump on the shore animation
                                                  + 20 * "@")       # Release direction mid-animation to completely stop
                     
-                    # Start moving again
+                    # Prepare to start moving again
                     playerDirection = inputButton
                     stopped = True
                 
@@ -194,8 +196,73 @@ def writePathfindingInput(nodeList, playerDirection, strengthUsed = False, destr
                     
                     # Start moving again to reach actual cell position
                     isOnBike = True
-                    frameByFrameInputSequence += getStartingAnimationInputs(inputButton, inputButton, isOnBike, bikeSpeed)
+                    frameByFrameInputSequence += getStartingAnimationInputs(inputButton, inputButton)
 
+                # Going up a slope : need to increase the bike speed
+                elif (node.onABikeSlope):
+
+                    # Very first slope node, prepare variables and start input sequence
+                    if (node.bikeSlopeDestination):
+                        slopeCounter = -2
+                        endSlope = node.position.Y - node.bikeSlopeDestination.Y
+                        playerDirection = inputButton
+                        frameByFrameInputSequence += (inputButton * getFramesToProgressCell(isOnBike) # Move as usual
+                                                      + 10 * "@" # Make sure we stopped
+                                                      + 2 * "B") # Increase bike speed (Check speed beforehand)
+
+                    # Go to momentum cell
+                    elif (slopeCounter == -1):
+                        frameByFrameInputSequence += getStartingAnimationInputs(inputButton, playerDirection)
+
+                    # Go back the other way with high-speed bike slow start animation time (12 frames)
+                    elif (slopeCounter == 0):
+                        frameByFrameInputSequence += 12 * inputButton
+
+                    # Start going up the slope while accelerating with the high-speed bike (8 frames)
+                    elif (slopeCounter == 1):
+                        frameByFrameInputSequence += 8 * inputButton
+
+                    # Going up the slope, almost at max speed with the high-speed bike (6 frames)
+                    elif (slopeCounter == 2):
+                        frameByFrameInputSequence += 6 * inputButton
+
+                    # Almost at the top of the slope, push just a bit harder at max speed with the high-speed bike
+                    elif (slopeCounter >= 3):
+
+                        if (slopeCounter == 3):
+                            frameByFrameInputSequence += (2 * inputButton
+                                                        + 6 * "@") # Start slowing down
+                        elif (slopeCounter == 4):
+                            frameByFrameInputSequence += 6 * "@"
+
+                        elif (slopeCounter == 5):
+                            frameByFrameInputSequence += 10 * "@"
+
+                        # Reached the end of the slope
+                        if (endSlope == slopeCounter):
+                            frameByFrameInputSequence += 6 * "@" # Make sure we stopped
+                        
+                            # Prepare to start moving again, but lower bike speed when we actually start again
+                            bikeSpeed = player.HIGH_BIKESPEED
+                            playerDirection = "u"
+                            stopped = True
+
+                    slopeCounter += 1
+
+                # About to go down a bike slope
+                elif (node.cellType == "V"):
+
+                    # Going down : just release button and slide down
+                    frameByFrameInputSequence += (inputButton * getFramesToProgressCell(isOnBike) # Slide down
+                                                + 16 * "@")                                       # Let it slide
+                    
+                    # The slope is two cells long, we skip the whole slope and directly teleport down
+                    skipTwoNodes = True
+
+                    # Prepare to start moving again
+                    playerDirection = inputButton
+                    stopped = True
+ 
                 # Regular cell
                 else:
                     frameByFrameInputSequence += inputButton * getFramesToProgressCell(isOnBike) # Move as usual
@@ -204,6 +271,10 @@ def writePathfindingInput(nodeList, playerDirection, strengthUsed = False, destr
                 previousNode = nodeList[nodeId + 1]
                 nodeId += 2
                 skipNode = False
+            elif (skipTwoNodes):
+                previousNode = nodeList[nodeId + 2]
+                nodeId += 3
+                skipTwoNodes = False
             else:
                 previousNode = node
                 nodeId += 1
@@ -213,6 +284,7 @@ def writePathfindingInput(nodeList, playerDirection, strengthUsed = False, destr
         # Set run flag to true and write input sequence
         memory.setMemoryFlag(runFlag = False)
         memory.writeMemoryData("joypad", frameByFrameInputSequence)
+
 
 def canBikeOnCell(cellType):
     return cellType not in ["W","w","S","1","2","3","4","g"]
