@@ -55,6 +55,9 @@ class Position:
             self.zone = None
             print("Unknown zone :", end = " ")
 
+    def getCell(self):
+        return self.zone.map[self.Y][self.X]
+
     def setDistanceTo(self, position):
         self.distance = abs(self.X - position.X) + abs(self.Y - position.Y)
 

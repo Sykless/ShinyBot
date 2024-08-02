@@ -521,7 +521,7 @@ def writePathInputsFromCurrentState(nodeList, breakNodeId):
     playerData = player.getPlayerData()
 
     # If on a bike slope, just wait, we'll slide down eventually
-    while (playerData.position.zone.map[playerData.position.Y][playerData.position.X] == "V"):
+    while (playerData.position.getCell() == "V"):
         waitFrames(1)
         playerData = player.getPlayerData()
 
