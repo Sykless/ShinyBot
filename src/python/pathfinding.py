@@ -86,10 +86,14 @@ class Node():
         self.f = 0
 
         self.pushBoulder = False
+        self.isSurfing = self.cellType in ["W","w","d"]
+        
         self.onABikeSlope = False
         self.bikeSlopeDestination = None
         self.bikeSlopeMomentumCell = None
-        self.isSurfing = self.cellType in ["W","w","d"]
+
+        self.onABikeRamp = False
+        self.bikeRampDestination = None
 
         ### Special process for bridges since two cells share the same position, see solid blocks processing ###
         # We avoid starting on a bridge, so on starting node we consider we're below (except on a @ cell which is impossible)
@@ -130,6 +134,7 @@ class Node():
             + (" PUSH !" if self.pushBoulder else "")
             + (" SURF !" if self.isSurfing else "")
             + (" ON A SLOPE !" + (" (destination = " + str(self.bikeSlopeDestination) + ")" if self.bikeSlopeDestination else "") if self.onABikeSlope else "")
+            + (" ON A RAMP !" + (" (destination = " + str(self.bikeRampDestination) + ")" if self.bikeRampDestination else "") if self.onABikeRamp else "")
             + "\n")
 
     def __repr__(self):
@@ -174,20 +179,6 @@ def getMapAtCurrentState(processedNodes, originalMap):
 
     return updatedMap, pushedBoulder, destroyedObstacles
 
-def areThreeSideCellsFree(zoneMap, currentPosition, orientation):
-
-    # Can only jump bike ramps if facing left or right
-    if (orientation[0] == 0):
-        # Can only jump bike ramps if we have free side cells to accelerate
-        if (orientation[1] == 1):
-            return zoneMap[currentPosition.Y][currentPosition.X-2:currentPosition.X+1] == "OOO"
-        elif (orientation[1] == -1):
-            return zoneMap[currentPosition.Y][currentPosition.X:currentPosition.X+3] == "OOO"
-        else:
-            return False
-    else:
-        return False
-
 def isBoulderPushable(zoneMap, playerPosition, boulderPosition, orientation, blockingBoulders):
 
     # Boulder is pushable if the cell after that is an empty one, and the boulder hasn't already been processed
@@ -222,6 +213,62 @@ def findSlopeMomentumCell(slopePosition):
     for orientation in [(1,0),(0,-1),(0,1)]: # Down, Left, Right
         if (zoneMap[slopePosition.Y + 1 + orientation[0]][slopePosition.X + orientation[1]] in ["O","G","B"]):
             return Position(slopePosition.X + orientation[1], slopePosition.Y + 1 + orientation[0], slopePosition.zone)
+
+def generateSlopeNodePath(slopeNode, destinationNode, zoneMap):
+        
+    slopePath = []
+    slopePath.append(slopeNode)
+    slopePath.append(Node(slopeNode.bikeSlopeMomentumCell, zoneMap, slopePath[-1])) # Momentum Cell
+    slopePath.append(Node(slopeNode.position, zoneMap, slopePath[-1])) # Cell in front of the slope
+    
+    slopeDestinationId = 1
+
+    # Add nodes until we're at the top
+    while (destinationNode.position.Y < slopeNode.position.Y - slopeDestinationId):
+        slopePath.append(Node(Position(slopeNode.position.X, slopeNode.position.Y - slopeDestinationId, slopeNode.position.zone), zoneMap, slopePath[-1]))
+        slopeDestinationId += 1
+
+    for node in slopePath:
+        node.onABikeSlope = True
+
+    destinationNode.onABikeSlope = True
+    destinationNode.parent = slopePath[-1]
+
+    return slopePath[::-1]
+
+def areThreeRampCellsFree(zoneMap, currentPosition, orientation):
+
+    # Can only jump bike ramps if facing left or right
+    if (orientation[0] == 0):
+        # Can only jump bike ramps if we have free side cells to accelerate
+        if (orientation[1] == 1):
+            return zoneMap[currentPosition.Y][currentPosition.X-2:currentPosition.X+1] == "OOO"
+        elif (orientation[1] == -1):
+            return zoneMap[currentPosition.Y][currentPosition.X:currentPosition.X+3] == "OOO"
+        else:
+            return False
+    else:
+        return False
+
+def generateRampNodePath(rampNode, destinationNode, zoneMap):
+        
+    rampOrientation = -1 if destinationNode.position.X < rampNode.position.X else 1
+
+    rampPath = []
+    rampPath.append(rampNode) # Start on Ramp cell
+    rampPath.append(Node(Position(rampNode.position.X - rampOrientation, rampNode.position.Y, rampNode.position.zone), zoneMap, rampPath[-1])) # Go to Momentum Cell
+
+    # Add nodes until we're at the destination cell
+    for i in range(-2,6):
+        rampPath.append(Node(Position(rampNode.position.X + i * rampOrientation, rampNode.position.Y, rampNode.position.zone), zoneMap, rampPath[-1]))
+
+    for node in rampPath:
+        node.onABikeRamp = True
+
+    destinationNode.onABikeRamp = True
+    destinationNode.parent = rampPath[-1]
+
+    return rampPath[::-1]
 
 def sortBoulders(boulderList, endPosition):
 
@@ -392,26 +439,12 @@ def astar(start: Position, end: Position, zoneMap, isBelow = None):
             # Retrace back the complete path
             while current is not None:
 
-                # Add nodes following a specific path for bike slopes
+                # Add nodes following a specific path for bike slopes or ramps
                 if (current.bikeSlopeDestination and current.bikeSlopeDestination == path[-1].position):
-                    slopePath = []
-                    slopePath.append(current)
-                    slopePath.append(Node(current.bikeSlopeMomentumCell, zoneMap, slopePath[-1])) # Momentum Cell
-                    slopePath.append(Node(current.position, zoneMap, slopePath[-1])) # Cell in front of the slope
-                    
-                    slopeDestinationId = 1
+                    path.extend(generateSlopeNodePath(current, path[-1], zoneMap))
 
-                    # Add nodes until we're at the top
-                    while (path[-1].position.Y < current.position.Y - slopeDestinationId):
-                        slopePath.append(Node(Position(current.position.X, current.position.Y - slopeDestinationId, current.position.zone), zoneMap, slopePath[-1]))
-                        slopeDestinationId += 1
-
-                    for node in slopePath:
-                        node.onABikeSlope = True
-
-                    path[-1].onABikeSlope = True
-                    path[-1].parent = slopePath[-1]
-                    path.extend(slopePath[::-1])
+                elif (current.bikeRampDestination and current.bikeRampDestination == path[-1].position):
+                    path.extend(generateRampNodePath(current, path[-1], zoneMap))
 
                 # Regular node processing
                 else:
@@ -440,13 +473,16 @@ def astar(start: Position, end: Position, zoneMap, isBelow = None):
                 if (nextCellValue == "b" and isBoulderPushable(zoneMap,current_node.position,node_position,new_position["orientation"],blockingBoulders)):
                     blockingBoulders.append((current_node.position, node_position))
 
-                # If the solid block is a bike ramp, we might be able to jump 3 cells left or right if we find 3 cells to accelerate
-                if (nextCellValue == "v" and areThreeSideCellsFree(zoneMap, current_node.position, new_position["orientation"])):
-                    node_position = Position(current_node.position.X + 4*new_position["orientation"][1],
+                # If the solid block is a bike ramp, we might be able to jump 4 cells left or right if we find 3 cells to accelerate
+                elif (nextCellValue == "v" and areThreeRampCellsFree(zoneMap, current_node.position, new_position["orientation"])):
+                    node_position = Position(current_node.position.X + 6*new_position["orientation"][1],
                                             current_node.position.Y, 
                                             current_node.position.zone)
+                    current_node.bikeRampDestination = node_position
                     nextCellValue = zoneMap[node_position.Y][node_position.X]
                     topCellValue = zoneMap[node_position.Y - 1][node_position.X]
+
+                # Default : don't take the node
                 else:
                     continue
 
