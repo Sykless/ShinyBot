@@ -91,9 +91,15 @@ class Node():
         self.bikeSlopeMomentumCell = None
         self.isSurfing = self.cellType in ["W","w","d"]
 
-        # Special process for bridges since two cells share the same position, see solid blocks processing
-        if (parent and parent.isBelow):
-            # If you were below a bridge, you're leaving when not on Above or Below cell
+        ### Special process for bridges since two cells share the same position, see solid blocks processing ###
+        # We avoid starting on a bridge, so on starting node we consider we're below (except on a @ cell which is impossible)
+        if (not parent):
+            self.isBelow = self.cellType in  ["B","d","A","a"] 
+            self.isAbove = self.cellType in  ["@"]
+
+        # If you were below a bridge, you're leaving when not on Above or Below cell
+        elif (parent.isBelow):
+            
             self.isBelow = self.cellType in ["A","a","@","B","d"]
             self.isAbove = False
 
@@ -104,8 +110,9 @@ class Node():
                 self.isSurfing = False
             else:
                 self.isSurfing = parent.isSurfing
+        
+        # If you were not, above/below condition just depends on current cell value
         else:
-            # If you were not, above/below condition just depends on current cell value
             self.isBelow = self.cellType in ["B","d"]
             self.isAbove = self.cellType in ["A","a","@"]
 
@@ -233,12 +240,12 @@ def sortBoulders(boulderList, endPosition):
 
     return sortedList
 
-def getMostEfficientPath(start: Position, end: Position, zoneMap):
+def getMostEfficientPath(start: Position, end: Position, zoneMap, isBelow = None):
 
     print("Get most effective path from " + str(start) + " to " + str(end) + " (" + zoneMap[end.Y][end.X] + ")")
 
     # Boulders might block the way, we'll track them and process them if needed
-    possiblePath, blockingBoulders = astar(start, end, zoneMap)
+    possiblePath, blockingBoulders = astar(start, end, zoneMap, isBelow)
 
     # No path found, checking for boulders
     if (not possiblePath and len(blockingBoulders) > 0):
@@ -337,7 +344,7 @@ def getMostEfficientPath(start: Position, end: Position, zoneMap):
         return possiblePath
 
 # Use A* algorithm to find most efficient path
-def astar(start: Position, end: Position, zoneMap):
+def astar(start: Position, end: Position, zoneMap, isBelow = None):
 
     # Boulders might block the way, we'll track them and process them if needed
     blockingBoulders = []
@@ -349,6 +356,11 @@ def astar(start: Position, end: Position, zoneMap):
     # Create start and end node
     start_node = Node(start, zoneMap)
     end_node = Node(end, zoneMap)
+
+    # If provided, add isBelow and isAbove status (help to differentiate if starting on a a/A cell) 
+    if (isBelow is not None):
+        start_node.isBelow = isBelow
+        start_node.isAbove = not isBelow
 
     # Initialize both open and closed list
     open_list = []
@@ -525,6 +537,12 @@ def writePathInputsFromCurrentState(nodeList, breakNodeId):
         waitFrames(1)
         playerData = player.getPlayerData()
 
+    # a/A cells are either above or below a bridge, check the first remaining node to differentiate
+    if (playerData.position.getCell() in ["a","A"]):
+        isBelow = nodeList[breakNodeId].isBelow
+    else:
+        isBelow = None
+
     print("Wrong path ! Start again from " + str(playerData.position))
 
     # If we need a new path while on a bike slope, start the go-up-the-slope sequence again
@@ -540,7 +558,7 @@ def writePathInputsFromCurrentState(nodeList, breakNodeId):
 
     # Go from player position to first node of the remaining nodes
     firstNode = remainingNodes.pop(0)
-    nodeList = getMostEfficientPath(playerData.position, firstNode.position, updatedMap)
+    nodeList = getMostEfficientPath(playerData.position, firstNode.position, updatedMap, isBelow)
     nodeList.extend(remainingNodes)
     print(nodeList)
 
