@@ -519,6 +519,12 @@ def writePathInputsFromCurrentState(nodeList, breakNodeId):
 
     # Get final position after player stopped moving
     playerData = player.getPlayerData()
+
+    # If on a bike slope, just wait, we'll slide down eventually
+    while (playerData.position.zone.map[playerData.position.Y][playerData.position.X] == "V"):
+        waitFrames(1)
+        playerData = player.getPlayerData()
+
     print("Wrong path ! Start again from " + str(playerData.position))
 
     # If we need a new path while on a bike slope, start the go-up-the-slope sequence again
