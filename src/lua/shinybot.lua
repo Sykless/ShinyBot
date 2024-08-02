@@ -40,6 +40,7 @@ comm.mmfWrite("wildPokemonData", string.rep("\x00", 20480))
 comm.mmfWrite("bagData", string.rep("\x00", 20480))
 comm.mmfWrite("gameData", string.rep("\x00", 20480))
 comm.mmfWrite("playerData", string.rep("\x00", 20480))
+comm.mmfWrite("runSections", string.rep("\x00", 20480))
 comm.mmfWrite("flagsData", "0" .. string.rep("\x00", 20480))
 
 -- Set screenshot memory file name
