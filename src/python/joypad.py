@@ -87,6 +87,11 @@ def writePathfindingInput(nodeList, playerDirection, strengthUsed = False, destr
             elif (diffX < 0):
                 inputButton = "l"
 
+            # Not on bike and should be : press Y to use bike
+            if (canBike(previousNode) and not isOnBike):
+                frameByFrameInputSequence += 5 * "Y" + 10 * "@"
+                isOnBike = True
+
             # Ledge
             if (node.cellType in ["L","R","D","U"]):
                 frameByFrameInputSequence += (getInputsToProgressCell(isOnBike, previousNode.cellType, stopped, inputButton, playerDirection) # Start moving lag
@@ -152,7 +157,7 @@ def writePathfindingInput(nodeList, playerDirection, strengthUsed = False, destr
 
                 # Going down : just need to go down and wait for the animation to end
                 else:
-                    frameByFrameInputSequence += 8 * inputButton + WATERFALL["animation"] * "@"
+                    frameByFrameInputSequence += INPUTTIME["run"] * inputButton + WATERFALL["animation"] * "@"
 
                 skipNode = True # Skip next node since we already reached it
                 stopped = True # Prepare to start moving again
@@ -269,11 +274,6 @@ def writePathfindingInput(nodeList, playerDirection, strengthUsed = False, destr
 
             # Regular cell
             else:
-                # Not on bike and should be : press Y to use bike
-                if (canBike(previousNode) and not isOnBike):
-                    frameByFrameInputSequence += 5 * "Y" + 10 * "@"
-                    isOnBike = True
-
                 frameByFrameInputSequence += getInputsToProgressCell(isOnBike, previousNode.cellType, stopped, inputButton, playerDirection)
                 stopped = False # Start moving
 
