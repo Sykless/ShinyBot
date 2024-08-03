@@ -63,6 +63,9 @@ def writePathfindingInput(nodeList, playerDirection, strengthUsed = False, destr
         if (isOnBike and playerData.bikeSpeed == player.HIGH_BIKESPEED):
             frameByFrameInputSequence += "BB"
 
+        runSectionStart = -1 if isOnBike else 0
+        runSections = ""
+
         # Start the path
         while (nodeId < len(nodeList)):
             node = nodeList[nodeId]
@@ -175,26 +178,6 @@ def writePathfindingInput(nodeList, playerDirection, strengthUsed = False, destr
                 
                 # Prepare to start moving again
                 stopped = True
-            
-            ### Non-working methods as is ###
-            # # Non-Bike-cell when previously on bike
-            # elif (isOnBike and not canBike(node)):
-            #     frameByFrameInputSequence += (15 * "@"            # Release direction because bonk
-            #                                 + 5 * "Y" + 10 * "@") # Get off from bike
-                
-            #     # Start moving again to reach actual cell position
-            #     isOnBike = False
-            #     stopped = False
-            #     frameByFrameInputSequence += getStartingAnimationInputs(inputButton, inputButton)
-            # # Bike-cell when previously not on bike
-            # elif (not isOnBike and canBike(node)):
-            #     frameByFrameInputSequence += (15 * "@"            # Release direction to stop running
-            #                                 + 5 * "Y" + 10 * "@") # Get on the bike
-                
-            #     # Start moving again to reach actual cell position
-            #     isOnBike = True
-            #     stopped = False
-            #     frameByFrameInputSequence += getStartingAnimationInputs(inputButton, inputButton)
 
             # Going up a slope/ramp : need to increase bike speed and follow specific nodes
             elif (node.onABikeSlope or node.onABikeRamp):
@@ -252,6 +235,35 @@ def writePathfindingInput(nodeList, playerDirection, strengthUsed = False, destr
                 # Prepare to start moving again
                 stopped = True
 
+            # Non-Bike-cell when previously on bike
+            elif (isOnBike and not canBike(node)):
+
+                # Stop biking before reaching the cell, then start running
+                frameByFrameInputSequence += (12 * "@"            # Release direction to stop moving
+                                            + 5 * "Y" + 10 * "@") # Get off the bike
+                runSectionStart = len(frameByFrameInputSequence)
+                
+                # Start moving again to reach actual cell position
+                isOnBike = False
+                stopped = False
+                frameByFrameInputSequence += getStartingAnimationInputs(inputButton, inputButton)
+
+            # Bike-cell when previously not on bike
+            elif (not isOnBike and canBike(node)):
+
+                # Reach the bike cell
+                frameByFrameInputSequence += getFramesToProgressCell(isOnBike, stopped, inputButton, playerDirection)
+
+                # Stop running and use bike
+                runSections += ("/" if runSections else "") + str(runSectionStart) + "-" + str(len(frameByFrameInputSequence))
+                runSectionStart = -1
+                frameByFrameInputSequence += (12 * "@"            # Release direction to stop running
+                                            + 5 * "Y" + 10 * "@") # Get on the bike
+                
+                # Start moving again to reach actual cell position
+                isOnBike = True
+                stopped = True
+
             # Regular cell
             else:
                 # Not on bike and should be : press Y to use bike
@@ -279,8 +291,12 @@ def writePathfindingInput(nodeList, playerDirection, strengthUsed = False, destr
 
         print(frameByFrameInputSequence)
 
+        if (runSectionStart != -1):
+            runSections += ("/" if runSections else "") + str(runSectionStart) + "-" + str(len(frameByFrameInputSequence))
+
         # Write input sequence
         memory.writeMemoryData("joypad", frameByFrameInputSequence)
+        writeRunSections(runSections)
 
 
 def canBikeOnCell(cellType):

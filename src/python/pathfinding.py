@@ -32,7 +32,7 @@ CELL_COST = {
     "4": 5, # 4-depth snow
     "V": 1, # Bike slope
     "G": 3, # Grass
-    "g": 5, # Tall grass
+    "g": 3, # Tall grass
     "E": 5, # Elevator
     "e": 5, # Elevator door
 
@@ -539,9 +539,12 @@ def astar(start: Position, end: Position, zoneMap, isBelow = None):
             if (repelActive):
                 cellCost -= (2 if child.cellType in ["W","G","g"] else 0)
 
-            # If on bike, increase non-bike cells cost
+            # If biking is possible, increase non-bike cells cost when on a bike cell, and vice-versa
             if (canUseBike):
-                cellCost += (2 if child.cellType in ["W","S","1","2","3","4","g"] else 0)
+                if (child.parent.cellType in ["W","S","1","2","3","4","g"]):
+                    cellCost += (2 if child.cellType in ["O","G"] else 0)
+                else:
+                    cellCost += (2 if child.cellType in ["W","S","1","2","3","4","g"] else 0)
 
             # Create the f, g, and h values (see A* algorith processing for more details)
             child.g = current_node.g + cellCost
@@ -562,7 +565,7 @@ def astar(start: Position, end: Position, zoneMap, isBelow = None):
 def writePathInputsFromCurrentState(nodeList, breakNodeId):
 
     # Make sure player is not moving anymore
-    memory.clearMemoryData("joypad") # Clear input
+    memory.clearJoypadInputs() # Clear input
     waitFrames(15) # Wait 15 frames (time needed to completely stop on speed bike)
 
     # Get final position after player stopped moving
@@ -652,18 +655,18 @@ def goToLocation(location: Position):
         # Non-0 PID : we're in a battle - stop pathfinding and let main script take over
         if (memory.readWildPokemonData().get("pid",0) != 0):
             print("Encountered wild Pokémon")
-            memory.clearMemoryData("joypad") # Clear input
+            memory.clearJoypadInputs() # Clear input
             break
 
         # Repel no longer active, stop moving and use another one
         elif (isRepelActive and gameData.repelSteps == 0):
-            memory.clearMemoryData("joypad") # Clear input
+            memory.clearJoypadInputs() # Clear input
             joypad.writeInput("@@@@A") # Wait for the dialogue to be displayed and skip it
             action.useRepel() # Use Repel and go back to overworld
 
         # Reached the end or went to another zone, clear all inputs and go back to main loop
         elif (playerPosition == path[-1].position or playerPosition.zone.zoneId != path[-1].position.zone.zoneId):
-            memory.clearMemoryData("joypad") # Clear input
+            memory.clearJoypadInputs() # Clear input
             break
 
         # Check character progression through the path

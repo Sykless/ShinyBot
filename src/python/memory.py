@@ -25,6 +25,10 @@ def readJoypadData():
 def readRunSectionsData():
     return readMemoryData("runSections")
 
+def clearJoypadInputs():
+    clearMemoryData("joypad")
+    clearMemoryData("runSections")
+
 def clearMemoryData(memoryfileName):
     writeMemoryData(memoryfileName, "\x00" * 20480)
 
