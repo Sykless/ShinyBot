@@ -689,6 +689,7 @@ ZONEIDLIST = {
     172: "Ligue Pokémon - Extérieur",
     188: "Aire de Combat",
     200: "Les Eoliennes",
+    202: "Forêt Vestigion - Extérieur",
     204: "Forge Fuego - Extérieur",
     260: "Ile Pleine Lune",
     262: "Mont Abrupt - Extérieur",
@@ -790,6 +791,7 @@ ZONELIST = {
     191: AIREDECOMBAT_SHOP,
     193: ROUTE225_PASSAGEAIREDECOMBAT,
     200: NORTHWEST, # Les Eoliennes
+    202: NORTHWEST, # Forêt Vestigion - Extérieur
     203: FORETVESTIGION,
     204: NORTHWEST, # Forge Fuego - Extérieur
     207: MONTCOURONNE_PASSAGECHARBOURG,
