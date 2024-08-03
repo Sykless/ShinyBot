@@ -9,10 +9,13 @@ SURF = {"dialogue": 70, "useDialogue": 30, "animation": 30}
 WATERFALL = {"dialogue": 70, "useDialogue": 35, "animation": 215}
 
 # Frames needed to move 1 cell
-# Bike Speed   : 12 -> 8  -> 6  -> 4  -> 4
-# Bike Regular : 6  -> 6  -> 6  -> 6  -> 6
-# Run          : 8  -> 8  -> 8  -> 8  -> 8
-# Walk         : 16 -> 16 -> 16 -> 16 -> 16
+INPUTTIME = {
+    "bike" : 6,
+    "run" : 8,
+    "walk" : 16,
+    "snow" : 32,
+    "deepsnow" : 64,
+}
 
 def writeRawInput(inputSequence):
     print(inputSequence)
@@ -86,7 +89,7 @@ def writePathfindingInput(nodeList, playerDirection, strengthUsed = False, destr
 
             # Ledge
             if (node.cellType in ["L","R","D","U"]):
-                frameByFrameInputSequence += (getStartingAnimationInputs(inputButton, playerDirection) # Start moving lag
+                frameByFrameInputSequence += (getInputsToProgressCell(isOnBike, previousNode.cellType, stopped, inputButton, playerDirection) # Start moving lag
                                             + 26 * inputButton) # Ledge jump animation
                 stopped = False # Start moving
                 skipNode = True # Takes two cells to jump so we can skip the second one
@@ -96,14 +99,14 @@ def writePathfindingInput(nodeList, playerDirection, strengthUsed = False, destr
 
                 # Check if the obstacle has already been destroyed
                 if (node.position in destroyedObstacles):
-                    frameByFrameInputSequence += getFramesToProgressCell(isOnBike, stopped, inputButton, playerDirection) # Move as usual
+                    frameByFrameInputSequence += getInputsToProgressCell(isOnBike, previousNode.cellType, stopped, inputButton, playerDirection) # Move as usual
                     stopped = False # Start moving
                 else:
                     # Apply Rock Smash/Cut inputs to destroy obstacle
                     frameByFrameInputSequence += getHmInputs(ROCKSMASH, inputButton)
 
                     # Start moving again to reach actual cell position
-                    frameByFrameInputSequence += getStartingAnimationInputs(inputButton, inputButton)
+                    frameByFrameInputSequence += getInputsToProgressCell(isOnBike, previousNode.cellType, True, inputButton, inputButton)
                     stopped = False
 
                     # Obstacle is destroyed, we can ignore it if we go through it next time
@@ -127,16 +130,16 @@ def writePathfindingInput(nodeList, playerDirection, strengthUsed = False, destr
                     strengthUsed = True
 
                     # Start moving to push the boulder
-                    frameByFrameInputSequence += getStartingAnimationInputs(inputButton, inputButton)
+                    frameByFrameInputSequence += getInputsToProgressCell(isOnBike, previousNode.cellType, True, inputButton, inputButton)
                 
                 # Don't have to use HM, just push the boulder
                 else:
-                    frameByFrameInputSequence += getFramesToProgressCell(isOnBike, stopped, inputButton, playerDirection) # Move as usual
+                    frameByFrameInputSequence += getInputsToProgressCell(isOnBike, previousNode.cellType, stopped, inputButton, playerDirection) # Move as usual
 
                 frameByFrameInputSequence += 35 * "@"  # Boulder being pushed
 
                 # Start moving again to reach actual cell position
-                frameByFrameInputSequence += getStartingAnimationInputs(inputButton, inputButton)
+                frameByFrameInputSequence += getInputsToProgressCell(isOnBike, previousNode.cellType, stopped, inputButton, inputButton)
                 stopped = False
 
             # Waterfall
@@ -173,7 +176,7 @@ def writePathfindingInput(nodeList, playerDirection, strengthUsed = False, destr
 
             # Land when previously on water
             elif (not node.isSurfing and previousNode.isSurfing):
-                frameByFrameInputSequence += (getStartingAnimationInputs(inputButton, playerDirection) # Start moving lag
+                frameByFrameInputSequence += (getInputsToProgressCell(isOnBike, previousNode.cellType, stopped, inputButton, playerDirection) # Start moving lag
                                               + 20 * "@")       # Release direction mid-animation to completely stop
                 
                 # Prepare to start moving again
@@ -186,7 +189,7 @@ def writePathfindingInput(nodeList, playerDirection, strengthUsed = False, destr
                 if (node.bikeSlopeDestination or node.bikeRampDestination):
                     bikeCellCounter = 0
                     destination = node.bikeSlopeDestination if node.onABikeSlope else node.bikeRampDestination
-                    frameByFrameInputSequence += (getFramesToProgressCell(isOnBike, stopped, inputButton, playerDirection) # Move as usual
+                    frameByFrameInputSequence += (getInputsToProgressCell(isOnBike, previousNode.cellType, stopped, inputButton, playerDirection) # Move as usual
                                                     + 10 * "@" # Make sure we stopped
                                                     + 2 * "B") # Increase bike speed (Check speed beforehand)
                 # Specific case : if starting in front of the slope, start the process right away
@@ -196,7 +199,7 @@ def writePathfindingInput(nodeList, playerDirection, strengthUsed = False, destr
                     frameByFrameInputSequence += 2 * "B" # Increase bike speed (Check speed beforehand)
 
                 # Go to momentum cell to build up speed and go back to slope/ramp with max speed
-                if (bikeCellCounter == 1): frameByFrameInputSequence += getStartingAnimationInputs(inputButton, playerDirection)
+                if (bikeCellCounter == 1): frameByFrameInputSequence += getInputsToProgressCell(isOnBike, previousNode.cellType, True, inputButton, playerDirection)
                 elif (bikeCellCounter == 2): frameByFrameInputSequence += 12 * inputButton
                 elif (bikeCellCounter == 3): frameByFrameInputSequence += 8 * inputButton
                 elif (bikeCellCounter == 4): frameByFrameInputSequence += 6 * inputButton
@@ -226,7 +229,7 @@ def writePathfindingInput(nodeList, playerDirection, strengthUsed = False, destr
             elif (node.cellType == "V"):
 
                 # Going down : just release button and slide down
-                frameByFrameInputSequence += (getFramesToProgressCell(isOnBike, stopped, inputButton, playerDirection) # Slide down
+                frameByFrameInputSequence += (getInputsToProgressCell(isOnBike, previousNode.cellType, stopped, inputButton, playerDirection) # Slide down
                                             + 16 * "@") # Let it slide
                 
                 # The slope is two cells long, we skip the whole slope and directly teleport down
@@ -246,13 +249,13 @@ def writePathfindingInput(nodeList, playerDirection, strengthUsed = False, destr
                 # Start moving again to reach actual cell position
                 isOnBike = False
                 stopped = False
-                frameByFrameInputSequence += getStartingAnimationInputs(inputButton, inputButton)
+                frameByFrameInputSequence += getInputsToProgressCell(isOnBike, previousNode.cellType, stopped, inputButton, inputButton)
 
             # Bike-cell when previously not on bike
             elif (not isOnBike and canBike(node)):
 
                 # Reach the bike cell
-                frameByFrameInputSequence += getFramesToProgressCell(isOnBike, stopped, inputButton, playerDirection)
+                frameByFrameInputSequence += getInputsToProgressCell(isOnBike, previousNode.cellType, stopped, inputButton, playerDirection)
 
                 # Stop running and use bike
                 runSections += ("/" if runSections else "") + str(runSectionStart) + "-" + str(len(frameByFrameInputSequence))
@@ -271,7 +274,7 @@ def writePathfindingInput(nodeList, playerDirection, strengthUsed = False, destr
                     frameByFrameInputSequence += 5 * "Y" + 10 * "@"
                     isOnBike = True
 
-                frameByFrameInputSequence += getFramesToProgressCell(isOnBike, stopped, inputButton, playerDirection)
+                frameByFrameInputSequence += getInputsToProgressCell(isOnBike, previousNode.cellType, stopped, inputButton, playerDirection)
                 stopped = False # Start moving
 
             # New direction is the input we pressed to get there
@@ -305,14 +308,6 @@ def canBikeOnCell(cellType):
 def canBike(node):
     return node.position.zone.canBike and not node.isSurfing and node.cellType not in ["W","w","S","1","2","3","4","g"]
 
-def getFramesToProgressCell(isOnBike, stopped, inputButton, playerDirection):
-
-    # Inputs depends on if we're stopped or not
-    if (stopped):
-        return getStartingAnimationInputs(inputButton, playerDirection) # Start moving lag
-    else:
-        return (6 if isOnBike else 8) * inputButton # 8 frames per input during run/swim animation, 6 on a low-speed bike
-
 def getHmInputs(hm, inputButton):
     return  (8 * inputButton       # Face the tree/rock/water/etc
         + 6 * "@"                  # Turning animation
@@ -342,7 +337,37 @@ def getStrengthInputs(inputButton):
         + 5 * "A"             # Skip dialogue
     )
 
-def getStartingAnimationInputs(inputButton, playerDirection):
+# Inputs are only read every two frames, so you have a 50% chance that the first input frame is not read
+# There's a 3-frame animation lag when you start moving, however with the 50% chance, it might take 4
+#
+# Also, when you press a button during the time needed to move to the next cell, you actually go beyond it
+# You need to stop pressing the input at a certain threshold, or else you'll go too far
+# The threshold is the number of frames per cell - 2
+#
+# With all that in mind, to apply the input needed to start moving, you need to apply input for the longest time possible,
+# But never for too long to not go beyond the wanted cell
+# So the max starting input time = 3 (lowest animation lag) + threshold - 1 (to not cross it)
+#                                = 3 + number of frames to go to a cell - 2 - 1
+#                                = number of frames to go to a cell
+
+def getInputsToProgressCell(isOnBike, cellType, stopped, inputButton, playerDirection):
     return inputButton * (
-        + 6 * (inputButton != playerDirection) # 6 frames to turn around
-        + 6) # 6 frames to start running animation (vary between 3 and 4, take 6 to make sure we don't run late)
+        getInputTime(isOnBike, cellType) # Number of frames depend on the type of cell you're on
+        + 6 * (stopped and inputButton != playerDirection)) # If you're stopped, there's a 6-frame animation to turn around
+
+def getInputTime(isOnBike, cellType):
+    # Low-speed bike
+    if (isOnBike):
+        return INPUTTIME["bike"]
+    
+    # Snow cells
+    elif (cellType == "2"):
+        return INPUTTIME["walk"]
+    elif (cellType == "3"):
+        return INPUTTIME["snow"]
+    elif (cellType == "4"):
+        return INPUTTIME["deepsnow"]
+    
+    # If you're not in a bike nor on a snow cell, you're running (surfing is the same as running)
+    else:
+        return INPUTTIME["run"]

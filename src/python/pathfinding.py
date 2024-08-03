@@ -26,15 +26,15 @@ CELL_COST = {
     "O": 1, # Regular cell
     "Z": 1, # Zone (door, cave entrance)
     "S": 10, # Swamp
-    "1": 2, # 1-depth snow
-    "2": 3, # 2-depth snow
+    "1": 1, # 1-depth snow
+    "2": 2, # 2-depth snow
     "3": 4, # 3-depth snow
-    "4": 5, # 4-depth snow
-    "V": 1, # Bike slope
+    "4": 8, # 4-depth snow
+    "V": 5, # Bike slope
     "G": 3, # Grass
     "g": 3, # Tall grass
-    "E": 5, # Elevator
-    "e": 5, # Elevator door
+    "E": 1, # Elevator
+    "e": 1, # Elevator door
 
     # HM Obstacles
     "t": 5, # Tree
@@ -51,10 +51,10 @@ CELL_COST = {
     "d": 5, # Below bridge on water
 
     # Orientation-depending cells
-    "D": 2, # One-way ledge to go down
-    "L": 2, # One-way ledge to go left
-    "U": 2, # One-way ledge to go up
-    "R": 2, # One-way ledge to go right
+    "D": 3, # One-way ledge to go down
+    "L": 3, # One-way ledge to go left
+    "U": 3, # One-way ledge to go up
+    "R": 3, # One-way ledge to go right
 }
 
 SOLID_BLOCKS = [
@@ -474,7 +474,7 @@ def astar(start: Position, end: Position, zoneMap, isBelow = None):
                     blockingBoulders.append((current_node.position, node_position))
 
                 # If the solid block is a bike ramp, we might be able to jump 4 cells left or right if we find 3 cells to accelerate
-                elif (nextCellValue == "v" and areThreeRampCellsFree(zoneMap, current_node.position, new_position["orientation"])):
+                if (nextCellValue == "v" and areThreeRampCellsFree(zoneMap, current_node.position, new_position["orientation"])):
                     node_position = Position(current_node.position.X + 6*new_position["orientation"][1],
                                             current_node.position.Y, 
                                             current_node.position.zone)
