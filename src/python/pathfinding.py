@@ -237,6 +237,15 @@ def findSlopeMomentumCell(slopePosition):
         if (zoneMap[slopePosition.Y + 1 + orientation[0]][slopePosition.X + orientation[1]] in ["O","G","B"]):
             return Position(slopePosition.X + orientation[1], slopePosition.Y + 1 + orientation[0], slopePosition.zone)
 
+def findRampDestinationCell(rampPosition, orientation):
+    # Check for the furthest free cell after jumping from the ramp
+    if (rampPosition.zone.map[rampPosition.Y][rampPosition.X + 5 * orientation] == "X"):
+        return Position(rampPosition.X + 4 * orientation, rampPosition.Y, rampPosition.zone)
+    elif (rampPosition.zone.map[rampPosition.Y][rampPosition.X + 6 * orientation] == "X"):
+        return Position(rampPosition.X + 5 * orientation, rampPosition.Y, rampPosition.zone)
+    else:
+        return Position(rampPosition.X + 6 * orientation, rampPosition.Y, rampPosition.zone)
+
 def generateSlopeNodePath(slopeNode, destinationNode, zoneMap):
         
     slopePath = []
@@ -502,9 +511,8 @@ def astar(start: Position, end: Position, zoneMap, isBelow = None):
 
                 # If the solid block is a bike ramp, we might be able to jump 4 cells left or right if we find 3 cells to accelerate
                 if (nextCellValue == "v" and areThreeRampCellsFree(zoneMap, current_node.position, new_position["orientation"])):
-                    node_position = Position(current_node.position.X + 6*new_position["orientation"][1],
-                                            current_node.position.Y, 
-                                            current_node.position.zone)
+                    node_position = findRampDestinationCell(current_node.position, new_position["orientation"][1])
+
                     current_node.bikeRampDestination = node_position
                     nextCellValue = zoneMap[node_position.Y][node_position.X]
                     topCellValue = zoneMap[node_position.Y - 1][node_position.X]
