@@ -4,7 +4,6 @@ from utils import waitFrames
 
 import heapq
 
-import img
 import game
 import zone
 import action
@@ -18,7 +17,8 @@ import memory
 
 PUZZLE_BOULDERS = [
     (Position(25,16,zone.MONTABRUPT_SALLE1), Position(26,16,zone.MONTABRUPT_SALLE1)),
-    (Position(6,31,zone.ROUTEVICTOIRE_SALLEOUEST), Position(6,32,zone.ROUTEVICTOIRE_SALLEOUEST))
+    (Position(6,31,zone.ROUTEVICTOIRE_SALLEOUEST), Position(6,32,zone.ROUTEVICTOIRE_SALLEOUEST)),
+    (Position(18,42,zone.MONTCOURONNE_PASSAGEVESTIGION), Position(18,43,zone.MONTCOURONNE_PASSAGEVESTIGION))
 ]
 
 PLAYER_POSITION = 0
@@ -319,11 +319,13 @@ def sortBoulders(boulderList, endPosition):
 
     return sortedList
 
-def getMostEfficientPath(start: Position, end: Position, zoneMap, isBelow = None):
+def removeAllBoulders(zoneMap):
+    return [row.replace('b', 'O') for row in zoneMap]
 
+def getMostEfficientPath(start: Position, end: Position, zoneMap, isBelow = None):
     print("Get most effective path from " + str(start) + " to " + str(end) + " (" + zoneMap[end.Y][end.X] + ")")
 
-    if (start.position.zone != end.position.zone):
+    if (start.zone != end.zone):
         print("Positions not in the same zone !")
         return None
 
@@ -332,12 +334,21 @@ def getMostEfficientPath(start: Position, end: Position, zoneMap, isBelow = None
 
     # No path found, checking for boulders
     if (not possiblePath and len(blockingBoulders) > 0):
-        
+
+        # First try to check if pushing the boulders is actually worth it
+        boulderFreeMap = removeAllBoulders(zoneMap)
+
+        # No point in pushing boulders if no path can be found on a boulder-free map
+        if (not astar(start, end, boulderFreeMap, isBelow)[0]):
+            # print("No path even without boulders, we definetly can't find a path")
+            return None
+
         # Push the boulders close to endPosition first
         blockingBoulders = sortBoulders(blockingBoulders, end)
         playerPosition = blockingBoulders[0][PLAYER_POSITION]
         boulderPosition = blockingBoulders[0][BOULDER_POSITION]
         bouldersToPush = [(playerPosition, boulderPosition)]
+        pushCounter = 0
 
         # Operations will depend on the player and boulders positions
         xDiff = boulderPosition.X - playerPosition.X
@@ -352,6 +363,7 @@ def getMostEfficientPath(start: Position, end: Position, zoneMap, isBelow = None
             # Push the boulder in the direction the player is facing
             updatedBoulder = Position(boulderPosition.X + xDiff, boulderPosition.Y + yDiff, boulderPosition.zone)
             updatedPlayer = Position(playerPosition.X + xDiff, playerPosition.Y + yDiff, playerPosition.zone)
+            pushCounter += 1
 
             # Update the map to take into account the pushed boulder
             updateMapWithPushedBoulders(newMap, boulderPosition, playerPosition)
@@ -361,7 +373,7 @@ def getMostEfficientPath(start: Position, end: Position, zoneMap, isBelow = None
 
             # A path has been found, return it
             if (possiblePath):
-                # print("Found a path !\n")
+                # print("Found a path after pushing " + str(pushCounter) + " boulders !")
 
                 # Create a new map and update it everytime a boulder is pushed
                 newMap = zoneMap[:]
@@ -408,20 +420,20 @@ def getMostEfficientPath(start: Position, end: Position, zoneMap, isBelow = None
             # Boulder has been pushed all the way and still no path found
             # Try another boulder but keep the same map
             elif (len(newBlockingBoulders) > 0):
-                # print("\nCannot push the boulder anymore, trying another boulder")
+                # print("Cannot push the boulder anymore, trying another boulder")
 
                 # Push the boulders close to endPosition first
                 newBlockingBoulders = sortBoulders(newBlockingBoulders, end)
                 playerPosition = newBlockingBoulders[0][PLAYER_POSITION]
                 boulderPosition = newBlockingBoulders[0][BOULDER_POSITION]
                 bouldersToPush.append((playerPosition, boulderPosition))
-
+                
                 xDiff = boulderPosition.X - playerPosition.X
                 yDiff = boulderPosition.Y - playerPosition.Y
 
             # No boulder left to push and no path found
             else:
-                print("\nCannot push the boulder anymore, we definetly can't find a path\n")
+                # print("Cannot push the boulder anymore, we definetly can't find a path")
                 return None
     else:
         return possiblePath
@@ -499,6 +511,7 @@ def astar(start: Position, end: Position, zoneMap, isBelow = None):
             node_position = Position(current_node.position.X + new_position["orientation"][1],
                                      current_node.position.Y + new_position["orientation"][0],
                                      current_node.position.zone)
+            
             nextCellValue = zoneMap[node_position.Y][node_position.X]
             topCellValue = zoneMap[node_position.Y - 1][node_position.X]
 
