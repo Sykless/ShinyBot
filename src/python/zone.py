@@ -147,6 +147,17 @@ class City():
         if shopZone is not None:
             self.shopMap = open('src/python/data/map/city/' + name + '-shop.map').readlines()
 
+# Used when adding new door
+def checkDoorValidity(door):
+    if (door.position.getCell() != "Z"):
+        print("Door not coming through a Z cell : " + str(door))
+
+    if (door.destination.zone.map[door.destination.Y - 1][door.destination.X] != "Z"
+        and door.destination.zone.map[door.destination.Y + 1][door.destination.X] != "Z"
+        and door.destination.zone.map[door.destination.Y][door.destination.X - 1] != "Z"
+        and door.destination.zone.map[door.destination.Y][door.destination.X + 1] != "Z"
+        and door.destination != Position(31,52,SALLEORIGINELLE)):
+        print("Door not arriving near a Z cell : " + str(door))
 
 # Connect two doors to each other
 def setConnectingDoors(door1, door2):
@@ -279,7 +290,7 @@ VOILAROC_CENTRECOMMERCIALETAGE3.addDoor(Door(Position(15,2,VOILAROC_CENTRECOMMER
 VOILAROC_CENTRECOMMERCIALETAGE4.addDoor(Door(Position(15,2,VOILAROC_CENTRECOMMERCIALETAGE4), Position(3,6,VOILAROC_CENTRECOMMERCIALASCENSEUR)))
 VOILAROC_CENTRECOMMERCIALSOUSSOL1.addDoor(Door(Position(14,2,VOILAROC_CENTRECOMMERCIALSOUSSOL1), Position(3,6,VOILAROC_CENTRECOMMERCIALASCENSEUR)))
 VOILAROC_CENTRECOMMERCIALASCENSEUR.addDoor(Door(Position(3,7,VOILAROC_CENTRECOMMERCIALASCENSEUR), Position(15,3,VOILAROC_CENTRECOMMERCIAL)))
-setConnectingDoors(Door(Position(566,656,VOILAROC), Position(8,12,VOILAROC_CENTREPOKEMON)), Door(Position(8,13,VOILAROC_CENTREPOKEMON), Position(566,657,VOILAROC)))
+setConnectingDoors(Door(Position(717,611,VOILAROC), Position(8,12,VOILAROC_CENTREPOKEMON)), Door(Position(8,13,VOILAROC_CENTREPOKEMON), Position(717,612,VOILAROC)))
 setConnectingDoors(Door(Position(701,603,VOILAROC), Position(10,12,VOILAROC_CENTRECOMMERCIAL)), Door(Position(10,13,VOILAROC_CENTRECOMMERCIAL), Position(701,604,VOILAROC)))
 setConnectingDoors(Door(Position(7,8,VOILAROC_CENTRECOMMERCIAL), Position(12,8,VOILAROC_CENTRECOMMERCIALSOUSSOL1)), Door(Position(11,8,VOILAROC_CENTRECOMMERCIALSOUSSOL1), Position(6,8,VOILAROC_CENTRECOMMERCIAL)))
 setConnectingDoors(Door(Position(12,8,VOILAROC_CENTRECOMMERCIAL), Position(6,8,VOILAROC_CENTRECOMMERCIALETAGE1)), Door(Position(7,8,VOILAROC_CENTRECOMMERCIALETAGE1), Position(13,8,VOILAROC_CENTRECOMMERCIAL)))
@@ -423,6 +434,27 @@ setConnectingDoors(Door(Position(180,698,NORTHWEST), Position(28,44,CHEMINROCHEU
 FORETVESTIGION = Zone("Forêt de Vestigion", 203, "dungeon/foretVestigion", True, True)
 setConnectingDoors(Door(Position(206,581,NORTHWEST), Position(28,86,FORETVESTIGION)), Door(Position(28,87,FORETVESTIGION), Position(206,582,NORTHWEST)))
 setConnectingDoors(Door(Position(258,524,NORTHWEST), Position(86,36,FORETVESTIGION)), Door(Position(87,36,FORETVESTIGION), Position(259,524,NORTHWEST)))
+
+# Vieux Château
+VIEUXCHATEAU = Zone("Vieux Château", 295, "dungeon/vieuxChateau-1", False, False)
+VIEUXCHATEAU_SALLEAMANGER = Zone("Vieux Château - Salle à Manger", 296, "dungeon/vieuxChateau-2", False, False)
+VIEUXCHATEAU_AILES = Zone("Vieux Château - Ailes", 297, "dungeon/vieuxChateau-3", False, False)
+VIEUXCHATEAU_COULOIR = Zone("Vieux Château - Couloir", 298, "dungeon/vieuxChateau-4", False, False)
+VIEUXCHATEAU_CHAMBRE1 = Zone("Vieux Château - Chambre 1", 299, "dungeon/vieuxChateau-5", False, False)
+VIEUXCHATEAU_CHAMBRE2 = Zone("Vieux Château - Chambre 2", 300, "dungeon/vieuxChateau-6", False, False)
+VIEUXCHATEAU_CHAMBRE3 = Zone("Vieux Château - Chambre 3", 301, "dungeon/vieuxChateau-7", False, False)
+VIEUXCHATEAU_CHAMBRE4 = Zone("Vieux Château - Chambre 4", 302, "dungeon/vieuxChateau-8", False, False)
+VIEUXCHATEAU_CHAMBRE5 = Zone("Vieux Château - Chambre 5", 303, "dungeon/vieuxChateau-9", False, False)
+setConnectingDoors(Door(Position(9,16,VIEUXCHATEAU), Position(74,16,FORETVESTIGION)), Door(Position(74,15,FORETVESTIGION), Position(9,15,VIEUXCHATEAU)))
+setConnectingDoors(Door(Position(9,5,VIEUXCHATEAU), Position(19,11,VIEUXCHATEAU_SALLEAMANGER)), Door(Position(19,12,VIEUXCHATEAU_SALLEAMANGER), Position(9,6,VIEUXCHATEAU)))
+setConnectingDoors(Door(Position(0,6,VIEUXCHATEAU), Position(7,5,VIEUXCHATEAU_AILES)), Door(Position(8,5,VIEUXCHATEAU_AILES), Position(1,6,VIEUXCHATEAU)))
+setConnectingDoors(Door(Position(18,6,VIEUXCHATEAU), Position(24,5,VIEUXCHATEAU_AILES)), Door(Position(23,5,VIEUXCHATEAU_AILES), Position(17,6,VIEUXCHATEAU)))
+setConnectingDoors(Door(Position(9,2,VIEUXCHATEAU), Position(19,5,VIEUXCHATEAU_COULOIR)), Door(Position(19,6,VIEUXCHATEAU_COULOIR), Position(9,3,VIEUXCHATEAU)))
+setConnectingDoors(Door(Position(4,2,VIEUXCHATEAU_COULOIR), Position(4,7,VIEUXCHATEAU_CHAMBRE1)), Door(Position(4,8,VIEUXCHATEAU_CHAMBRE1), Position(4,3,VIEUXCHATEAU_COULOIR)))
+setConnectingDoors(Door(Position(11,2,VIEUXCHATEAU_COULOIR), Position(11,7,VIEUXCHATEAU_CHAMBRE2)), Door(Position(11,8,VIEUXCHATEAU_CHAMBRE2), Position(11,3,VIEUXCHATEAU_COULOIR)))
+setConnectingDoors(Door(Position(19,2,VIEUXCHATEAU_COULOIR), Position(12,7,VIEUXCHATEAU_CHAMBRE3)), Door(Position(12,8,VIEUXCHATEAU_CHAMBRE3), Position(19,3,VIEUXCHATEAU_COULOIR)))
+setConnectingDoors(Door(Position(27,2,VIEUXCHATEAU_COULOIR), Position(13,7,VIEUXCHATEAU_CHAMBRE4)), Door(Position(13,8,VIEUXCHATEAU_CHAMBRE4), Position(27,3,VIEUXCHATEAU_COULOIR)))
+setConnectingDoors(Door(Position(34,2,VIEUXCHATEAU_COULOIR), Position(10,7,VIEUXCHATEAU_CHAMBRE5)), Door(Position(10,8,VIEUXCHATEAU_CHAMBRE5), Position(34,3,VIEUXCHATEAU_COULOIR)))
 
 # Piste Cyclable
 PISTECYCLABLE = Zone("Piste Cyclable", 350, "route/pisteCyclable", True, True)
@@ -582,12 +614,12 @@ setConnectingDoors(Door(Position(785,340,SECTEURCOMBAT_SOUTHEAST), Position(7,12
 # Ile Nouvellune
 ILENOUVELLUNE = Zone("Ile Nouvellune", 320, "dungeon/ileNouvellune-1", False, False)
 ILENOUVELLUNE_INTERIEUR = Zone("Ile Nouvellune - Intérieur", 321, "dungeon/ileNouvellune-2", False, False)
-setConnectingDoors(Door(Position(53,268,ILENOUVELLUNE), Position(16,21,ILENOUVELLUNE_INTERIEUR)), Door(Position(16,22,ILENOUVELLUNE_INTERIEUR), Position(53,269,ILENOUVELLUNE)))
+setConnectingDoors(Door(Position(137,268,ILENOUVELLUNE), Position(16,21,ILENOUVELLUNE_INTERIEUR)), Door(Position(16,22,ILENOUVELLUNE_INTERIEUR), Position(137,269,ILENOUVELLUNE)))
 
 # Ile Pleine Lune
 ILEPLEINELUNE = Zone("Ile Pleine Lune", 260, "dungeon/ilePleineLune-1", False, False)
 ILEPLEINELUNE_INTERIEUR = Zone("Ile Pleine Lune - Intérieur", 261, "dungeon/ilePleineLune-2", False, False)
-setConnectingDoors(Door(Position(137,268,ILEPLEINELUNE), Position(16,21,ILEPLEINELUNE_INTERIEUR)), Door(Position(16,22,ILEPLEINELUNE_INTERIEUR), Position(137,269,ILEPLEINELUNE)))
+setConnectingDoors(Door(Position(53,268,ILEPLEINELUNE), Position(16,21,ILEPLEINELUNE_INTERIEUR)), Door(Position(16,22,ILEPLEINELUNE_INTERIEUR), Position(53,269,ILEPLEINELUNE)))
 
 # Cities (used for Fly)
 BONAUGURE_CITY = City("bonaugure", 411, None, None, [[2,21]], None, None)
@@ -972,8 +1004,8 @@ OBSOLETEDOORS = [
     Door(Position(716,761,SOUTHEAST), Position(52,11,LACCOURAGE)),
     Door(Position(15,51,LACSAVOIR), Position(309,230,NORTH)),
     Door(Position(309,229,NORTH), Position(15,50,LACSAVOIR)),
-    Door(Position(17,22,ILENOUVELLUNE_INTERIEUR), Position(54,269,ILENOUVELLUNE)),
-    Door(Position(54,268,ILENOUVELLUNE), Position(17,21,ILENOUVELLUNE_INTERIEUR)),
-    Door(Position(17,22,ILEPLEINELUNE_INTERIEUR), Position(138,269,ILEPLEINELUNE)),
-    Door(Position(138,268,ILEPLEINELUNE), Position(17,21,ILEPLEINELUNE_INTERIEUR))
+    Door(Position(17,22,ILEPLEINELUNE_INTERIEUR), Position(54,269,ILEPLEINELUNE)),
+    Door(Position(54,268,ILEPLEINELUNE), Position(17,21,ILENOUVELLUNE_INTERIEUR)),
+    Door(Position(17,22,ILEPLEINELUNE_INTERIEUR), Position(138,269,ILENOUVELLUNE)),
+    Door(Position(138,268,ILENOUVELLUNE), Position(17,21,ILENOUVELLUNE_INTERIEUR))
 ]
