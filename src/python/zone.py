@@ -1,9 +1,6 @@
 import img
 
-from pathfinding import DoorNode
-
 ZONEDICTIONARY = {}
-DOOR_GRAPH = {}
 
 # Specific zones sharing multiple zoneid
 LIGUEPOKEMON_ID = 172
@@ -714,6 +711,15 @@ ZONELIST = [
 	COLONNESLANCES, SALLEORIGINELLE,
 ]
 
+MONTCOURONNE_ZONES = [
+    MONTCOURONNE_PASSAGECHARBOURG, MONTCOURONNE_SALLE1, MONTCOURONNE_SALLE2, MONTCOURONNE_EXTERIEUR1, MONTCOURONNE_EXTERIEUR2, MONTCOURONNE_SALLE3, MONTCOURONNE_SALLE4, MONTCOURONNE_SALLE5,
+    MONTCOURONNE_SALLE6, MONTCOURONNE_SALLE7, MONTCOURONNE_PASSAGEVESTIGION, MONTCOURONNE_SALLE8, MONTCOURONNE_PASSAGEFRIMAPIC, MONTCOURONNE_GROTTEREGICE, SALLEORIGINELLE, COLONNESLANCES
+]
+
+ROUTEVICTOIRE_ZONES = [
+    ROUTEVICTOIRE, ROUTEVICTOIRE_SALLEOUEST, ROUTEVICTOIRE_SALLEEST, ROUTEVICTOIRE_SALLEBRUME, ROUTEVICTOIRE_PASSAGEEST, ROUTEVICTOIRE_PASSAGEROUTE224
+]
+
 ZONEDICTIONARY = {
     3: SOUTHWEST, # Féli-Cité
     4: FELICITE_SHOP,
@@ -903,26 +909,6 @@ ZONEDICTIONARY = {
     589: MONTCOURONNE_GROTTEREGICE,
     591: ROUTE228_GROTTEREGIROCK
 }
-
-# Populate DOOR_GRAPH by adding every neighbour to every possible door
-for zone in ZONELIST:
-    for door in zone.doorList:
-
-        # Only process doors connected to another door
-        if (not door.connectedDoor):
-            continue
-
-        # Create tuple object used as key from the door and its connected door
-        doorKey = door.createDoorKey()
-
-        for otherDoorInZone in zone.doorList:
-
-            # Only process the other doors connected to another zone
-            if (not otherDoorInZone.connectedDoor or door == otherDoorInZone):
-                continue
-
-            # Calculate distance from each door to the doors in the same zone
-            DOOR_GRAPH.setdefault(doorKey, []).append(DoorNode(door, otherDoorInZone))
 
 # Obsolete doors (prefer using left-most, up-most or center door)
 OBSOLETEDOORS = [

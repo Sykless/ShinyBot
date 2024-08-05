@@ -15,6 +15,8 @@ import memory
 # - Python Implementation : https://medium.com/@nicholas.w.swift/easy-a-star-pathfinding-7e6689c7f7b2
 # - Improving Heuristics calculation : https://theory.stanford.edu/~amitp/GameProgramming/Heuristics.html
 
+DOOR_GRAPH = {}
+
 PUZZLE_BOULDERS = [
     (Position(25,16,zone.MONTABRUPT_SALLE1), Position(26,16,zone.MONTABRUPT_SALLE1)),
     (Position(6,31,zone.ROUTEVICTOIRE_SALLEOUEST), Position(6,32,zone.ROUTEVICTOIRE_SALLEOUEST)),
@@ -145,10 +147,15 @@ class Node():
 
 # DoorNode class for Dijkstra Pathfinding
 class DoorNode():
-    def __init__(self, fromDoor: Door, toDoor: Door):
+    def __init__(self, fromDoor: Door, toDoor: Door, path = None):
         self.fromDoor = fromDoor
         self.toDoor = toDoor
-        self.weight = fromDoor.position.getDistanceTo(toDoor.position)
+        self.path = path
+
+        if (path):
+            self.weight = self.path[-1].g
+        else:
+            self.weight = fromDoor.position.getDistanceTo(toDoor.position)
 
     def __eq__(self, other):
         if isinstance(other, DoorNode):
@@ -427,7 +434,7 @@ def getMostEfficientPath(start: Position, end: Position, zoneMap, isBelow = None
                 playerPosition = newBlockingBoulders[0][PLAYER_POSITION]
                 boulderPosition = newBlockingBoulders[0][BOULDER_POSITION]
                 bouldersToPush.append((playerPosition, boulderPosition))
-                
+
                 xDiff = boulderPosition.X - playerPosition.X
                 yDiff = boulderPosition.Y - playerPosition.Y
 
@@ -750,6 +757,41 @@ def goToLocation(location: Position):
                 pathIndex = 0
 
 
+# Populate DOOR_GRAPH by adding every neighbour to every possible door
+def initDoorGraph():
+
+    # Iterate on every single Door
+    for zoneObject in zone.ZONELIST:
+        for door in zoneObject.doorList:
+
+            # Only process doors connected to another door
+            if (not door.connectedDoor):
+                continue
+
+            # Create tuple object used as key from the door and its connected door
+            doorKey = door.createDoorKey()
+
+            for otherDoorInZone in zoneObject.doorList:
+
+                # Only process the other doors connected to another zone
+                if (not otherDoorInZone.connectedDoor or door == otherDoorInZone):
+                    continue
+
+                # For complex maps (Mont Couronné + Route Victoire), we're using A* instead of regular position distance
+                if (zoneObject in zone.MONTCOURONNE_ZONES or zoneObject in zone.ROUTEVICTOIRE_ZONES):
+                    doorPath = getMostEfficientPath(door.connectedDoor.destination, otherDoorInZone.position, otherDoorInZone.position.zone.map)
+
+                    # Only add the door path if there's an actual path
+                    if (doorPath):
+                        DOOR_GRAPH.setdefault(doorKey, []).append(DoorNode(door, otherDoorInZone, doorPath))
+
+                # Regular maps, we only use distance from door to door
+                else:
+                    DOOR_GRAPH.setdefault(doorKey, []).append(DoorNode(door, otherDoorInZone))
+
+    # Save graph as a file to easily retrieve it at a later execution
+    memory.saveGraph(DOOR_GRAPH, 'src/python/data/pkl/graph.pkl')
+
 def getShortestDoorPath(start, end):
     print("Find shortest path from " + str(start) + " to " + str(end))
 
@@ -779,7 +821,7 @@ def dijkstra(startingDoor):
     visited = {startingDoor: 0}
 
     # Retrieve every possible door from the doorGraph, we'll remove them once processed
-    doors = set(zone.DOOR_GRAPH.keys())
+    doors = set(DOOR_GRAPH.keys())
     queue = [(0, startingDoor)]
     
     # We keep searching while there are doors to process
@@ -796,7 +838,7 @@ def dijkstra(startingDoor):
         doors.remove(current_door)
 
         # Take every neighbour door
-        for door_node in zone.DOOR_GRAPH[current_door]:
+        for door_node in DOOR_GRAPH[current_door]:
 
             # Retrievei its destination and ts distance to the current door
             neighbor = door_node.toDoor.createDoorKey()

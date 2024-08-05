@@ -2,9 +2,10 @@
 from pokemon import Pokemon
 from utils import waitFrames
 
+import bag
 import img
 import zone
-import utils
+import game
 import player
 import action
 import joypad
@@ -20,12 +21,15 @@ NEXT_PAGE_BUTTON = 0
 PREVIOUS_PAGE_BUTTON = 1
 CANCEL_BUTTON = 2
 
-memory.clearMemoryData("joypad")
-# action.flyToTown(zone.RIVAMAR_CITY)
-# playerPosition = zone.getPlayerPosition()
+GENERATE_GRAPH = False
+
+if (GENERATE_GRAPH):
+    pathfinding.initDoorGraph()
+else:
+    pathfinding.DOOR_GRAPH = memory.loadGraph('src/python/data/pkl/graph.pkl')
 
 freeMode = True
-shinyBot = True
+shinyBot = False
 catchAllMode = False
 
 spinMode = False
@@ -36,6 +40,7 @@ loadedPokemonPid = 0
 
 jsonPokemonData = memory.readWildPokemonData()
 jsonTeamData = memory.readPokemonTeamData()
+playerData = player.getPlayerData()
 
 if (shinyBot and freeMode):
     print("Debug Screenshot mode")
@@ -47,11 +52,12 @@ while shinyBot:
     # Check if a new wild Pokemon has been found
     if (jsonPokemonData and jsonPokemonData["pid"] not in [0, loadedPokemonPid]):
         # Convert JSON data to Pokemon object
+        print(jsonPokemonData)
         pokemon = Pokemon(**jsonPokemonData)
         loadedPokemonPid = pokemon.pid
 
         # Stop pathfinding
-        memory.clearMemoryData("joypad")
+        memory.clearJoypadInputs()
 
         print("New wild Pokemon !")
         print(pokemon)
@@ -63,8 +69,9 @@ while shinyBot:
     if (freeMode):
         screenshot = img.getScreenshot()
         playerData = player.getPlayerData()
-        print(playerData)
-        waitFrames(5)
+        gameData = game.getGameData()
+
+        waitFrames(1)
 
     # Only apply new input if no input is found in memory
     elif (len(joypadInput) == 0):
@@ -150,10 +157,10 @@ while shinyBot:
 
         elif (img.insideBalls.isOnScreen(screenshot)):
             # Get Poké Ball location in bag
-            pokeballLocation = utils.getPokeballLocation()
+            pokeballLocation = bag.findItemInBag(bag.POKEBALL_ID)
 
             # I'd rather crash than miss a Shiny
-            if (pokeballLocation == -1):
+            if (pokeballLocation == None):
                 backToShop = True
 
             # Get cursor location (None if not present)

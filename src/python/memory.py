@@ -2,6 +2,17 @@
 import io
 import json
 import mmap
+import pickle
+
+# Serialize the graph to a file
+def saveGraph(graph, filename):
+    with open(filename, 'wb') as f:
+        pickle.dump(graph, f)
+
+# Deserialize the graph from a file
+def loadGraph(filename):
+    with open(filename, 'rb') as f:
+        return pickle.load(f)
 
 # WARNING : Pokemon Team data is only available during battle of if menu is open
 def readPokemonTeamData():
