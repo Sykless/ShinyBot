@@ -1,7 +1,9 @@
 import img
-import memory
+
+from pathfinding import DoorNode
 
 ZONEDICTIONARY = {}
+DOOR_GRAPH = {}
 
 # Specific zones sharing multiple zoneid
 LIGUEPOKEMON_ID = 172
@@ -39,13 +41,16 @@ class Zone():
 
     def getDoorByDestination(self, zone):
         for door in self.doorList:
-            if (door.destination.zone.zoneId == zone.zoneId):
+            if (door.destination.zone == zone):
                 return door
             
     def __eq__(self, other):
         if isinstance(other, Zone):
             return self.zoneId == other.zoneId
         return False
+    
+    def __hash__(self):
+        return hash(self.zoneId)
 
 class Position:
     def __init__(self, positionX, positionY, zone):
@@ -89,6 +94,9 @@ class Position:
         if isinstance(other, Position):
             return self.X == other.X and self.Y == other.Y and self.zone.zoneId == other.zone.zoneId
         return False
+    
+    def __hash__(self):
+        return hash((self.X, self.Y, self.zone))
 
     def __str__(self):
         return "(" + str(self.X) + "," + str(self.Y) + ") à " + self.zone.name
@@ -105,10 +113,19 @@ class Door():
     def setConnectedDoor(self, door):
         self.connectedDoor = door
 
+    def createDoorKey(self):
+        return tuple(sorted((self, self.connectedDoor), key = hash))
+
     def __eq__(self, other):
         if isinstance(other, Door):
-            return self.position == other.position and self.destination == other.destination
+            return self.position == other.position
         return False
+    
+    def __lt__(self, other):
+        return self.position.zone.zoneId < other.position.zone.zoneId
+    
+    def __hash__(self):
+        return hash(self.position)
     
     def __str__(self):
         return "Door (" + str(self.position) + ") connected to (" + str(self.destination) + ")"
@@ -549,7 +566,6 @@ LACVERITE_CAVERNEVERITE = Zone("Lac Vérité - Caverne Vérité", 313, "dungeon/
 setConnectingDoors(Door(Position(46,55,LACVERITE), Position(80,844,SOUTHWEST)), Door(Position(80,843,SOUTHWEST), Position(46,54,LACVERITE)))
 setConnectingDoors(Door(Position(32,32,LACVERITE), Position(14,29,LACVERITE_CAVERNEVERITE)), Door(Position(14,30,LACVERITE_CAVERNEVERITE), Position(32,33,LACVERITE)))
 
-
 # Lac Courage
 LACCOURAGE = Zone("Lac Courage", 315, "dungeon/lacCourage", True, True)
 LACCOURAGE_CAVERNECOURAGE = Zone("Lac Courage - Caverne Courage", 316, "dungeon/grotteCre", True, False)
@@ -668,7 +684,7 @@ ZONEIDLIST = {
 
 ZONELIST = [
     # Overworld
-	SOUTH, SOUTHWEST, SOUTHCENTER, NORTH, NORTHWEST, NORTHCENTER, NORTHEAST, EAST, SECTEURCOMBAT_SOUTHEAST, SECTEURCOMBAT_NORTHWEST,
+	SOUTH, SOUTHWEST, SOUTHCENTER, SOUTHEAST, NORTH, NORTHWEST, NORTHCENTER, NORTHEAST, EAST, SECTEURCOMBAT_SOUTHEAST, SECTEURCOMBAT_NORTHWEST,
     
     # Cities
     FELICITE_CENTREPOKEMON, JOLIBERGES_CENTREPOKEMON, CHARBOURG_CENTREPOKEMON, VESTIGION_CENTREPOKEMON, UNIONPOLIS_CENTREPOKEMON, VERCHAMPS_CENTREPOKEMON, VOILAROC_CENTREPOKEMON, RIVAMAR_CENTREPOKEMON, FRIMAPIC_CENTREPOKEMON, LIGUEPOKEMON_CENTREPOKEMON, AIREDECOMBAT_CENTREPOKEMON, LITTORELLA_CENTREPOKEMON, FLORAVILLE_CENTREPOKEMON, BONVILLE_CENTREPOKEMON, CELESTIA_CENTREPOKEMON, AIREDESURVIE_CENTREPOKEMON, AIREDEDETENTE_CENTREPOKEMON, 
@@ -887,6 +903,26 @@ ZONEDICTIONARY = {
     589: MONTCOURONNE_GROTTEREGICE,
     591: ROUTE228_GROTTEREGIROCK
 }
+
+# Populate DOOR_GRAPH by adding every neighbour to every possible door
+for zone in ZONELIST:
+    for door in zone.doorList:
+
+        # Only process doors connected to another door
+        if (not door.connectedDoor):
+            continue
+
+        # Create tuple object used as key from the door and its connected door
+        doorKey = door.createDoorKey()
+
+        for otherDoorInZone in zone.doorList:
+
+            # Only process the other doors connected to another zone
+            if (not otherDoorInZone.connectedDoor or door == otherDoorInZone):
+                continue
+
+            # Calculate distance from each door to the doors in the same zone
+            DOOR_GRAPH.setdefault(doorKey, []).append(DoorNode(door, otherDoorInZone))
 
 # Obsolete doors (prefer using left-most, up-most or center door)
 OBSOLETEDOORS = [

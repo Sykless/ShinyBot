@@ -1,5 +1,8 @@
+from zone import Door
 from zone import Position
 from utils import waitFrames
+
+import heapq
 
 import img
 import game
@@ -139,6 +142,26 @@ class Node():
 
     def __repr__(self):
         return str(self)
+
+# DoorNode class for Dijkstra Pathfinding
+class DoorNode():
+    def __init__(self, fromDoor: Door, toDoor: Door):
+        self.fromDoor = fromDoor
+        self.toDoor = toDoor
+        self.weight = fromDoor.position.getDistanceTo(toDoor.position)
+
+    def __eq__(self, other):
+        if isinstance(other, DoorNode):
+            return self.fromDoor == other.fromDoor
+        return False
+    
+    def __str__(self):
+        return "Weight " + str(self.weight) + " from (" + str(self.fromDoor) + ") to (" + str(self.toDoor) + ")"
+    
+    def __repr__(self):
+        return str(self)
+
+
 
 def updateMapWithPushedBoulders(zoneMap, boulderPosition, playerPosition):
         
@@ -290,6 +313,10 @@ def sortBoulders(boulderList, endPosition):
 def getMostEfficientPath(start: Position, end: Position, zoneMap, isBelow = None):
 
     print("Get most effective path from " + str(start) + " to " + str(end) + " (" + zoneMap[end.Y][end.X] + ")")
+
+    if (start.position.zone != end.position.zone):
+        print("Positions not in the same zone !")
+        return None
 
     # Boulders might block the way, we'll track them and process them if needed
     possiblePath, blockingBoulders = astar(start, end, zoneMap, isBelow)
@@ -649,7 +676,6 @@ def goToLocation(location: Position):
     # and the player is at desired location
     while memory.readJoypadData() or playerPosition != path[-1].position:
         gameData = game.getGameData()
-        playerData = player.getPlayerData()
         playerPosition = player.getPlayerData().position
 
         # Non-0 PID : we're in a battle - stop pathfinding and let main script take over
@@ -701,3 +727,69 @@ def goToLocation(location: Position):
             else:
                 path = writePathInputsFromCurrentState(path, pathIndex + 1)
                 pathIndex = 0
+
+
+def getShortestDoorPath(start, end):
+    print("Find shortest path from " + str(start) + " to " + str(end))
+
+    # Create keys from doors in order to read in the DOOR_GRAPH
+    keyStart = start.createDoorKey()
+    keyEnd = end.createDoorKey()
+
+    # Use Dijkstra to retrieve every possible path from starting door
+    paths = dijkstra(keyStart)
+
+    # Retrieve the path from end door to starting door
+    fullPath = [keyEnd]
+    subPath = paths.get(keyEnd, None)
+
+    # Go from door to door
+    while subPath is not None:
+        fullPath.append(subPath)
+        subPath = paths.get(subPath, None)
+
+    # Reverse the full path to get path from start to end
+    return fullPath[::-1]
+
+def dijkstra(startingDoor):
+
+    # Map the path/distance from each possible door to the starting door
+    path = {}
+    visited = {startingDoor: 0}
+
+    # Retrieve every possible door from the doorGraph, we'll remove them once processed
+    doors = set(zone.DOOR_GRAPH.keys())
+    queue = [(0, startingDoor)]
+    
+    # We keep searching while there are doors to process
+    while doors and queue:
+
+        # Take the closest door in the queue
+        current_distance, current_door = heapq.heappop(queue)
+
+        # Door has already been processed or does not exist, take another door
+        if current_door not in doors:
+            continue
+
+        # We're processing the door, remove them from the set
+        doors.remove(current_door)
+
+        # Take every neighbour door
+        for door_node in zone.DOOR_GRAPH[current_door]:
+
+            # Retrievei its destination and ts distance to the current door
+            neighbor = door_node.toDoor.createDoorKey()
+            distance = current_distance + door_node.weight
+
+            # We keep the neighbor if it hasn't ben processed or if the current path is shorter
+            if neighbor not in visited or distance < visited[neighbor]:
+                
+                # We'll check for its neighbors in another iteration
+                heapq.heappush(queue, (distance, neighbor))
+
+                # Update the path and distance from starting door
+                path[neighbor] = current_door
+                visited[neighbor] = distance
+
+    # Once there's no more door to process, return the whole map
+    return path
