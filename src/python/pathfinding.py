@@ -657,23 +657,10 @@ def writePathInputsFromCurrentState(nodeList, breakNodeId):
     print(nodeList)
 
     # Retrieve all inputs needed to go to specified location
-    joypad.writePathfindingInput(nodeList, playerData.orientation, strengthUsed, destroyedObstacles)
+    joypad.writePathfindingInput(nodeList, strengthUsed, destroyedObstacles)
 
     return nodeList
 
-def writePathInputs(location):
-
-    # Get most effective path from player position to location
-    playerData = player.getPlayerData()
-
-    # Location is a position, just get path to this location
-    nodeList = getMostEfficientPath(playerData.position, location, location.zone.map)
-    print(nodeList)
-
-    # Retrieve all inputs needed to go to specified location
-    joypad.writePathfindingInput(nodeList, playerData.orientation)
-
-    return nodeList
 
 
 def goToLocation(location: Position):
@@ -685,24 +672,43 @@ def goToLocation(location: Position):
     # We only manage pathfinding within the same zone for now
     if (playerPosition.zone.zoneId != location.zone.zoneId):
         return None
-
-    path = writePathInputs(location)
+    
+    # Location is a position, just get path to this location
+    path = getMostEfficientPath(playerData.position, location, location.zone.map)
 
     if (not path):
         print("No path has been found from " + str(playerPosition) + " to " + str(location))
         return None
+    
+    # Go from starting node to ending node
+    processPath(path)
+    
+
+def processPath(nodeList):
+
+    # Send all inputs needed to go to specified location to emulator
+    joypad.writePathfindingInput(nodeList)
+    
+    # Make sure the path is followed, correct it if needed
+    checkPathIsFollowed(nodeList)
+
+
+def checkPathIsFollowed(path):
+
+    # We might bump into walls or moving NPCs, ecounter wild Pokémon, etc
+    # So we need to make sure the player follows the right path
+    #
+    # Only stop path processing when all inputs have been pressed and the player is at desired location
 
     gameData = game.getGameData()
+    playerPosition = player.getPlayerData().position
+
     isRepelActive = (gameData.repelSteps > 0)
     pathIndex = 0
 
-    # Unfortunately, the running animation time is not consistent
-    # and we might bump into walls or moving NPCs, ecounter wild Pokémon, etc
-    # So we need to make sure the player follows the right path
-    #
-    # Only stop path processing when all inputs have been pressed
-    # and the player is at desired location
     while memory.readJoypadData() or playerPosition != path[-1].position:
+
+        # Get current game and player data
         gameData = game.getGameData()
         playerPosition = player.getPlayerData().position
 

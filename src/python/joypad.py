@@ -37,7 +37,7 @@ def writeInput(inputSequence, endSequence = None):
     
     writeRawInput(frameByFrameInputSequence)
 
-def writePathfindingInput(nodeList, playerDirection, strengthUsed = False, destroyedObstacles = []):
+def writePathfindingInput(nodeList, strengthUsed = False, destroyedObstacles = []):
 
     # Only move if there are at least two nodes
     if (nodeList is not None and len(nodeList) > 1):
@@ -49,6 +49,7 @@ def writePathfindingInput(nodeList, playerDirection, strengthUsed = False, destr
 
         # Use bike as much as possible
         playerData = player.getPlayerData()
+        playerDirection = playerData.orientation
         isOnBike = playerData.isOnBike
 
         frameByFrameInputSequence = ""
