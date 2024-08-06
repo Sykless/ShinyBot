@@ -159,7 +159,7 @@ class DoorNode():
 
     def __eq__(self, other):
         if isinstance(other, DoorNode):
-            return self.fromDoor == other.fromDoor
+            return self.fromDoor == other.fromDoor and self.toDoor == other.toDoor
         return False
     
     def __str__(self):
@@ -791,6 +791,48 @@ def initDoorGraph():
 
     # Save graph as a file to easily retrieve it at a later execution
     memory.saveGraph(DOOR_GRAPH, 'src/python/data/pkl/graph.pkl')
+
+def getPathFromGraph(startDoor: Door, endDoor: Door):
+    
+    # Get shortest door-to-door path between two doors
+    path = getShortestDoorPath(startDoor, endDoor)
+
+    # Remove initial door, we're starting from it
+    path.pop(0)
+
+    # We're using currentDoor and nextDoorKey to navigate from path to path, starting from start door
+    completePath = []
+    currentDoor = startDoor
+    nextDoorKey = path.pop(0)
+
+    while True:
+        # Get all paths from the current door
+        possiblePaths = DOOR_GRAPH[currentDoor.createDoorKey()]
+
+        for doorNode in possiblePaths:
+
+            # Search all possible paths until we found a door leading to the next door in the global path
+            if (doorNode.fromDoor == currentDoor and doorNode.toDoor in nextDoorKey):
+
+                # Add subpath to global path and continue the process with the next door
+                completePath.append(doorNode.path)
+                currentDoor = doorNode.toDoor.connectedDoor
+
+                # Keep searching if there are doors left in the path
+                if (len(path) > 0):
+                    nextDoorKey = path.pop(0)
+                else:
+                    return completePath
+                
+                # We found a path from current door to next door, we can skip the rest of the possible paths
+                break
+
+            # Not supposed to reach this point, print debug logs for now
+            elif (doorNode == possiblePaths[-1]):
+                print("\nDidn't find a path from " + str(currentDoor) + " to " + str(nextDoorKey))
+                print(*possiblePaths, sep = "\n", end = "\n")
+                return None
+
 
 def getShortestDoorPath(start, end):
     print("Find shortest path from " + str(start) + " to " + str(end))
