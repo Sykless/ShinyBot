@@ -4,6 +4,7 @@ from utils import waitFrames
 
 import heapq
 
+import img
 import game
 import zone
 import action
@@ -619,10 +620,6 @@ def astar(start: Position, end: Position, zoneMap, isBelow = None):
 
 def writePathInputsFromCurrentState(nodeList, breakNodeId):
 
-    # Make sure player is not moving anymore
-    memory.clearJoypadInputs() # Clear input
-    waitFrames(15) # Wait 15 frames (time needed to completely stop on speed bike)
-
     # Get final position after player stopped moving
     playerData = player.getPlayerData()
 
@@ -685,6 +682,7 @@ def goToLocation(location: Position):
     
 
 def processPath(nodeList):
+    print("Going from " + str(nodeList[0]) + " to " + str(nodeList[-1]))
 
     # Send all inputs needed to go to specified location to emulator
     joypad.writePathfindingInput(nodeList)
@@ -745,17 +743,34 @@ def checkPathIsFollowed(path):
                 pathIndex += 1
                 continue
 
+            # We could be at a different position because we're in a different zone, go back to main loop
+            elif (path[pathIndex].position.zone != playerPosition.zone):
+                break
+
             # Wrong path : recalculate from current position
             else:
+                memory.clearJoypadInputs() # Clear input
+
+                # Make sure player is not moving anymore before starting moving again
+                waitFrames(10) # Wait 10 frames (time needed to completely stop on a bike)
+
                 # Calculate path from new position to the rest of the correct path
                 path = writePathInputsFromCurrentState(path, pathIndex + 1)
                 pathIndex = 0
 
         # No more inputs left to process
         elif (not memory.readJoypadData()):
-            
+
+            # Make sure player is not moving anymore before checking his position
+            waitFrames(10) # Wait 10 frames (time needed to completely stop on a bike)
+            playerPosition = player.getPlayerData().position
+            screenshot = img.getScreenshot()
+
+            # Poketch not visible, we changed zone, go back to main loop
+            if (not img.poketch.isOnScreen(screenshot)):
+                break
             # Reached the end, go back to main loop
-            if (playerPosition == path[-1].position):
+            elif (playerPosition == path[-1].position):
                 break
             # Not at the desired location, calculate path from this position to the rest of the correct path
             else:
@@ -798,46 +813,81 @@ def initDoorGraph():
     # Save graph as a file to easily retrieve it at a later execution
     memory.saveGraph(DOOR_GRAPH, 'src/python/data/pkl/graph.pkl')
 
+def goToWorldLocation(start, end):
+
+    # Use Dijkstra to get best possible path from any door to any other door
+    completePath = getPathFromGraph(start, end)
+
+    if (completePath):
+        for pathId in range(len(completePath)):
+
+            # Process current path
+            currentPath = completePath[pathId]
+
+            # Retrieve next position from following path, or end position
+            if (pathId + 1 < len(completePath)):
+                nextPosition = completePath[pathId + 1][0].position
+            else:
+                nextPosition = end.position
+
+            # Go from starting node to ending node
+            processPath(currentPath)
+
+            # Wait until we exit the old zone (stairs animation) and poketch is visible (transition screen)
+            while (not img.poketch.isOnScreen(img.getScreenshot()) or player.getPlayerData().position == currentPath[-1].position):
+                pass
+
+            # Already at next position after transition screen : wait a couple frames
+            if (player.getPlayerData().position == nextPosition):
+                waitFrames(5)
+
+            # Moving from door to actual next position, wait for walking animation to be over
+            else:
+                waitFrames(25)
+
+            print("Ready to process next path")
+
 def getPathFromGraph(startDoor: Door, endDoor: Door):
     
     # Get shortest door-to-door path between two doors
     path = getShortestDoorPath(startDoor, endDoor)
 
-    # Remove initial door, we're starting from it
-    path.pop(0)
+    if (len(path) > 1):
+        # Remove initial door, we're starting from it
+        path.pop(0)
 
-    # We're using currentDoor and nextDoorKey to navigate from path to path, starting from start door
-    completePath = []
-    currentDoor = startDoor
-    nextDoorKey = path.pop(0)
+        # We're using currentDoorKey and nextDoorKey to navigate from path to path, starting from start door
+        completePath = []
+        currentDoorKey = startDoor.createDoorKey()
+        nextDoorKey = path.pop(0)
 
-    while True:
-        # Get all paths from the current door
-        possiblePaths = DOOR_GRAPH[currentDoor.createDoorKey()]
+        while True:
+            # Get all paths from the current door
+            possiblePaths = DOOR_GRAPH[currentDoorKey]
 
-        for doorNode in possiblePaths:
+            for doorNode in possiblePaths:
 
-            # Search all possible paths until we found a door leading to the next door in the global path
-            if (doorNode.fromDoor == currentDoor and doorNode.toDoor in nextDoorKey):
+                # Search all possible paths until we found a door leading to the next door in the global path
+                if (doorNode.fromDoor in currentDoorKey and doorNode.toDoor in nextDoorKey):
 
-                # Add subpath to global path and continue the process with the next door
-                completePath.append(doorNode.path)
-                currentDoor = doorNode.toDoor.connectedDoor
+                    # Add subpath to global path and continue the process with the next door
+                    completePath.append(doorNode.path)
+                    currentDoorKey = doorNode.toDoor.connectedDoor.createDoorKey()
 
-                # Keep searching if there are doors left in the path
-                if (len(path) > 0):
-                    nextDoorKey = path.pop(0)
-                else:
-                    return completePath
-                
-                # We found a path from current door to next door, we can skip the rest of the possible paths
-                break
+                    # Keep searching if there are doors left in the path
+                    if (len(path) > 0):
+                        nextDoorKey = path.pop(0)
+                    else:
+                        return completePath
+                    
+                    # We found a path from current door to next door, we can skip the rest of the possible paths
+                    break
 
-            # Not supposed to reach this point, print debug logs for now
-            elif (doorNode == possiblePaths[-1]):
-                print("\nDidn't find a path from " + str(currentDoor) + " to " + str(nextDoorKey))
-                print(*possiblePaths, sep = "\n", end = "\n")
-                return None
+                # Not supposed to reach this point, print debug logs for now
+                elif (doorNode == possiblePaths[-1]):
+                    print("\nDidn't find a path from " + str(currentDoorKey) + " to " + str(nextDoorKey))
+                    print(*possiblePaths, sep = "\n", end = "\n")
+                    return None
 
 
 def getShortestDoorPath(start, end):
