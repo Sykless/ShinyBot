@@ -17,6 +17,7 @@ import memory
 # - Improving Heuristics calculation : https://theory.stanford.edu/~amitp/GameProgramming/Heuristics.html
 
 DOOR_GRAPH = {}
+LOADALLPATHS = True
 
 PUZZLE_BOULDERS = [
     (Position(25,16,zone.MONTABRUPT_SALLE1), Position(26,16,zone.MONTABRUPT_SALLE1)),
@@ -799,7 +800,7 @@ def initDoorGraph():
                     continue
 
                 # For complex maps (Mont Couronné + Route Victoire), we're using A* instead of regular position distance
-                if (zoneObject in zone.MONTCOURONNE_ZONES or zoneObject in zone.ROUTEVICTOIRE_ZONES):
+                if (LOADALLPATHS or zoneObject in zone.MONTCOURONNE_ZONES or zoneObject in zone.ROUTEVICTOIRE_ZONES):
                     doorPath = getMostEfficientPath(door.connectedDoor.destination, otherDoorInZone.position, otherDoorInZone.position.zone.map)
 
                     # Only add the door path if there's an actual path
