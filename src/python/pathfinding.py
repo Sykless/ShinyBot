@@ -967,11 +967,35 @@ def dijkstra(startingDoor: Door):
     # Once there's no more door to process, return the whole map
     return path, visited
 
-def getClosestFlyLocation(location: Door):
+def getClosestFlyLocation(location):
 
+    # Need to go to a Position but only Door paths are pretermined, find closest Door
+    if isinstance(location, Position):
+        
+        # Get all doors in the zone and sort them by distance to the desired location
+        closestDoors = sorted(location.zone.doorList, key = lambda door: door.position.getDistanceTo(location))
+
+        # Retrieve the closest possible door that can actually lead to the location
+        for testedDoors in range(len(closestDoors)):
+            pathFromDoor = getMostEfficientPath(closestDoors[testedDoors].connectedDoor.destination, location)
+
+            # Path has been found from a door, keep this door as the anchor to check distance to city
+            if (pathFromDoor):
+                closestDoor = closestDoors[testedDoors]
+                break
+
+            # Not supposed to reach this section, no path has been found, most likely due to incorrect Position
+            if (testedDoors == len(closestDoors) - 1):
+                print("No path found to " + str(location))
+                return None
+
+    # Need to go to a Door, just use predetermined paths
+    elif isinstance(location, Door):
+        closestDoor = location
+    
     minDistance = 9999
     closestFlyLocation = None
-    locationDoorKey = location.createDoorKey()
+    locationDoorKey = closestDoor.createDoorKey()
 
     # Check every possible city
     for city in zone.CITY_LIST:
@@ -989,4 +1013,4 @@ def getClosestFlyLocation(location: Door):
                 minDistance = distanceFromLocation
                 closestFlyLocation = city
 
-    return closestFlyLocation
+    return closestFlyLocation, closestDoor
