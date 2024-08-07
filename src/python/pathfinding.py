@@ -331,12 +331,22 @@ def sortBoulders(boulderList, endPosition):
 def removeAllBoulders(zoneMap):
     return [row.replace('b', 'O') for row in zoneMap]
 
-def getMostEfficientPath(start: Position, end: Position, zoneMap, isBelow = None):
-    print("Get most effective path from " + str(start) + " to " + str(end) + " (" + zoneMap[end.Y][end.X] + ")")
+def getMostEfficientPath(start: Position, end: Position, zoneMap = None, isBelow = None):
 
+    # Default : if not provided, zone map is end position zone map
+    if (zoneMap is None):
+        zoneMap = end.zone.map
+
+    # A* algorithm only works for positions in the same zone
     if (start.zone != end.zone):
         print("Positions not in the same zone !")
         return None
+    
+    # Make sure the location is reachable
+    if (not zone.checkPositionValidity(start, zoneMap) or not zone.checkPositionValidity(end, zoneMap)):
+        return None
+    
+    print("Get most effective path from " + str(start) + " to " + str(end) + " (" + zoneMap[end.Y][end.X] + ")")
 
     # Boulders might block the way, we'll track them and process them if needed
     possiblePath, blockingBoulders = astar(start, end, zoneMap, isBelow)
@@ -672,7 +682,7 @@ def goToLocation(location: Position):
         return None
     
     # Location is a position, just get path to this location
-    path = getMostEfficientPath(playerData.position, location, location.zone.map)
+    path = getMostEfficientPath(playerData.position, location)
 
     if (not path):
         print("No path has been found from " + str(playerPosition) + " to " + str(location))
@@ -780,6 +790,7 @@ def checkPathIsFollowed(path):
 
 
 # Populate DOOR_GRAPH by adding every neighbour to every possible door
+# Takes around 30~35 minutes to generate, so we store it in a pkl file
 def initDoorGraph():
 
     # Iterate on every single Door
@@ -801,7 +812,7 @@ def initDoorGraph():
 
                 # For complex maps (Mont Couronné + Route Victoire), we're using A* instead of regular position distance
                 if (LOADALLPATHS or zoneObject in zone.MONTCOURONNE_ZONES or zoneObject in zone.ROUTEVICTOIRE_ZONES):
-                    doorPath = getMostEfficientPath(door.connectedDoor.destination, otherDoorInZone.position, otherDoorInZone.position.zone.map)
+                    doorPath = getMostEfficientPath(door.connectedDoor.destination, otherDoorInZone.position)
 
                     # Only add the door path if there's an actual path
                     if (doorPath):

@@ -140,8 +140,22 @@ class City():
     def __str__(self):
         return "City " + str(self.name)
 
+# Check if position if a valid cell (reachable + in map bounds)
+def checkPositionValidity(position, zoneMap = None):
+    try:
+        if ((position.zone.map if zoneMap is None else zoneMap)[position.Y][position.X] in ["X","N","I","s"," "]):
+            print("Unreachable cell : " + str(position))
+            return False
+    except IndexError:
+        print("Position out of map bounds : " + str(position))
+        return False
+    return True
+
 # Used when adding new door
 def checkDoorValidity(door):
+    if (checkPositionValidity(door.position) or checkPositionValidity(door.destination)):
+        print("Door has invalid position " + str(door))
+
     if (door.position.getCell() != "Z"):
         print("Door not coming through a Z cell : " + str(door))
 
