@@ -891,7 +891,7 @@ def getPathFromGraph(startDoor: Door, endDoor: Door):
                     return None
 
 
-def getShortestDoorPath(start, end):
+def getShortestDoorPath(start: Door, end: Door):
     print("Find shortest path from " + str(start) + " to " + str(end))
 
     # Create keys from doors in order to read in the DOOR_GRAPH
@@ -899,7 +899,7 @@ def getShortestDoorPath(start, end):
     keyEnd = end.createDoorKey()
 
     # Use Dijkstra to retrieve every possible path from starting door
-    paths = dijkstra(keyStart)
+    paths = dijkstra(keyStart)[0]
 
     # Retrieve the path from end door to starting door
     fullPath = [keyEnd]
@@ -913,7 +913,7 @@ def getShortestDoorPath(start, end):
     # Reverse the full path to get path from start to end
     return fullPath[::-1]
 
-def dijkstra(startingDoor):
+def dijkstra(startingDoor: Door):
 
     # Map the path/distance from each possible door to the starting door
     path = {}
@@ -954,4 +954,28 @@ def dijkstra(startingDoor):
                 visited[neighbor] = distance
 
     # Once there's no more door to process, return the whole map
-    return path
+    return path, visited
+
+def getClosestFlyLocation(location: Door):
+
+    minDistance = 9999
+    closestFlyLocation = None
+    locationDoorKey = location.createDoorKey()
+
+    # Check every possible city
+    for city in zone.CITY_LIST:
+        cityDoorKey = city.flyDoor.createDoorKey()
+
+        # Get all possible paths from city
+        distances = dijkstra(cityDoorKey)[1]
+
+        # Only search for cities that can actually reach location
+        if (locationDoorKey in distances):
+            distanceFromLocation = distances[locationDoorKey]
+
+            # Save closest city when distance to location is the lowest
+            if (distanceFromLocation < minDistance):
+                minDistance = distanceFromLocation
+                closestFlyLocation = city
+
+    return closestFlyLocation

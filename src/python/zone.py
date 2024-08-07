@@ -131,21 +131,14 @@ class Door():
         return str(self)
 
 class City():
-    def __init__(self, name, zoneId, pokemonCenterZone, shopZone, flyCoordinates, pokemonCenterPosition: Position, shopPosition: Position):
-
+    def __init__(self, name, zoneId, flyCoordinates, flyDoor: Door):
         self.name = name
         self.zoneId = zoneId
         self.flyCoordinates = flyCoordinates
+        self.flyDoor = flyDoor
 
-        self.pokemonCenterZone = pokemonCenterZone
-        self.pokemonCenterLocation = pokemonCenterPosition
-        if pokemonCenterZone is not None:
-            self.pokemonCenterMap = open('src/python/data/map/city/' + name + '-centrePokemon.map').readlines()
-
-        self.shopZone = shopZone
-        self.shopLocation = shopPosition
-        if shopZone is not None:
-            self.shopMap = open('src/python/data/map/city/' + name + '-shop.map').readlines()
+    def __str__(self):
+        return "City " + str(self.name)
 
 # Used when adding new door
 def checkDoorValidity(door):
@@ -155,8 +148,7 @@ def checkDoorValidity(door):
     if (door.destination.zone.map[door.destination.Y - 1][door.destination.X] != "Z"
         and door.destination.zone.map[door.destination.Y + 1][door.destination.X] != "Z"
         and door.destination.zone.map[door.destination.Y][door.destination.X - 1] != "Z"
-        and door.destination.zone.map[door.destination.Y][door.destination.X + 1] != "Z"
-        and door.destination != Position(31,52,SALLEORIGINELLE)):
+        and door.destination.zone.map[door.destination.Y][door.destination.X + 1] != "Z"):
         print("Door not arriving near a Z cell : " + str(door))
 
 # Connect two doors to each other
@@ -657,37 +649,34 @@ ILEPLEINELUNE = Zone("Ile Pleine Lune", 260, "dungeon/ilePleineLune-1", False, F
 ILEPLEINELUNE_INTERIEUR = Zone("Ile Pleine Lune - Intérieur", 261, "dungeon/ilePleineLune-2", False, False)
 setConnectingDoors(Door(Position(53,268,ILEPLEINELUNE), Position(16,21,ILEPLEINELUNE_INTERIEUR)), Door(Position(16,22,ILEPLEINELUNE_INTERIEUR), Position(53,269,ILEPLEINELUNE)))
 
-# Pokémon Center (or equivalent) doors you can fly to
-FLY_LOCATIONS = [
-    BONAUGURE_MAISON_DOOR, LITTORELLA_CENTREPOKEMON_DOOR, FELICITE_CENTREPOKEMON_DOOR,
-    CHARBOURG_CENTREPOKEMON_DOOR, FLORAVILLE_CENTREPOKEMON_DOOR, VESTIGION_CENTREPOKEMON_DOOR,
-    UNIONPOLIS_CENTREPOKEMON_DOOR, BONVILLE_CENTREPOKEMON_DOOR, VOILAROC_CENTREPOKEMON_DOOR,
-    VERCHAMPS_CENTREPOKEMON_DOOR, CELESTIA_CENTREPOKEMON_DOOR, JOLIBERGES_CENTREPOKEMON_DOOR,
-    FRIMAPIC_CENTREPOKEMON_DOOR, RIVAMAR_CENTREPOKEMON_DOOR,
-    LIGUEPOKEMON_CENTREPOKEMON_DOOR, LIGUEPOKEMON_INTERIEUR_DOOR, PARCDESAMIS_DOOR,
-    AIREDECOMBAT_CENTREPOKEMON_DOOR, AIREDESURVIE_CENTREPOKEMON_DOOR, AIREDEDETENTE_CENTREPOKEMON_DOOR
-]
-
 # Cities (used for Fly)
-BONAUGURE_CITY = City("bonaugure", 411, None, None, [[2,21]], None, None)
-LITTORELLA_CITY = City("littorella", 418, 420, 419, [[4,20]], Position(177,842,SOUTHWEST), Position(187,842,SOUTHWEST))
-FELICITE_CITY = City("felicite", 3, 6, 4, [[3,17],[4,17],[3,18],[4,18]], Position(180,776,SOUTHWEST), Position(179,766,SOUTHWEST))
-CHARBOURG_CITY = City("charbourg", 45, 48, 46, [[7,17],[8,17],[8,18]], Position(303,756,SOUTHCENTER), Position(285,746,SOUTHCENTER))
-FLORAVILLE_CITY = City("floraville", 426, 428, 427, [[4,13],[4,14]], Position(176,666,NORTHWEST), Position(184,657,NORTHWEST))
-VESTIGION_CITY = City("vestigion", 65, 69, 66, [[8,10],[9,10],[8,11]], Position(305,530,NORTHWEST), Position(309,548,NORTHWEST))
-UNIONPOLIS_CITY = City("unionpolis", 86, 101, 87, [[13,15],[14,15],[13,16],[14,16]], Position(465,697,UNIONPOLIS), Position(477,710,UNIONPOLIS))
-BONVILLE_CITY = City("bonville", 433, 435, 434, [[16,14],[17,14]], Position(566,656,NORTHCENTER), Position(571,665,NORTHCENTER))
-VOILAROC_CITY = City("voilaroc", 132, 134, None, [[20,12],[21,12],[20,13],[21,13]], Position(717,611,VOILAROC), None)
-VERCHAMPS_CITY = City("verchamps", 120, 123, 121, [[17,19],[18,19],[17,20],[18,20]], Position(600,815,SOUTH), Position(601,844,SOUTH))
-CELESTIA_CITY = City("celestia", 442, 443, 446, [[13,10]], Position(472,538,NORTHCENTER), Position(450,515,NORTHCENTER))
-JOLIBERGES_CITY = City("joliberges", 33, 36, 34, [[0,16],[0,17]], Position(58,722,JOLIBERGES), Position(53,740,JOLIBERGES))
-FRIMAPIC_CITY = City("frimapic", 165, 168, 166, [[10,0],[10,1]], Position(379,233,NORTH), Position(353,232,NORTH))
-RIVAMAR_CITY = City("rivamar", 150, 151, 153, [[25,17],[26,17],[25,18],[26,18]], Position(860,784,EAST), Position(853,768,EAST))
-ROUTEVICTOIRE_CITY = City("liguePokemon", 172, 173, None, [[25,12]], Position(842,598,EAST), None)
-LIGUEPOKEMON_CITY = City("liguePokemon", 172, None, None, [[25,11]], None, None)
-AIREDECOMBAT_CITY = City("airedecombat", 188, 189, 191, [[18,7],[19,7]], Position(647,429,SECTEURCOMBAT_SOUTHEAST), Position(660,429,SECTEURCOMBAT_SOUTHEAST))
-AIREDESURVIE_CITY = City("airedesurvie", 450, 452, 451, [[19,4]], Position(659,338,SECTEURCOMBAT_NORTHWEST), Position(663,338,SECTEURCOMBAT_NORTHWEST))
-AIREDEDETENTE_CITY = City("airededetente", 457, 459, None, [[24,8]], Position(802,472,SECTEURCOMBAT_SOUTHEAST), None)
+BONAUGURE_CITY = City("Bonaugure", 411,[[2,21]], BONAUGURE_MAISON_DOOR)
+LITTORELLA_CITY = City("Littorella", 418, [[4,20]], LITTORELLA_CENTREPOKEMON_DOOR)
+FELICITE_CITY = City("Féli-Cité", 3, [[3,17],[4,17],[3,18],[4,18]], FELICITE_CENTREPOKEMON_DOOR)
+CHARBOURG_CITY = City("Charbourg", 45, [[7,17],[8,17],[8,18]], CHARBOURG_CENTREPOKEMON_DOOR)
+FLORAVILLE_CITY = City("Floraville", 426, [[4,13],[4,14]], FLORAVILLE_CENTREPOKEMON_DOOR)
+VESTIGION_CITY = City("Vestigion", 65, [[8,10],[9,10],[8,11]], VESTIGION_CENTREPOKEMON_DOOR)
+UNIONPOLIS_CITY = City("Unionpolis", 86, [[13,15],[14,15],[13,16],[14,16]], UNIONPOLIS_CENTREPOKEMON_DOOR)
+BONVILLE_CITY = City("Bonville", 433, [[16,14],[17,14]], BONVILLE_CENTREPOKEMON_DOOR)
+VOILAROC_CITY = City("Voilaroc", 132, [[20,12],[21,12],[20,13],[21,13]], VOILAROC_CENTREPOKEMON_DOOR)
+VERCHAMPS_CITY = City("Verchamps", 120, [[17,19],[18,19],[17,20],[18,20]], VERCHAMPS_CENTREPOKEMON_DOOR)
+CELESTIA_CITY = City("Célestia", 442, [[13,10]], CELESTIA_CENTREPOKEMON_DOOR)
+JOLIBERGES_CITY = City("Joliberges", 33, [[0,16],[0,17]], JOLIBERGES_CENTREPOKEMON_DOOR)
+FRIMAPIC_CITY = City("Frimapic", 165, [[10,0],[10,1]], FRIMAPIC_CENTREPOKEMON_DOOR)
+RIVAMAR_CITY = City("Rivamar", 150, [[25,17],[26,17],[25,18],[26,18]], RIVAMAR_CENTREPOKEMON_DOOR)
+ROUTEVICTOIRE_CITY = City("Route Victoire", 172, [[25,12]], LIGUEPOKEMON_CENTREPOKEMON_DOOR)
+LIGUEPOKEMON_CITY = City("Ligue Pokémon", 172, [[25,11]], LIGUEPOKEMON_INTERIEUR_DOOR)
+PARCDESAMIS_CITY = City("Parc des Amis", 392, [[8,22]], PARCDESAMIS_DOOR)
+AIREDECOMBAT_CITY = City("Aire de Combat", 188, [[18,7],[19,7]], AIREDECOMBAT_CENTREPOKEMON_DOOR)
+AIREDESURVIE_CITY = City("Aire de Survie", 450, [[19,4]], AIREDESURVIE_CENTREPOKEMON_DOOR)
+AIREDEDETENTE_CITY = City("Aire de Détente", 457, [[24,8]], AIREDEDETENTE_CENTREPOKEMON_DOOR)
+
+CITY_LIST = [
+    BONAUGURE_CITY,LITTORELLA_CITY, FELICITE_CITY, CHARBOURG_CITY, FLORAVILLE_CITY, VESTIGION_CITY,
+    UNIONPOLIS_CITY, BONVILLE_CITY, VOILAROC_CITY, VERCHAMPS_CITY, CELESTIA_CITY, JOLIBERGES_CITY,
+    FRIMAPIC_CITY, RIVAMAR_CITY, ROUTEVICTOIRE_CITY, LIGUEPOKEMON_CITY, PARCDESAMIS_CITY,
+    AIREDECOMBAT_CITY, AIREDESURVIE_CITY, AIREDEDETENTE_CITY
+]
 
 ZONEIDLIST = {
     3:   "Féli-Cité",
