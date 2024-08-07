@@ -200,7 +200,18 @@ def flyToCity(city):
 
                     # Fly used : exit function
                     elif (img.hmAnimation.isOnScreen(screenshot)):
-                        print("Flyyyyyy")
+
+                        # Wait until Poketch is no longer visible (transition screen)
+                        while (img.poketch.isOnScreen(img.getScreenshot())):
+                            pass
+
+                        # Wait until Poketch is visible again (Fly ended)
+                        while (not img.poketch.isOnScreen(img.getScreenshot())):
+                            pass
+
+                        # Flying Pokémon goes back in the Pokéball animation
+                        waitFrames(150)
+
                         return True
                         
                     else:

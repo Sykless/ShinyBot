@@ -4,6 +4,8 @@ from bag import Item
 
 import memory
 
+FLY_ID = 19
+
 class Move:
     def __init__(self, id, PP, PPUp):
         self.id = id
@@ -12,10 +14,8 @@ class Move:
         self.PPUp = PPUp
     
     def isHM(self):
-            return self.name in ["Chatter", "Cut", "Defog", "Dig", "Dive", "Flash", "Fly", "Headbutt", "Milk Drink",
-                                "Rock Climb", "Rock Smash", "Secret Power", "Soft-Boiled", "Strength", "Surf",
-                                "Sweet Scent", "Teleport", "Waterfall", "Whirlpool"]
-    
+            return self.id in HM_LIST
+
 class Ability:
     def __init__(self, id):
         self.id = id
@@ -206,7 +206,7 @@ def isFlyAvailable():
                 movePosition += 1
 
                 # Return first pokemon with Fly available
-                if (move.name == "Fly"):
+                if (move.id == FLY_ID):
                     return [pokemonPosition, movePosition]
     
     # No Pokemon with Fly
@@ -335,3 +335,25 @@ NATURE_LIST = ["Hardi","Solo","Brave","Rigide","Mauvais","Assuré","Docile","Rel
 ]
 
 TYPE_LIST = ["Combat","Vol","Poison","Sol","Roche","Insecte","Spectre","Acier","Feu","Eau","Plante","Électrik","Psy","Glace","Dragon","Ténèbres"]
+
+HM_LIST = [
+    FLY_ID, # Vol
+    15,  # Coupe
+    29,  # Coup d'Boule
+    57,  # Surf
+    70,  # Force
+    91,  # Tunnel
+    100, # Téléport
+    127, # Cascade
+    135, # E-Coque
+    148, # Flash
+    208, # Lait à Boire
+    230, # Doux Parfum
+    249, # Éclate-Roc
+    250, # Siphon
+    290, # Force Cachée
+    291, # Plongée
+    431, # Escalade
+    432, # Anti-Brume
+    448, # Babil
+] 
