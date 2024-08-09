@@ -11,6 +11,22 @@ local BAG = {
     BATTLEITEMS = {ADDRESS = 0xD28, NUMBER_OF_SLOTS = 30}
 }
 
+-- Retrieve each bag section
+function retrieveBag()
+    local bagData = {
+        generalItems = retrieveBagSection("GENERAL_ITEMS"),
+        keyItems = retrieveBagSection("KEY_ITEMS"),
+        TMHM = retrieveBagSection("TMHM"),
+        mail = retrieveBagSection("MAIL"),
+        medecine = retrieveBagSection("MEDECINE"),
+        berries = retrieveBagSection("BERRIES"),
+        balls = retrieveBagSection("BALLS"),
+        battleItems = retrieveBagSection("BATTLEITEMS"),
+    }
+
+    return bagData
+end
+
 function retrieveBagSection(sectionId)
     local bagSection = {}
 
@@ -31,47 +47,28 @@ function retrieveBagSection(sectionId)
     return bagSection
 end
 
-SELECTEDBAGSECTION_ADDRESS = 0X022A69E4
-SELECTEDBAGITEM_ADDRESS = 0x0227179C
+GAMEDATA_POINTER = 0x021C0974
 
-function retrieveGameData()
-    return {
-        repelSteps = memory.readbyte(REPELSTEPS_ADDRESS),
-        selectedBagSection = memory.readbyte(SELECTEDBAGSECTION_ADDRESS),
-        selectedBagItemId = memory.readbyte(SELECTEDBAGITEM_ADDRESS)
-    }
-end
+ZONE_OFFSET = 0x1294
+POSITIONX_OFFSET = 0x129C
+POSITIONY_OFFSET = 0x12A0
 
--- Retrieve each bag section
-function retrieveBag()
-    local bagData = {
-        generalItems = retrieveBagSection("GENERAL_ITEMS"),
-        keyItems = retrieveBagSection("KEY_ITEMS"),
-        TMHM = retrieveBagSection("TMHM"),
-        mail = retrieveBagSection("MAIL"),
-        medecine = retrieveBagSection("MEDECINE"),
-        berries = retrieveBagSection("BERRIES"),
-        balls = retrieveBagSection("BALLS"),
-        battleItems = retrieveBagSection("BATTLEITEMS"),
-    }
+BIKE_OFFSET = 0x1324
+BIKESPEED_OFFSET = 0x1320
+REPELSTEPS_OFFSET = 0x8087
+ORIENTATION_OFFSET = 0x238A8
 
-    return bagData
-end
+SELECTEDBAGSECTION_OFFSET = 0x285C8
+SELECTEDBAGITEM_OFFSET = -0xCC80
 
-MAP_POINTER = 0x021C0974
-BIKE_ADDRESS = 0x0227F740
-BIKESPEED_ADDRESS = 0x0227F73C
-REPELSTEPS_ADDRESS = 0x022864A3
-ORIENTATION_ADDRESS = 0x022A1CC8
 ORIENTATION = {"u","d","l","r"}
 
 function retrievePlayerData()
-    local zoneAddress = memory.read_u32_le(MAP_POINTER) + 0x1294
-    local positionXAddress = zoneAddress + 8
-    local positionYAddress = zoneAddress + 12
+    -- All memory addresses are stored in a single pointer, with different offsets for each
+    local gameDataAddress = memory.read_u32_le(GAMEDATA_POINTER) 
 
+    local orientationValue = memory.read_u16_le(gameDataAddress + ORIENTATION_OFFSET)
     local orientation = "d" -- Default orientation is down
-    local orientationValue = memory.read_u16_le(ORIENTATION_ADDRESS)
 
     -- This is the only value we actually need to be sure of, since we're using it as an array id
     if (orientationValue >= 0 and orientationValue <= 3) then
@@ -79,16 +76,28 @@ function retrievePlayerData()
     end
 
     return {
-        zone = memory.read_u16_le(zoneAddress),
-        positionX = memory.read_u16_le(positionXAddress),
-        positionY = memory.read_u16_le(positionYAddress),
+        zone = memory.read_u16_le(gameDataAddress + ZONE_OFFSET),
+        positionX = memory.read_u16_le(gameDataAddress + POSITIONX_OFFSET),
+        positionY = memory.read_u16_le(gameDataAddress + POSITIONY_OFFSET),
         orientation = orientation,
         
         -- This memory address is actually used for multiple states, only state = 1 (isOnBike) is useful to us
-        isOnBike = memory.read_u16_le(BIKE_ADDRESS) == 1,
+        isOnBike = memory.read_u16_le(gameDataAddress + BIKE_OFFSET) == 1,
 
         -- Add 3 to convert 0 -> 1 values to speed 3 and 4 (bike speeds used in the game)
-        bikeSpeed = memory.read_u8(BIKESPEED_ADDRESS) + 3,
+        bikeSpeed = memory.read_u8(gameDataAddress + BIKESPEED_OFFSET) + 3,
+    }
+end
+
+function retrieveGameData()
+
+    -- All memory addresses are stored in a single pointer, with different offsets for each
+    local gameDataAddress = memory.read_u32_le(GAMEDATA_POINTER) 
+
+    return {
+        repelSteps = memory.readbyte(gameDataAddress + REPELSTEPS_OFFSET),
+        selectedBagSection = memory.readbyte(gameDataAddress + SELECTEDBAGSECTION_OFFSET),
+        selectedBagItemId = memory.readbyte(gameDataAddress + SELECTEDBAGITEM_OFFSET)
     }
 end
 
