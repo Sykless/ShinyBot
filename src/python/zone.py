@@ -144,7 +144,7 @@ class City():
 def checkPositionValidity(position, zoneMap = None):
     try:
         if ((position.zone.map if zoneMap is None else zoneMap)[position.Y][position.X] in ["X","N","I","s"," "]):
-            print("Unreachable cell : " + str(position))
+            print("Unreachable cell : " + str(position) + " (" + (position.zone.map if zoneMap is None else zoneMap)[position.Y][position.X] + ")")
             return False
     except IndexError:
         print("Position out of map bounds : " + str(position))
@@ -153,7 +153,7 @@ def checkPositionValidity(position, zoneMap = None):
 
 # Used when adding new door
 def checkDoorValidity(door):
-    if (checkPositionValidity(door.position) or checkPositionValidity(door.destination)):
+    if (not checkPositionValidity(door.position) or not checkPositionValidity(door.destination)):
         print("Door has invalid position " + str(door))
 
     if (door.position.getCell() != "Z"):
@@ -663,6 +663,18 @@ ILEPLEINELUNE = Zone("Ile Pleine Lune", 260, "dungeon/ilePleineLune-1", False, F
 ILEPLEINELUNE_INTERIEUR = Zone("Ile Pleine Lune - Intérieur", 261, "dungeon/ilePleineLune-2", False, False)
 setConnectingDoors(Door(Position(53,268,ILEPLEINELUNE), Position(16,21,ILEPLEINELUNE_INTERIEUR)), Door(Position(16,22,ILEPLEINELUNE_INTERIEUR), Position(53,269,ILEPLEINELUNE)))
 
+# Tour Perdue
+TOURPERDUE_REZDECHAUSSEE = Zone("Tour Perdue - Rez-de-Chaussée", 357, "dungeon/tourPerdue-1", False, False)
+TOURPERDUE_ETAGE1 = Zone("Tour Perdue - Étage 1", 358, "dungeon/tourPerdue-2", False, False)
+TOURPERDUE_ETAGE2 = Zone("Tour Perdue - Étage 2", 359, "dungeon/tourPerdue-3", False, False)
+TOURPERDUE_ETAGE3 = Zone("Tour Perdue - Étage 3", 360, "dungeon/tourPerdue-4", False, False)
+TOURPERDUE_ETAGE4 = Zone("Tour Perdue - Étage 4", 361, "dungeon/tourPerdue-5", False, False)
+setConnectingDoors(Door(Position(7,15,TOURPERDUE_REZDECHAUSSEE), Position(568,681,NORTHCENTER)), Door(Position(568,680,NORTHCENTER), Position(7,14,TOURPERDUE_REZDECHAUSSEE)))
+setConnectingDoors(Door(Position(5,3,TOURPERDUE_REZDECHAUSSEE), Position(11,3,TOURPERDUE_ETAGE1)), Door(Position(10,3,TOURPERDUE_ETAGE1), Position(4,3,TOURPERDUE_REZDECHAUSSEE)))
+setConnectingDoors(Door(Position(5,3,TOURPERDUE_ETAGE1), Position(11,3,TOURPERDUE_ETAGE2)), Door(Position(10,3,TOURPERDUE_ETAGE2), Position(4,3,TOURPERDUE_ETAGE1)))
+setConnectingDoors(Door(Position(5,3,TOURPERDUE_ETAGE2), Position(11,3,TOURPERDUE_ETAGE3)), Door(Position(10,3,TOURPERDUE_ETAGE3), Position(4,3,TOURPERDUE_ETAGE2)))
+setConnectingDoors(Door(Position(5,3,TOURPERDUE_ETAGE3), Position(11,3,TOURPERDUE_ETAGE4)), Door(Position(10,3,TOURPERDUE_ETAGE4), Position(4,3,TOURPERDUE_ETAGE3)))
+
 # Cities (used for Fly)
 BONAUGURE_CITY = City("Bonaugure", 411,[[2,21]], BONAUGURE_MAISON_DOOR)
 LITTORELLA_CITY = City("Littorella", 418, [[4,20]], LITTORELLA_CENTREPOKEMON_DOOR)
@@ -780,6 +792,7 @@ ZONELIST = [
     ENTREECHARBOURG, ENTREECHARBOURG_SOUSSOL1, CHEMINROCHEUX,
     FORETVESTIGION, VIEUXCHATEAU, VIEUXCHATEAU_SALLEAMANGER, VIEUXCHATEAU_AILES, VIEUXCHATEAU_COULOIR, VIEUXCHATEAU_CHAMBRE1, VIEUXCHATEAU_CHAMBRE2, VIEUXCHATEAU_CHAMBRE3, VIEUXCHATEAU_CHAMBRE4, VIEUXCHATEAU_CHAMBRE5,
     GROTTEREVECHE, GROTTEREVECHE_SOUSSOL,
+    TOURPERDUE_REZDECHAUSSEE, TOURPERDUE_ETAGE1, TOURPERDUE_ETAGE2, TOURPERDUE_ETAGE3, TOURPERDUE_ETAGE4,
 	MONTCOURONNE_PASSAGECHARBOURG, MONTCOURONNE_SALLE1, MONTCOURONNE_SALLE2, MONTCOURONNE_EXTERIEUR2, MONTCOURONNE_EXTERIEUR1, MONTCOURONNE_SALLE3, MONTCOURONNE_SALLE4, MONTCOURONNE_SALLE5, MONTCOURONNE_SALLE6, MONTCOURONNE_SALLE7, MONTCOURONNE_PASSAGEFRIMAPIC, MONTCOURONNE_PASSAGEVESTIGION, MONTCOURONNE_SALLE8,
 	ILEDEFER, ILEDEFER_REZDECHAUSSEE, ILEDEFER_SOUSSOL1OUEST, ILEDEFER_SOUSSOL1EST, ILEDEFER_SOUSSOL2EST, ILEDEFER_SOUSSOL2OUEST, ILEDEFER_SORTIE,
     ROUTEVICTOIRE, ROUTEVICTOIRE_SALLEOUEST, ROUTEVICTOIRE_SALLEEST, ROUTEVICTOIRE_SALLEBRUME, ROUTEVICTOIRE_PASSAGEEST, ROUTEVICTOIRE_PASSAGEROUTE224,
@@ -929,6 +942,11 @@ ZONEDICTIONARY = {
     353: SOUTHCENTER, # Route 207
     354: ROUTE208, # Route 208
     356: NORTHCENTER, # Route 209
+    357: TOURPERDUE_REZDECHAUSSEE,
+    358: TOURPERDUE_ETAGE1,
+    359: TOURPERDUE_ETAGE2,
+    360: TOURPERDUE_ETAGE3,
+    361: TOURPERDUE_ETAGE4,
     362: NORTHCENTER, # Route 210 - Sud
     363: NORTHCENTER, # Route 210 - Nord
     365: NORTHWEST, # Route 211 - Ouest
