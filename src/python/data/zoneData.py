@@ -510,7 +510,7 @@ zoneData = ["Mystery Zone - 0", "Mystery Zone - 1", "Mystery Zone - 2",     "Fé
         "Salle Originelle",
     "Hall of Origin",
     "Ruin Maniac Cave",
-    "Maniac Tunnel",
+        "Tunnel Ruinemaniac",
         "Ile de Fer - Maison 1",
         "Ruines Bonville - Salle 5 Cul-de-Sac 1",
         "Rivamar - Phare Ascenseur",
