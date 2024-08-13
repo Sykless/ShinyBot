@@ -21,7 +21,7 @@ BONVILLE_ID = 433
 AIREDESURVIE_ID = 450
 
 class Zone():
-    def __init__(self, name, zoneId, mapFile, canBike, canFly):
+    def __init__(self, name, zoneId, mapFile, canBike, canFly, canDig):
         self.name = name
         self.zoneId = zoneId
         self.map = open('src/python/data/map/' + mapFile + '.map').readlines()
@@ -29,6 +29,7 @@ class Zone():
         
         self.canBike = canBike
         self.canFly = canFly
+        self.canDig = canDig
 
     def addDoor(self, door):
         if (door in self.doorList):
@@ -242,84 +243,84 @@ def isFlyDoor(door):
 
 
 # Overworld
-EAST = Zone("East", RIVAMAR_ID, "overworld/east", True, True)
-NORTH = Zone("North", FRIMAPIC_ID, "overworld/north", False, True)
-NORTHCENTER = Zone("Northcenter", BONVILLE_ID, "overworld/northcenter", True, True)
-NORTHEAST = Zone("Northeast", PARADISFLEURI_ID, "overworld/northeast", True, True)
-NORTHWEST = Zone("Northwest", FLORAVILLE_ID, "overworld/northwest", True, True)
-SOUTH = Zone("South", VERCHAMPS_ID, "overworld/south", True, True)
-SOUTHCENTER = Zone("Southcenter", CHARBOURG_ID, "overworld/southcenter", True, True)
-SOUTHEAST = Zone("Southeast", RIVELACCOURAGE_ID, "overworld/southeast", True, True)
-SOUTHWEST = Zone("Southwest", BONAUGURE_ID, "overworld/southwesh", True, True)
-SECTEURCOMBAT_NORTHWEST = Zone("Secteur Combat - Northwest", AIREDESURVIE_ID, "overworld/secteurCombat-northwest", True, True)
-SECTEURCOMBAT_SOUTHEAST = Zone("Secteur Combat - Southeast", AIREDECOMBAT_ID, "overworld/secteurCombat-southeast", True, True)
+EAST = Zone("East", RIVAMAR_ID, "overworld/east", True, True, False)
+NORTH = Zone("North", FRIMAPIC_ID, "overworld/north", False, True, False)
+NORTHCENTER = Zone("Northcenter", BONVILLE_ID, "overworld/northcenter", True, True, False)
+NORTHEAST = Zone("Northeast", PARADISFLEURI_ID, "overworld/northeast", True, True, False)
+NORTHWEST = Zone("Northwest", FLORAVILLE_ID, "overworld/northwest", True, True, False)
+SOUTH = Zone("South", VERCHAMPS_ID, "overworld/south", True, True, False)
+SOUTHCENTER = Zone("Southcenter", CHARBOURG_ID, "overworld/southcenter", True, True, False)
+SOUTHEAST = Zone("Southeast", RIVELACCOURAGE_ID, "overworld/southeast", True, True, False)
+SOUTHWEST = Zone("Southwest", BONAUGURE_ID, "overworld/southwesh", True, True, False)
+SECTEURCOMBAT_NORTHWEST = Zone("Secteur Combat - Northwest", AIREDESURVIE_ID, "overworld/secteurCombat-northwest", True, True, False)
+SECTEURCOMBAT_SOUTHEAST = Zone("Secteur Combat - Southeast", AIREDECOMBAT_ID, "overworld/secteurCombat-southeast", True, True, False)
 
 # Bonaugure
-BONAUGURE_MAISON = Zone("Bonaugure - Maison Maman", 414, "city/bonaugure-maisonMaman", False, False)
+BONAUGURE_MAISON = Zone("Bonaugure - Maison Maman", 414, "city/bonaugure-maisonMaman", False, False, False)
 BONAUGURE_MAISON_DOOR = Door(Position(116,885,SOUTHWEST), Position(6,10,BONAUGURE_MAISON))
 setConnectingDoors(BONAUGURE_MAISON_DOOR, Door(Position(6,11,BONAUGURE_MAISON), Position(116,886,SOUTHWEST)))
 
 # Littorella
-LITTORELLA_CENTREPOKEMON = Zone("Littorella - Centre Pokémon", 420, "city/littorella-centrePokemon", False, False)
+LITTORELLA_CENTREPOKEMON = Zone("Littorella - Centre Pokémon", 420, "city/littorella-centrePokemon", False, False, False)
 LITTORELLA_CENTREPOKEMON_DOOR = Door(Position(177,842,SOUTHWEST), Position(8,12,LITTORELLA_CENTREPOKEMON))
-LITTORELLA_SHOP = Zone("Littorella - Shop", 419, "city/littorella-shop", False, False)
+LITTORELLA_SHOP = Zone("Littorella - Shop", 419, "city/littorella-shop", False, False, False)
 setConnectingDoors(LITTORELLA_CENTREPOKEMON_DOOR, Door(Position(8,13,LITTORELLA_CENTREPOKEMON), Position(177,843,SOUTHWEST)))
 setConnectingDoors(Door(Position(187,842,SOUTHWEST), Position(3,11,LITTORELLA_SHOP)), Door(Position(3,12,LITTORELLA_SHOP), Position(187,843,SOUTHWEST)))
 
 # Féli-Cité
-FELICITE_CENTREPOKEMON = Zone("Féli-Cité - Centre Pokémon", 6, "city/felicite-centrePokemon", False, False)
+FELICITE_CENTREPOKEMON = Zone("Féli-Cité - Centre Pokémon", 6, "city/felicite-centrePokemon", False, False, False)
 FELICITE_CENTREPOKEMON_DOOR = Door(Position(180,776,SOUTHWEST), Position(8,12,FELICITE_CENTREPOKEMON))
-FELICITE_SHOP = Zone("Féli-Cité - Shop", 4, "city/felicite-shop", False, False)
+FELICITE_SHOP = Zone("Féli-Cité - Shop", 4, "city/felicite-shop", False, False, False)
 setConnectingDoors(FELICITE_CENTREPOKEMON_DOOR, Door(Position(8,13,FELICITE_CENTREPOKEMON), Position(180,777,SOUTHWEST)))
 setConnectingDoors(Door(Position(179,766,SOUTHWEST), Position(3,11,FELICITE_SHOP)), Door(Position(3,12,FELICITE_SHOP), Position(179,767,SOUTHWEST)))
 
 # Charbourg
-CHARBOURG_CENTREPOKEMON = Zone("Charbourg - Centre Pokémon", 48, "city/charbourg-centrePokemon", False, False)
+CHARBOURG_CENTREPOKEMON = Zone("Charbourg - Centre Pokémon", 48, "city/charbourg-centrePokemon", False, False, False)
 CHARBOURG_CENTREPOKEMON_DOOR = Door(Position(303,756,SOUTHCENTER), Position(8,12,CHARBOURG_CENTREPOKEMON))
-CHARBOURG_SHOP = Zone("Charbourg - Shop", 46, "city/charbourg-shop", False, False)
+CHARBOURG_SHOP = Zone("Charbourg - Shop", 46, "city/charbourg-shop", False, False, False)
 setConnectingDoors(CHARBOURG_CENTREPOKEMON_DOOR, Door(Position(8,13,CHARBOURG_CENTREPOKEMON), Position(303,757,SOUTHCENTER)))
 setConnectingDoors(Door(Position(285,746,SOUTHCENTER), Position(3,11,CHARBOURG_SHOP)), Door(Position(3,12,CHARBOURG_SHOP), Position(285,747,SOUTHCENTER)))
 
 # Floraville
-FLORAVILLE_CENTREPOKEMON = Zone("Floraville - Centre Pokémon", 428, "city/floraville-centrePokemon", False, False)
+FLORAVILLE_CENTREPOKEMON = Zone("Floraville - Centre Pokémon", 428, "city/floraville-centrePokemon", False, False, False)
 FLORAVILLE_CENTREPOKEMON_DOOR = Door(Position(176,666,NORTHWEST), Position(8,12,FLORAVILLE_CENTREPOKEMON))
-FLORAVILLE_SHOP = Zone("Floraville - Shop", 427, "city/floraville-shop", False, False)
+FLORAVILLE_SHOP = Zone("Floraville - Shop", 427, "city/floraville-shop", False, False, False)
 setConnectingDoors(FLORAVILLE_CENTREPOKEMON_DOOR, Door(Position(8,13,FLORAVILLE_CENTREPOKEMON), Position(176,667,NORTHWEST)))
 setConnectingDoors(Door(Position(184,657,NORTHWEST), Position(3,11,FLORAVILLE_SHOP)), Door(Position(3,12,FLORAVILLE_SHOP), Position(184,658,NORTHWEST)))
 
 # Vestigion
-VESTIGION_CENTREPOKEMON = Zone("Vestigion - Centre Pokémon", 69, "city/vestigion-centrePokemon", False, False)
+VESTIGION_CENTREPOKEMON = Zone("Vestigion - Centre Pokémon", 69, "city/vestigion-centrePokemon", False, False, False)
 VESTIGION_CENTREPOKEMON_DOOR = Door(Position(305,530,NORTHWEST), Position(8,12,VESTIGION_CENTREPOKEMON))
-VESTIGION_SHOP = Zone("Vestigion - Shop", 66, "city/vestigion-shop", False, False)
+VESTIGION_SHOP = Zone("Vestigion - Shop", 66, "city/vestigion-shop", False, False, False)
 setConnectingDoors(VESTIGION_CENTREPOKEMON_DOOR, Door(Position(8,13,VESTIGION_CENTREPOKEMON), Position(305,531,NORTHWEST)))
 setConnectingDoors(Door(Position(309,548,NORTHWEST), Position(3,11,VESTIGION_SHOP)), Door(Position(3,12,VESTIGION_SHOP), Position(309,549,NORTHWEST)))
 
 # Unionpolis
-UNIONPOLIS = Zone("Unionpolis", 86, "city/unionpolis", True, True)
-UNIONPOLIS_CENTREPOKEMON = Zone("Unionpolis - Centre Pokémon", 101, "city/unionpolis-centrePokemon", False, False)
+UNIONPOLIS = Zone("Unionpolis", 86, "city/unionpolis", True, True, False)
+UNIONPOLIS_CENTREPOKEMON = Zone("Unionpolis - Centre Pokémon", 101, "city/unionpolis-centrePokemon", False, False, False)
 UNIONPOLIS_CENTREPOKEMON_DOOR = Door(Position(465,697,UNIONPOLIS), Position(8,12,UNIONPOLIS_CENTREPOKEMON))
-UNIONPOLIS_SHOP = Zone("Unionpolis - Shop", 87, "city/unionpolis-shop", False, False)
+UNIONPOLIS_SHOP = Zone("Unionpolis - Shop", 87, "city/unionpolis-shop", False, False, False)
 setConnectingDoors(UNIONPOLIS_CENTREPOKEMON_DOOR, Door(Position(8,13,UNIONPOLIS_CENTREPOKEMON), Position(465,698,UNIONPOLIS)))
 setConnectingDoors(Door(Position(477,710,UNIONPOLIS), Position(3,11,UNIONPOLIS_SHOP)), Door(Position(3,12,UNIONPOLIS_SHOP), Position(477,711,UNIONPOLIS)))
 
 # Bonville
-BONVILLE_CENTREPOKEMON = Zone("Bonville - Centre Pokémon", 435, "city/bonville-centrePokemon", False, False)
+BONVILLE_CENTREPOKEMON = Zone("Bonville - Centre Pokémon", 435, "city/bonville-centrePokemon", False, False, False)
 BONVILLE_CENTREPOKEMON_DOOR = Door(Position(566,656,NORTHCENTER), Position(8,12,BONVILLE_CENTREPOKEMON))
-BONVILLE_SHOP = Zone("Bonville - Shop", 434, "city/bonville-shop", False, False)
+BONVILLE_SHOP = Zone("Bonville - Shop", 434, "city/bonville-shop", False, False, False)
 setConnectingDoors(BONVILLE_CENTREPOKEMON_DOOR, Door(Position(8,13,BONVILLE_CENTREPOKEMON), Position(566,657,NORTHCENTER)))
 setConnectingDoors(Door(Position(571,665,NORTHCENTER), Position(3,11,BONVILLE_SHOP)), Door(Position(3,12,BONVILLE_SHOP), Position(571,666,NORTHCENTER)))
 
 # Voilaroc
-VOILAROC = Zone("Voilaroc", 132, "city/voilaroc", True, True)
-VOILAROC_CENTREPOKEMON = Zone("Voilaroc - Centre Pokémon", 134, "city/voilaroc-centrePokemon", False, False)
+VOILAROC = Zone("Voilaroc", 132, "city/voilaroc", True, True, False)
+VOILAROC_CENTREPOKEMON = Zone("Voilaroc - Centre Pokémon", 134, "city/voilaroc-centrePokemon", False, False, False)
 VOILAROC_CENTREPOKEMON_DOOR = Door(Position(717,611,VOILAROC), Position(8,12,VOILAROC_CENTREPOKEMON))
-VOILAROC_CENTRECOMMERCIAL = Zone("Voilaroc - Centre Commercial", 137, "city/centreCommercial-1", False, False)
-VOILAROC_CENTRECOMMERCIALETAGE1 = Zone("Voilaroc - Centre Commercial Étage 1", 138, "city/centreCommercial-2", False, False)
-VOILAROC_CENTRECOMMERCIALETAGE2 = Zone("Voilaroc - Centre Commercial Étage 2", 139, "city/centreCommercial-3", False, False)
-VOILAROC_CENTRECOMMERCIALETAGE3 = Zone("Voilaroc - Centre Commercial Étage 3", 140, "city/centreCommercial-4", False, False)
-VOILAROC_CENTRECOMMERCIALETAGE4 = Zone("Voilaroc - Centre Commercial Étage 4", 141, "city/centreCommercial-5", False, False)
-VOILAROC_CENTRECOMMERCIALASCENSEUR = Zone("Voilaroc - Centre Commercial Ascenseur", 142, "city/centreCommercial-7", False, False)
-VOILAROC_CENTRECOMMERCIALSOUSSOL1 = Zone("Voilaroc - Centre Commercial Sous-Sol 1", 566, "city/centreCommercial-6", False, False)
+VOILAROC_CENTRECOMMERCIAL = Zone("Voilaroc - Centre Commercial", 137, "city/centreCommercial-1", False, False, False)
+VOILAROC_CENTRECOMMERCIALETAGE1 = Zone("Voilaroc - Centre Commercial Étage 1", 138, "city/centreCommercial-2", False, False, False)
+VOILAROC_CENTRECOMMERCIALETAGE2 = Zone("Voilaroc - Centre Commercial Étage 2", 139, "city/centreCommercial-3", False, False, False)
+VOILAROC_CENTRECOMMERCIALETAGE3 = Zone("Voilaroc - Centre Commercial Étage 3", 140, "city/centreCommercial-4", False, False, False)
+VOILAROC_CENTRECOMMERCIALETAGE4 = Zone("Voilaroc - Centre Commercial Étage 4", 141, "city/centreCommercial-5", False, False, False)
+VOILAROC_CENTRECOMMERCIALASCENSEUR = Zone("Voilaroc - Centre Commercial Ascenseur", 142, "city/centreCommercial-7", False, False, False)
+VOILAROC_CENTRECOMMERCIALSOUSSOL1 = Zone("Voilaroc - Centre Commercial Sous-Sol 1", 566, "city/centreCommercial-6", False, False, False)
 VOILAROC_CENTRECOMMERCIAL.addDoor(Door(Position(15,2,VOILAROC_CENTRECOMMERCIAL), Position(3,6,VOILAROC_CENTRECOMMERCIALASCENSEUR)))
 VOILAROC_CENTRECOMMERCIALETAGE1.addDoor(Door(Position(15,2,VOILAROC_CENTRECOMMERCIALETAGE1), Position(3,6,VOILAROC_CENTRECOMMERCIALASCENSEUR)))
 VOILAROC_CENTRECOMMERCIALETAGE2.addDoor(Door(Position(15,2,VOILAROC_CENTRECOMMERCIALETAGE2), Position(3,6,VOILAROC_CENTRECOMMERCIALASCENSEUR)))
@@ -336,167 +337,167 @@ setConnectingDoors(Door(Position(12,8,VOILAROC_CENTRECOMMERCIALETAGE2), Position
 setConnectingDoors(Door(Position(12,8,VOILAROC_CENTRECOMMERCIALETAGE3), Position(6,8,VOILAROC_CENTRECOMMERCIALETAGE4)), Door(Position(7,8,VOILAROC_CENTRECOMMERCIALETAGE4), Position(13,8,VOILAROC_CENTRECOMMERCIALETAGE3)))
 
 # Verchamps
-VERCHAMPS_CENTREPOKEMON = Zone("Verchamps - Centre Pokémon", 123, "city/verchamps-centrePokemon", False, False)
+VERCHAMPS_CENTREPOKEMON = Zone("Verchamps - Centre Pokémon", 123, "city/verchamps-centrePokemon", False, False, False)
 VERCHAMPS_CENTREPOKEMON_DOOR = Door(Position(600,815,SOUTH), Position(8,12,VERCHAMPS_CENTREPOKEMON))
-VERCHAMPS_SHOP = Zone("Verchamps - Shop", 121, "city/verchamps-shop", False, False)
+VERCHAMPS_SHOP = Zone("Verchamps - Shop", 121, "city/verchamps-shop", False, False, False)
 setConnectingDoors(VERCHAMPS_CENTREPOKEMON_DOOR, Door(Position(8,13,VERCHAMPS_CENTREPOKEMON), Position(600,816,SOUTH)))
 setConnectingDoors(Door(Position(601,844,SOUTH), Position(3,11,VERCHAMPS_SHOP)), Door(Position(3,12,VERCHAMPS_SHOP), Position(601,845,SOUTH)))
 
 # Célestia
-CELESTIA_CENTREPOKEMON = Zone("Célestia - Centre Pokémon", 443, "city/celestia-centrePokemon", False, False)
+CELESTIA_CENTREPOKEMON = Zone("Célestia - Centre Pokémon", 443, "city/celestia-centrePokemon", False, False, False)
 CELESTIA_CENTREPOKEMON_DOOR = Door(Position(472,538,NORTHCENTER), Position(8,12,CELESTIA_CENTREPOKEMON))
-CELESTIA_SHOP = Zone("Célestia - Shop", 446, "city/celestia-shop", False, False)
+CELESTIA_SHOP = Zone("Célestia - Shop", 446, "city/celestia-shop", False, False, False)
 setConnectingDoors(CELESTIA_CENTREPOKEMON_DOOR, Door(Position(8,13,CELESTIA_CENTREPOKEMON), Position(472,539,NORTHCENTER)))
 setConnectingDoors(Door(Position(450,515,NORTHCENTER), Position(4,8,CELESTIA_SHOP)), Door(Position(4,9,CELESTIA_SHOP), Position(450,516,NORTHCENTER)))
 
 # Joliberges
-JOLIBERGES = Zone("Joliberges", 33, "city/joliberges", True, True)
-JOLIBERGES_CENTREPOKEMON = Zone("Joliberges - Centre Pokémon", 36, "city/joliberges-centrePokemon", False, False)
+JOLIBERGES = Zone("Joliberges", 33, "city/joliberges", True, True, False)
+JOLIBERGES_CENTREPOKEMON = Zone("Joliberges - Centre Pokémon", 36, "city/joliberges-centrePokemon", False, False, False)
 JOLIBERGES_CENTREPOKEMON_DOOR = Door(Position(58,722,JOLIBERGES), Position(8,12,JOLIBERGES_CENTREPOKEMON))
-JOLIBERGES_SHOP = Zone("Joliberges - Shop", 34, "city/joliberges-shop", False, False)
+JOLIBERGES_SHOP = Zone("Joliberges - Shop", 34, "city/joliberges-shop", False, False, False)
 setConnectingDoors(JOLIBERGES_CENTREPOKEMON_DOOR, Door(Position(8,13,JOLIBERGES_CENTREPOKEMON), Position(58,723,JOLIBERGES)))
 setConnectingDoors(Door(Position(53,740,JOLIBERGES), Position(3,11,JOLIBERGES_SHOP)), Door(Position(3,12,JOLIBERGES_SHOP), Position(53,741,JOLIBERGES)))
 
 # Frimapic
-FRIMAPIC_CENTREPOKEMON = Zone("Frimapic - Centre Pokémon", 168, "city/frimapic-centrePokemon", False, False)
+FRIMAPIC_CENTREPOKEMON = Zone("Frimapic - Centre Pokémon", 168, "city/frimapic-centrePokemon", False, False, False)
 FRIMAPIC_CENTREPOKEMON_DOOR = Door(Position(379,233,NORTH), Position(8,12,FRIMAPIC_CENTREPOKEMON))
-FRIMAPIC_SHOP = Zone("Frimapic - Shop", 166, "city/frimapic-shop", False, False)
+FRIMAPIC_SHOP = Zone("Frimapic - Shop", 166, "city/frimapic-shop", False, False, False)
 setConnectingDoors(FRIMAPIC_CENTREPOKEMON_DOOR, Door(Position(8,13,FRIMAPIC_CENTREPOKEMON), Position(379,234,NORTH)))
 setConnectingDoors(Door(Position(353,232,NORTH), Position(3,11,FRIMAPIC_SHOP)), Door(Position(3,12,FRIMAPIC_SHOP), Position(353,233,NORTH)))
 
 # Rivamar
-RIVAMAR_CENTREPOKEMON = Zone("Rivamar - Centre Pokémon", 151, "city/rivamar-centrePokemon", False, False)
+RIVAMAR_CENTREPOKEMON = Zone("Rivamar - Centre Pokémon", 151, "city/rivamar-centrePokemon", False, False, False)
 RIVAMAR_CENTREPOKEMON_DOOR = Door(Position(860,784,EAST), Position(8,12,RIVAMAR_CENTREPOKEMON))
-RIVAMAR_SHOP = Zone("Rivamar - Shop", 153, "city/rivamar-shop", False, False)
+RIVAMAR_SHOP = Zone("Rivamar - Shop", 153, "city/rivamar-shop", False, False, False)
 setConnectingDoors(RIVAMAR_CENTREPOKEMON_DOOR, Door(Position(8,13,RIVAMAR_CENTREPOKEMON), Position(860,785,EAST)))
 setConnectingDoors(Door(Position(853,768,EAST), Position(3,11,RIVAMAR_SHOP)), Door(Position(3,12,RIVAMAR_SHOP), Position(853,769,EAST)))
 
 # Ligue Pokémon
-LIGUEPOKEMON = Zone("Ligue Pokémon", 172, "city/liguePokemon-1", True, True)
-LIGUEPOKEMON_CENTREPOKEMON = Zone("Route Victoire - Centre Pokémon", 173, "city/liguePokemon-centrePokemon", False, False)
+LIGUEPOKEMON = Zone("Ligue Pokémon", 172, "city/liguePokemon-1", True, True, False)
+LIGUEPOKEMON_CENTREPOKEMON = Zone("Route Victoire - Centre Pokémon", 173, "city/liguePokemon-centrePokemon", False, False, False)
 LIGUEPOKEMON_CENTREPOKEMON_DOOR = Door(Position(842,598,EAST), Position(8,12,LIGUEPOKEMON_CENTREPOKEMON))
-LIGUEPOKEMON_INTERIEUR = Zone("Ligue Pokémon - Intérieur", 175, "city/liguePokemon-2", False, False)
+LIGUEPOKEMON_INTERIEUR = Zone("Ligue Pokémon - Intérieur", 175, "city/liguePokemon-2", False, False, False)
 LIGUEPOKEMON_INTERIEUR_DOOR = Door(Position(847,559,LIGUEPOKEMON), Position(11,11,LIGUEPOKEMON_INTERIEUR))
 setConnectingDoors(LIGUEPOKEMON_CENTREPOKEMON_DOOR, Door(Position(8,13,LIGUEPOKEMON_CENTREPOKEMON), Position(842,599,EAST)))
 setConnectingDoors(LIGUEPOKEMON_INTERIEUR_DOOR, Door(Position(11,12,LIGUEPOKEMON_INTERIEUR), Position(847,560,LIGUEPOKEMON)))
 
 # Parc des Amis
-PARCDESAMIS = Zone("Parc des Amis", 393, "city/parcdesamis", False, False)
+PARCDESAMIS = Zone("Parc des Amis", 393, "city/parcdesamis", False, False, False)
 PARCDESAMIS_DOOR = Door(Position(306,909,SOUTHWEST), Position(7,19,PARCDESAMIS))
 setConnectingDoors(PARCDESAMIS_DOOR, Door(Position(7,20,PARCDESAMIS), Position(306,910,SOUTHWEST)))
 
 # Aire de Combat
-AIREDECOMBAT_CENTREPOKEMON = Zone("Aire de Combat - Centre Pokémon", 189, "city/airedecombat-centrePokemon", False, False)
+AIREDECOMBAT_CENTREPOKEMON = Zone("Aire de Combat - Centre Pokémon", 189, "city/airedecombat-centrePokemon", False, False, False)
 AIREDECOMBAT_CENTREPOKEMON_DOOR = Door(Position(647,429,SECTEURCOMBAT_SOUTHEAST), Position(8,12,AIREDECOMBAT_CENTREPOKEMON))
-AIREDECOMBAT_SHOP = Zone("Aire de Combat - Shop", 191, "city/airedecombat-shop", False, False)
+AIREDECOMBAT_SHOP = Zone("Aire de Combat - Shop", 191, "city/airedecombat-shop", False, False, False)
 setConnectingDoors(AIREDECOMBAT_CENTREPOKEMON_DOOR, Door(Position(8,13,AIREDECOMBAT_CENTREPOKEMON), Position(647,430,SECTEURCOMBAT_SOUTHEAST)))
 setConnectingDoors(Door(Position(660,429,SECTEURCOMBAT_SOUTHEAST), Position(3,11,AIREDECOMBAT_SHOP)), Door(Position(3,12,AIREDECOMBAT_SHOP), Position(660,430,SECTEURCOMBAT_SOUTHEAST)))
 
 # Aire de Survie
-AIREDESURVIE_CENTREPOKEMON = Zone("Aire de Survie - Centre Pokémon", 452, "city/airedesurvie-centrePokemon", False, False)
+AIREDESURVIE_CENTREPOKEMON = Zone("Aire de Survie - Centre Pokémon", 452, "city/airedesurvie-centrePokemon", False, False, False)
 AIREDESURVIE_CENTREPOKEMON_DOOR = Door(Position(659,338,SECTEURCOMBAT_NORTHWEST), Position(8,12,AIREDESURVIE_CENTREPOKEMON))
-AIREDESURVIE_SHOP = Zone("Aire de Survie - Shop", 451, "city/airedesurvie-shop", False, False)
+AIREDESURVIE_SHOP = Zone("Aire de Survie - Shop", 451, "city/airedesurvie-shop", False, False, False)
 setConnectingDoors(AIREDESURVIE_CENTREPOKEMON_DOOR, Door(Position(8,13,AIREDESURVIE_CENTREPOKEMON), Position(659,339,SECTEURCOMBAT_NORTHWEST)))
 setConnectingDoors(Door(Position(663,338,SECTEURCOMBAT_NORTHWEST), Position(3,11,AIREDESURVIE_SHOP)), Door(Position(3,12,AIREDESURVIE_SHOP), Position(663,339,SECTEURCOMBAT_NORTHWEST)))
 
 # Aire de Détente
-AIREDEDETENTE_CENTREPOKEMON = Zone("Aire de Détente - Centre Pokémon", 459, "city/airededetente-centrePokemon", False, False)
+AIREDEDETENTE_CENTREPOKEMON = Zone("Aire de Détente - Centre Pokémon", 459, "city/airededetente-centrePokemon", False, False, False)
 AIREDEDETENTE_CENTREPOKEMON_DOOR = Door(Position(802,472,SECTEURCOMBAT_SOUTHEAST), Position(8,12,AIREDEDETENTE_CENTREPOKEMON))
 setConnectingDoors(AIREDEDETENTE_CENTREPOKEMON_DOOR, Door(Position(8,13,AIREDEDETENTE_CENTREPOKEMON), Position(802,473,SECTEURCOMBAT_SOUTHEAST)))
 
 # Passage Route 206 <-> Vestigion
-ROUTE206_PASSAGEVESTIGION = Zone("Route 206 - Passage Vestigion", 80, "route/route206-passageVestigion", True, False)
+ROUTE206_PASSAGEVESTIGION = Zone("Route 206 - Passage Vestigion", 80, "route/route206-passageVestigion", True, False, False)
 setConnectingDoors(Door(Position(304,570,NORTHWEST), Position(7,3,ROUTE206_PASSAGEVESTIGION)), Door(Position(7,2,ROUTE206_PASSAGEVESTIGION), Position(304,569,NORTHWEST)))
 
 # Passage Route 206 <-> Charbourg
-ROUTE206_PASSAGECHARBOURG = Zone("Route 206 - Passage Charbourg", 351, "route/route206-passageCharbourg", True, False)
+ROUTE206_PASSAGECHARBOURG = Zone("Route 206 - Passage Charbourg", 351, "route/route206-passageCharbourg", True, False, False)
 setConnectingDoors(Door(Position(302,688,SOUTHCENTER), Position(7,12,ROUTE206_PASSAGECHARBOURG)), Door(Position(7,13,ROUTE206_PASSAGECHARBOURG), Position(302,689,SOUTHCENTER)))
 
 # Passage Route 208 <-> Unionpolis
 ROUTE208 = Zone("Route 208", 354, "route/route208", True, True)
-ROUTE208_PASSAGEUNIONPOLIS = Zone("Route 208 - Passage Unionpolis", 109, "route/route208-passageUnionpolis", True, False)
+ROUTE208_PASSAGEUNIONPOLIS = Zone("Route 208 - Passage Unionpolis", 109, "route/route208-passageUnionpolis", True, False, False)
 setConnectingDoors(Door(Position(448,726,ROUTE208), Position(1,7,ROUTE208_PASSAGEUNIONPOLIS)), Door(Position(0,7,ROUTE208_PASSAGEUNIONPOLIS), Position(447,726,ROUTE208)))
 setConnectingDoors(Door(Position(453,726,UNIONPOLIS), Position(10,7,ROUTE208_PASSAGEUNIONPOLIS)), Door(Position(11,7,ROUTE208_PASSAGEUNIONPOLIS), Position(454,726,UNIONPOLIS)))
 
 # Passage Route 209 <-> Unionpolis
-ROUTE209_PASSAGEUNIONPOLIS = Zone("Route 209 - Passage Unionpolis", 110, "route/route209-passageUnionpolis", True, False)
+ROUTE209_PASSAGEUNIONPOLIS = Zone("Route 209 - Passage Unionpolis", 110, "route/route209-passageUnionpolis", True, False, False)
 setConnectingDoors(Door(Position(511,726,NORTHCENTER), Position(10,7,ROUTE209_PASSAGEUNIONPOLIS)), Door(Position(11,7,ROUTE209_PASSAGEUNIONPOLIS), Position(512,726,NORTHCENTER)))
 setConnectingDoors(Door(Position(506,726,UNIONPOLIS), Position(1,7,ROUTE209_PASSAGEUNIONPOLIS)), Door(Position(0,7,ROUTE209_PASSAGEUNIONPOLIS), Position(505,726,UNIONPOLIS)))
 
 # Passage Route 212 <-> Unionpolis
-ROUTE212_PASSAGEUNIONPOLIS = Zone("Route 212 - Passage Unionpolis", 111, "route/route212-passageUnionpolis", True, False)
+ROUTE212_PASSAGEUNIONPOLIS = Zone("Route 212 - Passage Unionpolis", 111, "route/route212-passageUnionpolis", True, False, False)
 setConnectingDoors(Door(Position(458,736,SOUTH), Position(5,12,ROUTE212_PASSAGEUNIONPOLIS)), Door(Position(5,13,ROUTE212_PASSAGEUNIONPOLIS), Position(458,737,SOUTH)))
 setConnectingDoors(Door(Position(458,730,UNIONPOLIS), Position(5,3,ROUTE212_PASSAGEUNIONPOLIS)), Door(Position(5,2,ROUTE212_PASSAGEUNIONPOLIS), Position(458,729,UNIONPOLIS)))
 
 # Passage Route 215 <-> Voilaroc
-ROUTE215_PASSAGEVOILAROC = Zone("Route 215 - Passage Voilaroc", 149, "route/route215-passageVoilaroc", True, False)
+ROUTE215_PASSAGEVOILAROC = Zone("Route 215 - Passage Voilaroc", 149, "route/route215-passageVoilaroc", True, False, False)
 setConnectingDoors(Door(Position(672,598,NORTHCENTER), Position(1,7,ROUTE215_PASSAGEVOILAROC)), Door(Position(0,7,ROUTE215_PASSAGEVOILAROC), Position(671,598,NORTHCENTER)))
 setConnectingDoors(Door(Position(677,598,VOILAROC), Position(10,7,ROUTE215_PASSAGEVOILAROC)), Door(Position(11,7,ROUTE215_PASSAGEVOILAROC), Position(678,598,VOILAROC)))
 
 # Passage Route 214 <-> Voilaroc
-ROUTE214_PASSAGEVOILAROC = Zone("Route 214 - Passage Voilaroc", 381, "route/route214-passageVoilaroc", True, False)
+ROUTE214_PASSAGEVOILAROC = Zone("Route 214 - Passage Voilaroc", 381, "route/route214-passageVoilaroc", True, False, False)
 setConnectingDoors(Door(Position(718,645,SOUTHEAST), Position(5,12,ROUTE214_PASSAGEVOILAROC)), Door(Position(5,13,ROUTE214_PASSAGEVOILAROC), Position(718,646,SOUTHEAST)))
 setConnectingDoors(Door(Position(718,639,VOILAROC), Position(5,3,ROUTE214_PASSAGEVOILAROC)), Door(Position(5,2,ROUTE214_PASSAGEVOILAROC), Position(718,638,VOILAROC)))
 
 # Passage Route 213 <-> Verchamps
 ROUTE213 = Zone("Route 213", 373, "route/route213", True, True)
-ROUTE213_PASSAGEVERCHAMPS = Zone("Route 213 - Passage Verchamps", 374, "route/route213-passageVerchamps", True, False)
+ROUTE213_PASSAGEVERCHAMPS = Zone("Route 213 - Passage Verchamps", 374, "route/route213-passageVerchamps", True, False, False)
 setConnectingDoors(Door(Position(640,812,SOUTH), Position(1,7,ROUTE213_PASSAGEVERCHAMPS)), Door(Position(0,7,ROUTE213_PASSAGEVERCHAMPS), Position(639,812,SOUTH)))
 setConnectingDoors(Door(Position(645,812,ROUTE213), Position(10,7,ROUTE213_PASSAGEVERCHAMPS)), Door(Position(11,7,ROUTE213_PASSAGEVERCHAMPS), Position(646,812,ROUTE213)))
 
 # Passage Route 218 <-> Féli-Cité
 ROUTE218 = Zone("Route 218", 388, "route/route218", True, True)
-ROUTE218_PASSAGEFELICITE = Zone("Route 218 - Passage Féli-Cité", 389, "route/route218-passageFelicite", True, False)
+ROUTE218_PASSAGEFELICITE = Zone("Route 218 - Passage Féli-Cité", 389, "route/route218-passageFelicite", True, False, False)
 setConnectingDoors(Door(Position(127,758,SOUTHWEST), Position(10,7,ROUTE218_PASSAGEFELICITE)), Door(Position(11,7,ROUTE218_PASSAGEFELICITE), Position(128,758,SOUTHWEST)))
 setConnectingDoors(Door(Position(122,758,ROUTE218), Position(1,7,ROUTE218_PASSAGEFELICITE)), Door(Position(0,7,ROUTE218_PASSAGEFELICITE), Position(121,758,ROUTE218)))
 
 # Passage Route 218 <-> Joliberges
-ROUTE218_PASSAGEJOLIBERGES = Zone("Route 218 - Passage Joliberges", 390, "route/route218-passageJoliberges", True, False)
+ROUTE218_PASSAGEJOLIBERGES = Zone("Route 218 - Passage Joliberges", 390, "route/route218-passageJoliberges", True, False, False)
 setConnectingDoors(Door(Position(69,754,ROUTE218), Position(10,7,ROUTE218_PASSAGEJOLIBERGES)), Door(Position(11,7,ROUTE218_PASSAGEJOLIBERGES), Position(70,754,ROUTE218)))
 setConnectingDoors(Door(Position(64,754,JOLIBERGES), Position(1,7,ROUTE218_PASSAGEJOLIBERGES)), Door(Position(0,7,ROUTE218_PASSAGEJOLIBERGES), Position(63,754,JOLIBERGES)))
 
 # Passage Route 222 <-> Rivamar
-ROUTE222_PASSAGERIVAMAR = Zone("Route 222 - Passage Rivamar", 398, "route/route222-passageRivamar", True, False)
+ROUTE222_PASSAGERIVAMAR = Zone("Route 222 - Passage Rivamar", 398, "route/route222-passageRivamar", True, False, False)
 setConnectingDoors(Door(Position(826,790,SOUTHEAST), Position(1,7,ROUTE222_PASSAGERIVAMAR)), Door(Position(0,7,ROUTE222_PASSAGERIVAMAR), Position(825,790,SOUTHEAST)))
 setConnectingDoors(Door(Position(831,790,EAST), Position(10,7,ROUTE222_PASSAGERIVAMAR)), Door(Position(11,7,ROUTE222_PASSAGERIVAMAR), Position(832,790,EAST)))
 
 # Passage Route 225 <-> Aire de Combat
-ROUTE225_PASSAGEAIREDECOMBAT = Zone("Route 225 - Passage Aire de Combat", 193, "route/route225-passageAiredecombat", True, False)
+ROUTE225_PASSAGEAIREDECOMBAT = Zone("Route 225 - Passage Aire de Combat", 193, "route/route225-passageAiredecombat", True, False, False)
 setConnectingDoors(Door(Position(630,414,SECTEURCOMBAT_NORTHWEST), Position(5,3,ROUTE225_PASSAGEAIREDECOMBAT)), Door(Position(5,2,ROUTE225_PASSAGEAIREDECOMBAT), Position(630,413,SECTEURCOMBAT_NORTHWEST)))
 setConnectingDoors(Door(Position(630,421,SECTEURCOMBAT_SOUTHEAST), Position(5,12,ROUTE225_PASSAGEAIREDECOMBAT)), Door(Position(5,13,ROUTE225_PASSAGEAIREDECOMBAT), Position(630,422,SECTEURCOMBAT_SOUTHEAST)))
 
 # Passage Route 226 <-> Route 228
-ROUTE226_PASSAGEROUTE228 = Zone("Route 226 - Passage Route 228", 501, "route/route226-passageRoute228", True, False)
+ROUTE226_PASSAGEROUTE228 = Zone("Route 226 - Passage Route 228", 501, "route/route226-passageRoute228", True, False, False)
 setConnectingDoors(Door(Position(768,330,SECTEURCOMBAT_NORTHWEST), Position(1,7,ROUTE226_PASSAGEROUTE228)), Door(Position(0,7,ROUTE226_PASSAGEROUTE228), Position(767,330,SECTEURCOMBAT_NORTHWEST)))
 setConnectingDoors(Door(Position(773,330,SECTEURCOMBAT_SOUTHEAST), Position(10,7,ROUTE226_PASSAGEROUTE228)), Door(Position(11,7,ROUTE226_PASSAGEROUTE228), Position(774,330,SECTEURCOMBAT_SOUTHEAST)))
 
 # Entrée Charbourg
-ENTREECHARBOURG = Zone("Entrée Charbourg", 258, "dungeon/entreeCharbourg-1", True, False)
-ENTREECHARBOURG_SOUSSOL1 = Zone("Entrée Charbourg - Sous-Sol 1", 259, "dungeon/entreeCharbourg-2", True, False)
+ENTREECHARBOURG = Zone("Entrée Charbourg", 258, "dungeon/entreeCharbourg-1", True, False, True)
+ENTREECHARBOURG_SOUSSOL1 = Zone("Entrée Charbourg - Sous-Sol 1", 259, "dungeon/entreeCharbourg-2", True, False, True)
 setConnectingDoors(Door(Position(247,749,SOUTHWEST), Position(4,22,ENTREECHARBOURG)), Door(Position(3,22,ENTREECHARBOURG), Position(246,749,SOUTHWEST)))
 setConnectingDoors(Door(Position(257,749,SOUTHCENTER), Position(27,22,ENTREECHARBOURG)), Door(Position(28,22,ENTREECHARBOURG), Position(258,749,SOUTHCENTER)))
 setConnectingDoors(Door(Position(21,5,ENTREECHARBOURG), Position(48,4,ENTREECHARBOURG_SOUSSOL1)), Door(Position(47,4,ENTREECHARBOURG_SOUSSOL1), Position(20,5,ENTREECHARBOURG)))
 
 # Chemin Rocheux
-CHEMINROCHEUX = Zone("Chemin Rocheux", 254, "dungeon/cheminRocheux", True, False)
+CHEMINROCHEUX = Zone("Chemin Rocheux", 254, "dungeon/cheminRocheux", True, False, True)
 setConnectingDoors(Door(Position(171,705,SOUTHWEST), Position(19,50,CHEMINROCHEUX)), Door(Position(19,51,CHEMINROCHEUX), Position(171,706,SOUTHWEST)))
 setConnectingDoors(Door(Position(180,698,NORTHWEST), Position(28,44,CHEMINROCHEUX)), Door(Position(28,45,CHEMINROCHEUX), Position(180,699,NORTHWEST)))
 
 # Forêt de Vestigion
-FORETVESTIGION = Zone("Forêt de Vestigion", 203, "dungeon/foretVestigion", True, True)
+FORETVESTIGION = Zone("Forêt de Vestigion", 203, "dungeon/foretVestigion", True, True, False)
 setConnectingDoors(Door(Position(206,581,NORTHWEST), Position(28,86,FORETVESTIGION)), Door(Position(28,87,FORETVESTIGION), Position(206,582,NORTHWEST)))
 setConnectingDoors(Door(Position(258,524,NORTHWEST), Position(86,36,FORETVESTIGION)), Door(Position(87,36,FORETVESTIGION), Position(259,524,NORTHWEST)))
 
 # Vieux Château
-VIEUXCHATEAU = Zone("Vieux Château", 295, "dungeon/vieuxChateau-1", False, False)
-VIEUXCHATEAU_SALLEAMANGER = Zone("Vieux Château - Salle à Manger", 296, "dungeon/vieuxChateau-2", False, False)
-VIEUXCHATEAU_AILES = Zone("Vieux Château - Ailes", 297, "dungeon/vieuxChateau-3", False, False)
-VIEUXCHATEAU_COULOIR = Zone("Vieux Château - Couloir", 298, "dungeon/vieuxChateau-4", False, False)
-VIEUXCHATEAU_CHAMBRE1 = Zone("Vieux Château - Chambre 1", 299, "dungeon/vieuxChateau-5", False, False)
-VIEUXCHATEAU_CHAMBRE2 = Zone("Vieux Château - Chambre 2", 300, "dungeon/vieuxChateau-6", False, False)
-VIEUXCHATEAU_CHAMBRE3 = Zone("Vieux Château - Chambre 3", 301, "dungeon/vieuxChateau-7", False, False)
-VIEUXCHATEAU_CHAMBRE4 = Zone("Vieux Château - Chambre 4", 302, "dungeon/vieuxChateau-8", False, False)
-VIEUXCHATEAU_CHAMBRE5 = Zone("Vieux Château - Chambre 5", 303, "dungeon/vieuxChateau-9", False, False)
+VIEUXCHATEAU = Zone("Vieux Château", 295, "dungeon/vieuxChateau-1", False, False, False)
+VIEUXCHATEAU_SALLEAMANGER = Zone("Vieux Château - Salle à Manger", 296, "dungeon/vieuxChateau-2", False, False, False)
+VIEUXCHATEAU_AILES = Zone("Vieux Château - Ailes", 297, "dungeon/vieuxChateau-3", False, False, False)
+VIEUXCHATEAU_COULOIR = Zone("Vieux Château - Couloir", 298, "dungeon/vieuxChateau-4", False, False, False)
+VIEUXCHATEAU_CHAMBRE1 = Zone("Vieux Château - Chambre 1", 299, "dungeon/vieuxChateau-5", False, False, False)
+VIEUXCHATEAU_CHAMBRE2 = Zone("Vieux Château - Chambre 2", 300, "dungeon/vieuxChateau-6", False, False, False)
+VIEUXCHATEAU_CHAMBRE3 = Zone("Vieux Château - Chambre 3", 301, "dungeon/vieuxChateau-7", False, False, False)
+VIEUXCHATEAU_CHAMBRE4 = Zone("Vieux Château - Chambre 4", 302, "dungeon/vieuxChateau-8", False, False, False)
+VIEUXCHATEAU_CHAMBRE5 = Zone("Vieux Château - Chambre 5", 303, "dungeon/vieuxChateau-9", False, False, False)
 setConnectingDoors(Door(Position(9,16,VIEUXCHATEAU), Position(74,16,FORETVESTIGION)), Door(Position(74,15,FORETVESTIGION), Position(9,15,VIEUXCHATEAU)))
 setConnectingDoors(Door(Position(9,5,VIEUXCHATEAU), Position(19,11,VIEUXCHATEAU_SALLEAMANGER)), Door(Position(19,12,VIEUXCHATEAU_SALLEAMANGER), Position(9,6,VIEUXCHATEAU)))
 setConnectingDoors(Door(Position(0,6,VIEUXCHATEAU), Position(7,5,VIEUXCHATEAU_AILES)), Door(Position(8,5,VIEUXCHATEAU_AILES), Position(1,6,VIEUXCHATEAU)))
@@ -509,24 +510,24 @@ setConnectingDoors(Door(Position(27,2,VIEUXCHATEAU_COULOIR), Position(13,7,VIEUX
 setConnectingDoors(Door(Position(34,2,VIEUXCHATEAU_COULOIR), Position(10,7,VIEUXCHATEAU_CHAMBRE5)), Door(Position(10,8,VIEUXCHATEAU_CHAMBRE5), Position(34,3,VIEUXCHATEAU_COULOIR)))
 
 # Piste Cyclable
-PISTECYCLABLE = Zone("Piste Cyclable", 350, "route/pisteCyclable", True, True)
+PISTECYCLABLE = Zone("Piste Cyclable", 350, "route/pisteCyclable", True, True, False)
 setConnectingDoors(Door(Position(304,576,PISTECYCLABLE), Position(7,12,ROUTE206_PASSAGEVESTIGION)), Door(Position(7,13,ROUTE206_PASSAGEVESTIGION), Position(304,577,PISTECYCLABLE)))
 setConnectingDoors(Door(Position(302,682,PISTECYCLABLE), Position(7,3,ROUTE206_PASSAGECHARBOURG)), Door(Position(7,2,ROUTE206_PASSAGECHARBOURG), Position(302,681,PISTECYCLABLE)))
 
 # Grotte Revêche
-GROTTEREVECHE = Zone("Grotte Revêche", 284, "dungeon/grotteReveche-1", True, False)
-GROTTEREVECHE_SOUSSOL = Zone("Grotte Revêche - Sous-Sol", 285, "dungeon/grotteReveche-2", True, False)
+GROTTEREVECHE = Zone("Grotte Revêche", 284, "dungeon/grotteReveche-1", True, False, True)
+GROTTEREVECHE_SOUSSOL = Zone("Grotte Revêche - Sous-Sol", 285, "dungeon/grotteReveche-2", True, False, True)
 setConnectingDoors(Door(Position(299,611,SOUTHCENTER), Position(30,55,GROTTEREVECHE)), Door(Position(30,56,GROTTEREVECHE), Position(299,612,SOUTHCENTER)))
 setConnectingDoors(Door(Position(310,607,SOUTHCENTER), Position(41,53,GROTTEREVECHE)), Door(Position(41,54,GROTTEREVECHE), Position(310,608,SOUTHCENTER)))
 setConnectingDoors(Door(Position(27,54,GROTTEREVECHE), Position(16,40,GROTTEREVECHE_SOUSSOL)), Door(Position(17,40,GROTTEREVECHE_SOUSSOL), Position(28,54,GROTTEREVECHE)))
 setConnectingDoors(Door(Position(54,54,GROTTEREVECHE), Position(43,38,GROTTEREVECHE_SOUSSOL)), Door(Position(44,38,GROTTEREVECHE_SOUSSOL), Position(55,54,GROTTEREVECHE)))
 
 # Tour Perdue
-TOURPERDUE_REZDECHAUSSEE = Zone("Tour Perdue - Rez-de-Chaussée", 357, "dungeon/tourPerdue-1", False, False)
-TOURPERDUE_ETAGE1 = Zone("Tour Perdue - Étage 1", 358, "dungeon/tourPerdue-2", False, False)
-TOURPERDUE_ETAGE2 = Zone("Tour Perdue - Étage 2", 359, "dungeon/tourPerdue-3", False, False)
-TOURPERDUE_ETAGE3 = Zone("Tour Perdue - Étage 3", 360, "dungeon/tourPerdue-4", False, False)
-TOURPERDUE_ETAGE4 = Zone("Tour Perdue - Étage 4", 361, "dungeon/tourPerdue-5", False, False)
+TOURPERDUE_REZDECHAUSSEE = Zone("Tour Perdue - Rez-de-Chaussée", 357, "dungeon/tourPerdue-1", False, False, False)
+TOURPERDUE_ETAGE1 = Zone("Tour Perdue - Étage 1", 358, "dungeon/tourPerdue-2", False, False, False)
+TOURPERDUE_ETAGE2 = Zone("Tour Perdue - Étage 2", 359, "dungeon/tourPerdue-3", False, False, False)
+TOURPERDUE_ETAGE3 = Zone("Tour Perdue - Étage 3", 360, "dungeon/tourPerdue-4", False, False, False)
+TOURPERDUE_ETAGE4 = Zone("Tour Perdue - Étage 4", 361, "dungeon/tourPerdue-5", False, False, False)
 setConnectingDoors(Door(Position(7,15,TOURPERDUE_REZDECHAUSSEE), Position(568,681,NORTHCENTER)), Door(Position(568,680,NORTHCENTER), Position(7,14,TOURPERDUE_REZDECHAUSSEE)))
 setConnectingDoors(Door(Position(5,3,TOURPERDUE_REZDECHAUSSEE), Position(11,3,TOURPERDUE_ETAGE1)), Door(Position(10,3,TOURPERDUE_ETAGE1), Position(4,3,TOURPERDUE_REZDECHAUSSEE)))
 setConnectingDoors(Door(Position(5,3,TOURPERDUE_ETAGE1), Position(11,3,TOURPERDUE_ETAGE2)), Door(Position(10,3,TOURPERDUE_ETAGE2), Position(4,3,TOURPERDUE_ETAGE1)))
@@ -534,24 +535,24 @@ setConnectingDoors(Door(Position(5,3,TOURPERDUE_ETAGE2), Position(11,3,TOURPERDU
 setConnectingDoors(Door(Position(5,3,TOURPERDUE_ETAGE3), Position(11,3,TOURPERDUE_ETAGE4)), Door(Position(10,3,TOURPERDUE_ETAGE4), Position(4,3,TOURPERDUE_ETAGE3)))
 
 # Ruines Bonville
-RUINESBONVILLE_ENTREE = Zone("Ruines Bonville - Entrée", 226, "dungeon/ruinesBonville-1", True, False)
-RUINESBONVILLE_ENTREE_NORDOUEST = Zone("Ruines Bonville - Entrée Nord-Ouest", 228, "dungeon/ruinesBonville-2", True, False)
-RUINESBONVILLE_ENTREE_SUDEST = Zone("Ruines Bonville - Entrée Sud-Est", 230, "dungeon/ruinesBonville-3", True, False)
-RUINESBONVILLE_SALLE1 = Zone("Ruines Bonville - Salle 1", 229, "dungeon/ruinesBonville-4", True, False)
-RUINESBONVILLE_SALLE1_NORDEST = Zone("Ruines Bonville - Salle 1 Nord-Est", 227, "dungeon/ruinesBonville-5", True, False)
-RUINESBONVILLE_SALLE1_SUDEST = Zone("Ruines Bonville - Salle 1 Sud-Est", 232, "dungeon/ruinesBonville-6", True, False)
-RUINESBONVILLE_SALLE2 = Zone("Ruines Bonville - Salle 2", 231, "dungeon/ruinesBonville-7", True, False)
-RUINESBONVILLE_SALLE2_NORDOUEST = Zone("Ruines Bonville - Salle 2 Nord-Ouest", 235, "dungeon/ruinesBonville-8", True, False)
-RUINESBONVILLE_SALLE2_SUDOUEST = Zone("Ruines Bonville - Salle 2 Sud-Ouest", 236, "dungeon/ruinesBonville-9", True, False)
-RUINESBONVILLE_SALLE3 = Zone("Ruines Bonville - Salle 3", 237, "dungeon/ruinesBonville-10", True, False)
-RUINESBONVILLE_SALLE3_SUDEST = Zone("Ruines Bonville - Salle 3 Sud-Est", 241, "dungeon/ruinesBonville-11", True, False)
-RUINESBONVILLE_SALLE4 = Zone("Ruines Bonville - Salle 4", 239, "dungeon/ruinesBonville-12", True, False)
-RUINESBONVILLE_SALLE4_SUDOUEST = Zone("Ruines Bonville - Salle 4 Sud-Ouest", 234, "dungeon/ruinesBonville-13", True, False)
-RUINESBONVILLE_SALLE4_SUDEST = Zone("Ruines Bonville - Salle 4 Sud-Est", 515, "dungeon/ruinesBonville-14", True, False)
-RUINESBONVILLE_SALLE5 = Zone("Ruines Bonville - Salle 5", 238, "dungeon/ruinesBonville-15", True, False)
-RUINESBONVILLE_SALLE5_NORDOUEST = Zone("Ruines Bonville - Salle 5 Nord-Ouest", 242, "dungeon/ruinesBonville-16", True, False)
-RUINESBONVILLE_SALLE5_SUDEST = Zone("Ruines Bonville - Salle 5 Sud-Est", 233, "dungeon/ruinesBonville-17", True, False)
-RUINESBONVILLE_SALLE6 = Zone("Ruines Bonville - Salle 6", 240, "dungeon/ruinesBonville-18", True, False)
+RUINESBONVILLE_ENTREE = Zone("Ruines Bonville - Entrée", 226, "dungeon/ruinesBonville-1", True, False, True)
+RUINESBONVILLE_ENTREE_NORDOUEST = Zone("Ruines Bonville - Entrée Nord-Ouest", 228, "dungeon/ruinesBonville-2", True, False, True)
+RUINESBONVILLE_ENTREE_SUDEST = Zone("Ruines Bonville - Entrée Sud-Est", 230, "dungeon/ruinesBonville-3", True, False, True)
+RUINESBONVILLE_SALLE1 = Zone("Ruines Bonville - Salle 1", 229, "dungeon/ruinesBonville-4", True, False, True)
+RUINESBONVILLE_SALLE1_NORDEST = Zone("Ruines Bonville - Salle 1 Nord-Est", 227, "dungeon/ruinesBonville-5", True, False, True)
+RUINESBONVILLE_SALLE1_SUDEST = Zone("Ruines Bonville - Salle 1 Sud-Est", 232, "dungeon/ruinesBonville-6", True, False, True)
+RUINESBONVILLE_SALLE2 = Zone("Ruines Bonville - Salle 2", 231, "dungeon/ruinesBonville-7", True, False, True)
+RUINESBONVILLE_SALLE2_NORDOUEST = Zone("Ruines Bonville - Salle 2 Nord-Ouest", 235, "dungeon/ruinesBonville-8", True, False, True)
+RUINESBONVILLE_SALLE2_SUDOUEST = Zone("Ruines Bonville - Salle 2 Sud-Ouest", 236, "dungeon/ruinesBonville-9", True, False, True)
+RUINESBONVILLE_SALLE3 = Zone("Ruines Bonville - Salle 3", 237, "dungeon/ruinesBonville-10", True, False, True)
+RUINESBONVILLE_SALLE3_SUDEST = Zone("Ruines Bonville - Salle 3 Sud-Est", 241, "dungeon/ruinesBonville-11", True, False, True)
+RUINESBONVILLE_SALLE4 = Zone("Ruines Bonville - Salle 4", 239, "dungeon/ruinesBonville-12", True, False, True)
+RUINESBONVILLE_SALLE4_SUDOUEST = Zone("Ruines Bonville - Salle 4 Sud-Ouest", 234, "dungeon/ruinesBonville-13", True, False, True)
+RUINESBONVILLE_SALLE4_SUDEST = Zone("Ruines Bonville - Salle 4 Sud-Est", 515, "dungeon/ruinesBonville-14", True, False, True)
+RUINESBONVILLE_SALLE5 = Zone("Ruines Bonville - Salle 5", 238, "dungeon/ruinesBonville-15", True, False, True)
+RUINESBONVILLE_SALLE5_NORDOUEST = Zone("Ruines Bonville - Salle 5 Nord-Ouest", 242, "dungeon/ruinesBonville-16", True, False, True)
+RUINESBONVILLE_SALLE5_SUDEST = Zone("Ruines Bonville - Salle 5 Sud-Est", 233, "dungeon/ruinesBonville-17", True, False, True)
+RUINESBONVILLE_SALLE6 = Zone("Ruines Bonville - Salle 6", 240, "dungeon/ruinesBonville-18", True, False, True)
 setConnectingDoors(Door(Position(5,12,RUINESBONVILLE_ENTREE), Position(595,656,NORTHCENTER)), Door(Position(595,655,NORTHCENTER), Position(5,11,RUINESBONVILLE_ENTREE)))
 setConnectingDoors(Door(Position(3,3,RUINESBONVILLE_ENTREE), Position(5,3,RUINESBONVILLE_ENTREE_NORDOUEST)), Door(Position(6,3,RUINESBONVILLE_ENTREE_NORDOUEST), Position(4,3,RUINESBONVILLE_ENTREE)))
 setConnectingDoors(Door(Position(7,3,RUINESBONVILLE_ENTREE), Position(4,3,RUINESBONVILLE_SALLE1)), Door(Position(3,3,RUINESBONVILLE_SALLE1), Position(6,3,RUINESBONVILLE_ENTREE)))
@@ -572,28 +573,28 @@ setConnectingDoors(Door(Position(7,10,RUINESBONVILLE_SALLE5), Position(4,3,RUINE
 setConnectingDoors(Door(Position(3,10,RUINESBONVILLE_SALLE5), Position(8,3,RUINESBONVILLE_SALLE6)), Door(Position(9,3,RUINESBONVILLE_SALLE6), Position(4,10,RUINESBONVILLE_SALLE5)))
 
 # Tunnel Ruinemaniac
-TUNNELRUINEMANIAC = Zone("Tunnel Ruinemaniac", 513, "dungeon/tunnelRuinemaniac", True, False)
-RUINESBONVILLE_SALLE7 = Zone("Ruines Bonville - Salle 7", 225, "dungeon/ruinesBonville-19", True, False)
+TUNNELRUINEMANIAC = Zone("Tunnel Ruinemaniac", 513, "dungeon/tunnelRuinemaniac", True, False, True)
+RUINESBONVILLE_SALLE7 = Zone("Ruines Bonville - Salle 7", 225, "dungeon/ruinesBonville-19", True, False, True)
 setConnectingDoors(Door(Position(93,7,TUNNELRUINEMANIAC), Position(713,670,SOUTHEAST)), Door(Position(712,670,SOUTHEAST), Position(92,7,TUNNELRUINEMANIAC)))
 setConnectingDoors(Door(Position(1,7,TUNNELRUINEMANIAC), Position(8,3,RUINESBONVILLE_SALLE7)), Door(Position(9,3,RUINESBONVILLE_SALLE7), Position(2,7,TUNNELRUINEMANIAC)))
 
 # Mont Couronné
-MONTCOURONNE_PASSAGECHARBOURG = Zone("Mont Couronné - Passage Charbourg", 207, "dungeon/montCouronne-1", True, False)
-MONTCOURONNE_SALLE1 = Zone("Mont Couronné - Salle 1", 208, "dungeon/montCouronne-2", True, False)
-MONTCOURONNE_SALLE2 = Zone("Mont Couronné - Salle 2", 209, "dungeon/montCouronne-3", True, False)
-MONTCOURONNE_EXTERIEUR1 = Zone("Mont Couronné - Extérieur 1", 211, "dungeon/montCouronne-4", False, True)
-MONTCOURONNE_EXTERIEUR2 = Zone("Mont Couronné - Extérieur 2", 210, "dungeon/montCouronne-6", False, True)
-MONTCOURONNE_SALLE3 = Zone("Mont Couronné - Salle 3", 212, "dungeon/montCouronne-5", True, False)
-MONTCOURONNE_SALLE4 = Zone("Mont Couronné - Salle 4", 213, "dungeon/montCouronne-7", True, False)
-MONTCOURONNE_SALLE5 = Zone("Mont Couronné - Salle 5", 214, "dungeon/montCouronne-8", True, False)
-MONTCOURONNE_SALLE6 = Zone("Mont Couronné - Salle 6", 215, "dungeon/montCouronne-9", True, False)
-MONTCOURONNE_SALLE7 = Zone("Mont Couronné - Salle 7", 216, "dungeon/montCouronne-10", True, False)
-MONTCOURONNE_PASSAGEVESTIGION = Zone("Mont Couronné - Passage Vestigion", 218, "dungeon/montCouronne-11", True, False)
-MONTCOURONNE_SALLE8 = Zone("Mont Couronné - Salle 8", 219, "dungeon/montCouronne-12", True, False)
-MONTCOURONNE_PASSAGEFRIMAPIC = Zone("Mont Couronné - Passage Frimapic", 217, "dungeon/montCouronne-13", True, False)
-MONTCOURONNE_GROTTEREGICE = Zone("Mont Couronné - Grotte Regice", 589, "dungeon/grotteRegi", True, False)
-SALLEORIGINELLE = Zone("Salle Originelle", 510, "dungeon/salleOriginelle", False, False)
-COLONNESLANCES = Zone("Colonnes Lances", 584, "dungeon/colonnesLances", False, False)
+MONTCOURONNE_PASSAGECHARBOURG = Zone("Mont Couronné - Passage Charbourg", 207, "dungeon/montCouronne-1", True, False, True)
+MONTCOURONNE_SALLE1 = Zone("Mont Couronné - Salle 1", 208, "dungeon/montCouronne-2", True, False, True)
+MONTCOURONNE_SALLE2 = Zone("Mont Couronné - Salle 2", 209, "dungeon/montCouronne-3", True, False, True)
+MONTCOURONNE_EXTERIEUR1 = Zone("Mont Couronné - Extérieur 1", 211, "dungeon/montCouronne-4", False, True, False)
+MONTCOURONNE_EXTERIEUR2 = Zone("Mont Couronné - Extérieur 2", 210, "dungeon/montCouronne-6", False, True, False)
+MONTCOURONNE_SALLE3 = Zone("Mont Couronné - Salle 3", 212, "dungeon/montCouronne-5", True, False, True)
+MONTCOURONNE_SALLE4 = Zone("Mont Couronné - Salle 4", 213, "dungeon/montCouronne-7", True, False, True)
+MONTCOURONNE_SALLE5 = Zone("Mont Couronné - Salle 5", 214, "dungeon/montCouronne-8", True, False, True)
+MONTCOURONNE_SALLE6 = Zone("Mont Couronné - Salle 6", 215, "dungeon/montCouronne-9", True, False, True)
+MONTCOURONNE_SALLE7 = Zone("Mont Couronné - Salle 7", 216, "dungeon/montCouronne-10", True, False, True)
+MONTCOURONNE_PASSAGEVESTIGION = Zone("Mont Couronné - Passage Vestigion", 218, "dungeon/montCouronne-11", True, False, True)
+MONTCOURONNE_SALLE8 = Zone("Mont Couronné - Salle 8", 219, "dungeon/montCouronne-12", True, False, True)
+MONTCOURONNE_PASSAGEFRIMAPIC = Zone("Mont Couronné - Passage Frimapic", 217, "dungeon/montCouronne-13", True, False, True)
+MONTCOURONNE_GROTTEREGICE = Zone("Mont Couronné - Grotte Regice", 589, "dungeon/grotteRegi", True, False, True)
+SALLEORIGINELLE = Zone("Salle Originelle", 510, "dungeon/salleOriginelle", False, False, False)
+COLONNESLANCES = Zone("Colonnes Lances", 584, "dungeon/colonnesLances", False, False, False)
 COLONNESLANCES.addDoor(Door(Position(31,52,COLONNESLANCES), Position(31,52,SALLEORIGINELLE)))
 SALLEORIGINELLE.addDoor(Door(Position(31,54,SALLEORIGINELLE), Position(7,6,MONTCOURONNE_SALLE6)))
 setConnectingDoors(Door(Position(3,8,MONTCOURONNE_PASSAGECHARBOURG), Position(341,712,SOUTHCENTER)), Door(Position(342,712,SOUTHCENTER), Position(4,8,MONTCOURONNE_PASSAGECHARBOURG)))
@@ -622,27 +623,27 @@ setConnectingDoors(Door(Position(15,16,MONTCOURONNE_PASSAGEFRIMAPIC), Position(7
 setConnectingDoors(Door(Position(1,18,MONTCOURONNE_PASSAGEFRIMAPIC), Position(375,403,NORTH)), Door(Position(376,403,NORTH), Position(2,18,MONTCOURONNE_PASSAGEFRIMAPIC)))
 
 # Hôtel Grand Lac
-HOTELGRANDLAC = Zone("Hôtel Grand Lac", 376, "route/hotelGrandLac", False, False)
+HOTELGRANDLAC = Zone("Hôtel Grand Lac", 376, "route/hotelGrandLac", False, False, False)
 setConnectingDoors(Door(Position(706,814,SOUTHEAST), Position(8,3,HOTELGRANDLAC)), Door(Position(8,2,HOTELGRANDLAC), Position(706,813,SOUTHEAST)))
 setConnectingDoors(Door(Position(706,818,ROUTE213), Position(8,11,HOTELGRANDLAC)), Door(Position(8,12,HOTELGRANDLAC), Position(706,819,ROUTE213)))
 
 # Manoir Pokémon
-MANOIRPOKEMON = Zone("Manoir Pokémon", 368, "route/manoirPokemon-1", False, False)
-MANOIRPOKEMON_BUREAU = Zone("Manoir Pokémon - Bureau Décorum", 370, "route/manoirPokemon-2", False, False)
-JARDINTROPHEE = Zone("Jardin Trophée", 287, "route/jardinTrophee", True, True)
+MANOIRPOKEMON = Zone("Manoir Pokémon", 368, "route/manoirPokemon-1", False, False, False)
+MANOIRPOKEMON_BUREAU = Zone("Manoir Pokémon - Bureau Décorum", 370, "route/manoirPokemon-2", False, False, False)
+JARDINTROPHEE = Zone("Jardin Trophée", 287, "route/jardinTrophee", True, True, False)
 setConnectingDoors(Door(Position(33,17,MANOIRPOKEMON), Position(470,773,SOUTH)), Door(Position(470,772,SOUTH), Position(33,16,MANOIRPOKEMON)))
 setConnectingDoors(Door(Position(48,5,MANOIRPOKEMON), Position(16,10,MANOIRPOKEMON_BUREAU)), Door(Position(16,11,MANOIRPOKEMON_BUREAU), Position(48,6,MANOIRPOKEMON)))
 setConnectingDoors(Door(Position(33,2,MANOIRPOKEMON), Position(14,25,JARDINTROPHEE)), Door(Position(14,26,JARDINTROPHEE), Position(33,3,MANOIRPOKEMON)))
 
 # Ile de Fer
-ILEDEFER = Zone("Ile de Fer", 288, "dungeon/ileDeFer-1", True, True)
-ILEDEFER_REZDECHAUSSEE = Zone("Ile de Fer - Rez-de-Chaussée", 289, "dungeon/ileDeFer-2", True, False)
-ILEDEFER_SOUSSOL1OUEST = Zone("Ile de Fer - Sous-Sol 1 Ouest", 290, "dungeon/ileDeFer-3", True, False)
-ILEDEFER_SOUSSOL1EST = Zone("Ile de Fer - Sous-Sol 1 Est", 291, "dungeon/ileDeFer-4", True, False)
-ILEDEFER_SOUSSOL2EST = Zone("Ile de Fer - Sous-Sol 2 Est", 292, "dungeon/ileDeFer-5", True, False)
-ILEDEFER_SOUSSOL2OUEST = Zone("Ile de Fer - Sous-Sol 2 Ouest", 293, "dungeon/ileDeFer-6", True, False)
-ILEDEFER_GROTTEREGISTEEL = Zone("Ile de Fer - Grotte Registeel", 587, "dungeon/grotteRegi", True, False)
-ILEDEFER_SORTIE = Zone("Ile de Fer - Sortie", 294, "dungeon/ileDeFer-7", True, False)
+ILEDEFER = Zone("Ile de Fer", 288, "dungeon/ileDeFer-1", True, True, False)
+ILEDEFER_REZDECHAUSSEE = Zone("Ile de Fer - Rez-de-Chaussée", 289, "dungeon/ileDeFer-2", True, False, True)
+ILEDEFER_SOUSSOL1OUEST = Zone("Ile de Fer - Sous-Sol 1 Ouest", 290, "dungeon/ileDeFer-3", True, False, True)
+ILEDEFER_SOUSSOL1EST = Zone("Ile de Fer - Sous-Sol 1 Est", 291, "dungeon/ileDeFer-4", True, False, True)
+ILEDEFER_SOUSSOL2EST = Zone("Ile de Fer - Sous-Sol 2 Est", 292, "dungeon/ileDeFer-5", True, False, True)
+ILEDEFER_SOUSSOL2OUEST = Zone("Ile de Fer - Sous-Sol 2 Ouest", 293, "dungeon/ileDeFer-6", True, False, True)
+ILEDEFER_GROTTEREGISTEEL = Zone("Ile de Fer - Grotte Registeel", 587, "dungeon/grotteRegi", True, False, True)
+ILEDEFER_SORTIE = Zone("Ile de Fer - Sortie", 294, "dungeon/ileDeFer-7", True, False, True)
 setConnectingDoors(Door(Position(117,489,ILEDEFER), Position(6,8,ILEDEFER_REZDECHAUSSEE)), Door(Position(6,9,ILEDEFER_REZDECHAUSSEE), Position(117,490,ILEDEFER)))
 setConnectingDoors(Door(Position(104,489,ILEDEFER), Position(2,5,ILEDEFER_SORTIE)), Door(Position(1,5,ILEDEFER_SORTIE), Position(103,489,ILEDEFER)))
 setConnectingDoors(Door(Position(3,3,ILEDEFER_REZDECHAUSSEE), Position(15,3,ILEDEFER_SOUSSOL1OUEST)), Door(Position(16,3,ILEDEFER_SOUSSOL1OUEST), Position(4,3,ILEDEFER_REZDECHAUSSEE)))
@@ -653,12 +654,12 @@ setConnectingDoors(Door(Position(13,48,ILEDEFER_SOUSSOL2OUEST), Position(14,15,I
 setConnectingDoors(Door(Position(14,1,ILEDEFER_SORTIE), Position(7,12,ILEDEFER_GROTTEREGISTEEL)), Door(Position(7,13,ILEDEFER_GROTTEREGISTEEL), Position(14,2,ILEDEFER_SORTIE)))
 
 # Route Victoire
-ROUTEVICTOIRE = Zone("Route Victoire", 244, "dungeon/routeVictoire-1", True, False)
-ROUTEVICTOIRE_SALLEOUEST = Zone("Route Victoire - Salle Ouest", 245, "dungeon/routeVictoire-2", True, False)
-ROUTEVICTOIRE_SALLEEST = Zone("Route Victoire - Salle Est", 246, "dungeon/routeVictoire-3", True, False)
-ROUTEVICTOIRE_SALLEBRUME = Zone("Route Victoire - Salle Brume", 247, "dungeon/routeVictoire-5", True, False)
-ROUTEVICTOIRE_PASSAGEEST = Zone("Route Victoire - Passage Est", 248, "dungeon/routeVictoire-4", True, False)
-ROUTEVICTOIRE_PASSAGEROUTE224 = Zone("Route Victoire - Passage Route 224", 249, "dungeon/routeVictoire-6", True, False)
+ROUTEVICTOIRE = Zone("Route Victoire", 244, "dungeon/routeVictoire-1", True, False, True)
+ROUTEVICTOIRE_SALLEOUEST = Zone("Route Victoire - Salle Ouest", 245, "dungeon/routeVictoire-2", True, False, True)
+ROUTEVICTOIRE_SALLEEST = Zone("Route Victoire - Salle Est", 246, "dungeon/routeVictoire-3", True, False, True)
+ROUTEVICTOIRE_SALLEBRUME = Zone("Route Victoire - Salle Brume", 247, "dungeon/routeVictoire-5", True, False, True)
+ROUTEVICTOIRE_PASSAGEEST = Zone("Route Victoire - Passage Est", 248, "dungeon/routeVictoire-4", True, False, True)
+ROUTEVICTOIRE_PASSAGEROUTE224 = Zone("Route Victoire - Passage Route 224", 249, "dungeon/routeVictoire-6", True, False, True)
 setConnectingDoors(Door(Position(15,79,ROUTEVICTOIRE), Position(851,598,EAST)), Door(Position(851,597,EAST), Position(15,78,ROUTEVICTOIRE)))
 setConnectingDoors(Door(Position(33,5,ROUTEVICTOIRE), Position(853,582,LIGUEPOKEMON)), Door(Position(854,582,LIGUEPOKEMON), Position(34,5,ROUTEVICTOIRE)))
 setConnectingDoors(Door(Position(3,37,ROUTEVICTOIRE), Position(20,16,ROUTEVICTOIRE_SALLEOUEST)), Door(Position(21,16,ROUTEVICTOIRE_SALLEOUEST), Position(4,37,ROUTEVICTOIRE)))
@@ -673,82 +674,82 @@ setConnectingDoors(Door(Position(57,13,ROUTEVICTOIRE_SALLEBRUME), Position(12,16
 setConnectingDoors(Door(Position(877,560,NORTHEAST), Position(29,16,ROUTEVICTOIRE_PASSAGEROUTE224)), Door(Position(30,16,ROUTEVICTOIRE_PASSAGEROUTE224), Position(878,560,NORTHEAST)))
 
 # Grotte Retour
-SOURCEADIEU = Zone("Source Adieu", 267, "dungeon/sourceAdieu", True, True)
-GROTTERETOUR_ENTREE = Zone("Grotte Retour - Entrée", 268, "dungeon/grotteRetour-entree", True, False)
-GROTTERETOUR_SALLEPILIER = Zone("Grotte Retour - Salle Pilier", 269, "dungeon/grotteRetour-pilier", True, False)
-GROTTERETOUR_SALLEGIRATINA = Zone("Grotte Retour - Salle Giratina", 270, "dungeon/grotteRetour-giratina", True, False)
-GROTTERETOUR_SALLE1 = Zone("Grotte Retour - Salle 1", 518, "dungeon/grotteRetour-1", True, False)
-GROTTERETOUR_SALLE2 = Zone("Grotte Retour - Salle 2", 519, "dungeon/grotteRetour-2", True, False)
-GROTTERETOUR_SALLE3 = Zone("Grotte Retour - Salle 3", 520, "dungeon/grotteRetour-3", True, False)
-GROTTERETOUR_SALLE4 = Zone("Grotte Retour - Salle 4", 521, "dungeon/grotteRetour-4", True, False)
-GROTTERETOUR_SALLE5 = Zone("Grotte Retour - Salle 5", 522, "dungeon/grotteRetour-5", True, False)
-GROTTERETOUR_SALLE6 = Zone("Grotte Retour - Salle 6", 523, "dungeon/grotteRetour-6", True, False)
-GROTTERETOUR_SALLE8 = Zone("Grotte Retour - Salle 8", 525, "dungeon/grotteRetour-8", True, False)
-GROTTERETOUR_SALLE9 = Zone("Grotte Retour - Salle 9", 526, "dungeon/grotteRetour-9", True, False)
-GROTTERETOUR_SALLE10 = Zone("Grotte Retour - Salle 10", 527, "dungeon/grotteRetour-10", True, False)
-GROTTERETOUR_SALLE11 = Zone("Grotte Retour - Salle 11", 528, "dungeon/grotteRetour-11", True, False)
-GROTTERETOUR_SALLE12 = Zone("Grotte Retour - Salle 12", 529, "dungeon/grotteRetour-12", True, False)
-GROTTERETOUR_SALLE13 = Zone("Grotte Retour - Salle 13", 530, "dungeon/grotteRetour-13", True, False)
-GROTTERETOUR_SALLE14 = Zone("Grotte Retour - Salle 14", 531, "dungeon/grotteRetour-14", True, False)
-GROTTERETOUR_SALLE15 = Zone("Grotte Retour - Salle 15", 532, "dungeon/grotteRetour-15", True, False)
-GROTTERETOUR_SALLE41 = Zone("Grotte Retour - Salle 41", 271, "dungeon/grotteRetour-41", True, False)
-GROTTERETOUR_SALLE42 = Zone("Grotte Retour - Salle 42", 272, "dungeon/grotteRetour-42", True, False)
-GROTTERETOUR_SALLE43 = Zone("Grotte Retour - Salle 43", 273, "dungeon/grotteRetour-43", True, False)
+SOURCEADIEU = Zone("Source Adieu", 267, "dungeon/sourceAdieu", True, True, False)
+GROTTERETOUR_ENTREE = Zone("Grotte Retour - Entrée", 268, "dungeon/grotteRetour-entree", True, False, False)
+GROTTERETOUR_SALLEPILIER = Zone("Grotte Retour - Salle Pilier", 269, "dungeon/grotteRetour-pilier", True, False, False)
+GROTTERETOUR_SALLEGIRATINA = Zone("Grotte Retour - Salle Giratina", 270, "dungeon/grotteRetour-giratina", True, False, False)
+GROTTERETOUR_SALLE1 = Zone("Grotte Retour - Salle 1", 518, "dungeon/grotteRetour-1", True, False, False)
+GROTTERETOUR_SALLE2 = Zone("Grotte Retour - Salle 2", 519, "dungeon/grotteRetour-2", True, False, False)
+GROTTERETOUR_SALLE3 = Zone("Grotte Retour - Salle 3", 520, "dungeon/grotteRetour-3", True, False, False)
+GROTTERETOUR_SALLE4 = Zone("Grotte Retour - Salle 4", 521, "dungeon/grotteRetour-4", True, False, False)
+GROTTERETOUR_SALLE5 = Zone("Grotte Retour - Salle 5", 522, "dungeon/grotteRetour-5", True, False, False)
+GROTTERETOUR_SALLE6 = Zone("Grotte Retour - Salle 6", 523, "dungeon/grotteRetour-6", True, False, False)
+GROTTERETOUR_SALLE8 = Zone("Grotte Retour - Salle 8", 525, "dungeon/grotteRetour-8", True, False, False)
+GROTTERETOUR_SALLE9 = Zone("Grotte Retour - Salle 9", 526, "dungeon/grotteRetour-9", True, False, False)
+GROTTERETOUR_SALLE10 = Zone("Grotte Retour - Salle 10", 527, "dungeon/grotteRetour-10", True, False, False)
+GROTTERETOUR_SALLE11 = Zone("Grotte Retour - Salle 11", 528, "dungeon/grotteRetour-11", True, False, False)
+GROTTERETOUR_SALLE12 = Zone("Grotte Retour - Salle 12", 529, "dungeon/grotteRetour-12", True, False, False)
+GROTTERETOUR_SALLE13 = Zone("Grotte Retour - Salle 13", 530, "dungeon/grotteRetour-13", True, False, False)
+GROTTERETOUR_SALLE14 = Zone("Grotte Retour - Salle 14", 531, "dungeon/grotteRetour-14", True, False, False)
+GROTTERETOUR_SALLE15 = Zone("Grotte Retour - Salle 15", 532, "dungeon/grotteRetour-15", True, False, False)
+GROTTERETOUR_SALLE41 = Zone("Grotte Retour - Salle 41", 271, "dungeon/grotteRetour-41", True, False, False)
+GROTTERETOUR_SALLE42 = Zone("Grotte Retour - Salle 42", 272, "dungeon/grotteRetour-42", True, False, False)
+GROTTERETOUR_SALLE43 = Zone("Grotte Retour - Salle 43", 273, "dungeon/grotteRetour-43", True, False, False)
 setConnectingDoors(Door(Position(12,57,SOURCEADIEU), Position(762,714,SOUTHEAST)), Door(Position(762,713,SOUTHEAST), Position(12,56,SOURCEADIEU)))
 setConnectingDoors(Door(Position(31,16,SOURCEADIEU), Position(11,16,GROTTERETOUR_ENTREE)), Door(Position(11,17,GROTTERETOUR_ENTREE), Position(31,17,SOURCEADIEU)))
 
 # Mont Abrupt
-MONTABRUPT_SALLE1 = Zone("Mont Abrupt - Salle 1", 263, "dungeon/montAbrupt-1", True, False)
-MONTABRUPT_SALLE2 = Zone("Mont Abrupt - Salle 2", 264, "dungeon/montAbrupt-2", True, False)
-MONTABRUPT_SALLEHEATRAN = Zone("Mont Abrupt - Salle Heatran", 265, "dungeon/montAbrupt-3", True, False)
+MONTABRUPT_SALLE1 = Zone("Mont Abrupt - Salle 1", 263, "dungeon/montAbrupt-1", True, False, True)
+MONTABRUPT_SALLE2 = Zone("Mont Abrupt - Salle 2", 264, "dungeon/montAbrupt-2", True, False, True)
+MONTABRUPT_SALLEHEATRAN = Zone("Mont Abrupt - Salle Heatran", 265, "dungeon/montAbrupt-3", True, False, False)
 setConnectingDoors(Door(Position(20,30,MONTABRUPT_SALLE1), Position(750,232,SECTEURCOMBAT_NORTHWEST)), Door(Position(750,231,SECTEURCOMBAT_NORTHWEST), Position(20,29,MONTABRUPT_SALLE1)))
 setConnectingDoors(Door(Position(17,2,MONTABRUPT_SALLE1), Position(42,86,MONTABRUPT_SALLE2)), Door(Position(42,87,MONTABRUPT_SALLE2), Position(17,3,MONTABRUPT_SALLE1)))
 setConnectingDoors(Door(Position(47,2,MONTABRUPT_SALLE2), Position(7,17,MONTABRUPT_SALLEHEATRAN)), Door(Position(7,18,MONTABRUPT_SALLEHEATRAN), Position(47,3,MONTABRUPT_SALLE2)))
 
 # Lac Vérité
-LACVERITE = Zone("Lac Vérité", 312, "dungeon/lacVérité", True, True)
-LACVERITE_CAVERNEVERITE = Zone("Lac Vérité - Caverne Vérité", 313, "dungeon/grotteCre", True, False)
+LACVERITE = Zone("Lac Vérité", 312, "dungeon/lacVérité", True, True, False)
+LACVERITE_CAVERNEVERITE = Zone("Lac Vérité - Caverne Vérité", 313, "dungeon/grotteCre", True, False, False)
 setConnectingDoors(Door(Position(46,55,LACVERITE), Position(80,844,SOUTHWEST)), Door(Position(80,843,SOUTHWEST), Position(46,54,LACVERITE)))
 setConnectingDoors(Door(Position(32,32,LACVERITE), Position(14,29,LACVERITE_CAVERNEVERITE)), Door(Position(14,30,LACVERITE_CAVERNEVERITE), Position(32,33,LACVERITE)))
 
 # Lac Courage
-LACCOURAGE = Zone("Lac Courage", 315, "dungeon/lacCourage", True, True)
-LACCOURAGE_CAVERNECOURAGE = Zone("Lac Courage - Caverne Courage", 316, "dungeon/grotteCre", True, False)
+LACCOURAGE = Zone("Lac Courage", 315, "dungeon/lacCourage", True, True, False)
+LACCOURAGE_CAVERNECOURAGE = Zone("Lac Courage - Caverne Courage", 316, "dungeon/grotteCre", True, False, False)
 setConnectingDoors(Door(Position(53,10,LACCOURAGE), Position(717,760,SOUTHEAST)), Door(Position(716,760,SOUTHEAST), Position(52,10,LACCOURAGE)))
 setConnectingDoors(Door(Position(32,32,LACCOURAGE), Position(14,29,LACCOURAGE_CAVERNECOURAGE)), Door(Position(14,30,LACCOURAGE_CAVERNECOURAGE), Position(32,33,LACCOURAGE)))
 
 # Lac Savoir
-LACSAVOIR = Zone("Lac Savoir", 318, "dungeon/lacSavoir", False, True)
-LACSAVOIR_CAVERNESAVOIR = Zone("Lac Savoir - Caverne Savoir", 319, "dungeon/grotteCre", True, False)
+LACSAVOIR = Zone("Lac Savoir", 318, "dungeon/lacSavoir", False, True, False)
+LACSAVOIR_CAVERNESAVOIR = Zone("Lac Savoir - Caverne Savoir", 319, "dungeon/grotteCre", True, False, False)
 setConnectingDoors(Door(Position(14,51,LACSAVOIR), Position(308,230,NORTH)), Door(Position(308,229,NORTH), Position(14,50,LACSAVOIR)))
 setConnectingDoors(Door(Position(32,32,LACSAVOIR), Position(14,29,LACSAVOIR_CAVERNESAVOIR)), Door(Position(14,30,LACSAVOIR_CAVERNESAVOIR), Position(32,33,LACSAVOIR)))
 
 # Grottes Légendaires
-ROUTE228_GROTTEREGIROCK = Zone("Route 228 - Grotte Regirock", 591, "dungeon/grotteRegi", True, False)
+ROUTE228_GROTTEREGIROCK = Zone("Route 228 - Grotte Regirock", 591, "dungeon/grotteRegi", True, False, True)
 setConnectingDoors(Door(Position(785,340,SECTEURCOMBAT_SOUTHEAST), Position(7,12,ROUTE228_GROTTEREGIROCK)), Door(Position(7,13,ROUTE228_GROTTEREGIROCK), Position(785,341,SECTEURCOMBAT_SOUTHEAST)))
 
 # Ile Nouvellune
-ILENOUVELLUNE = Zone("Ile Nouvellune", 320, "dungeon/ileNouvellune-1", False, False)
-ILENOUVELLUNE_INTERIEUR = Zone("Ile Nouvellune - Intérieur", 321, "dungeon/ileNouvellune-2", False, False)
+ILENOUVELLUNE = Zone("Ile Nouvellune", 320, "dungeon/ileNouvellune-1", False, False, False)
+ILENOUVELLUNE_INTERIEUR = Zone("Ile Nouvellune - Intérieur", 321, "dungeon/ileNouvellune-2", False, False, False)
 setConnectingDoors(Door(Position(137,268,ILENOUVELLUNE), Position(16,21,ILENOUVELLUNE_INTERIEUR)), Door(Position(16,22,ILENOUVELLUNE_INTERIEUR), Position(137,269,ILENOUVELLUNE)))
 
 # Ile Pleine Lune
-ILEPLEINELUNE = Zone("Ile Pleine Lune", 260, "dungeon/ilePleineLune-1", False, False)
-ILEPLEINELUNE_INTERIEUR = Zone("Ile Pleine Lune - Intérieur", 261, "dungeon/ilePleineLune-2", False, False)
+ILEPLEINELUNE = Zone("Ile Pleine Lune", 260, "dungeon/ilePleineLune-1", False, False, False)
+ILEPLEINELUNE_INTERIEUR = Zone("Ile Pleine Lune - Intérieur", 261, "dungeon/ilePleineLune-2", False, False, False)
 setConnectingDoors(Door(Position(53,268,ILEPLEINELUNE), Position(16,21,ILEPLEINELUNE_INTERIEUR)), Door(Position(16,22,ILEPLEINELUNE_INTERIEUR), Position(53,269,ILEPLEINELUNE)))
 
 # Houses (just for anchor zones)
-RESTAURANTSEPTETOILES = Zone("Restaurant 7 Étoiles", 337, "route/restaurantSeptEtoiles", False, False)
-CAFECABANE = Zone("Café Cabane", 492, "route/cafeCabane", False, False)
-ROUTE210_MAISON = Zone("Route 210 - Maison", 364, "route/route210-maison", False, False)
-ROUTE212_MAISON = Zone("Route 212 - Maison", 372, "route/route212-maison", False, False)
-ROUTE216_MAISON = Zone("Route 216 - Maison", 384, "route/route216-maison", False, False)
-ROUTE217_MAISON = Zone("Route 217 - Maison", 386, "route/route217-maison", False, False)
-ROUTE225_MAISON = Zone("Route 225 - Maison", 498, "route/route226-maison", False, False)
-ROUTE226_MAISON = Zone("Route 226 - Maison", 499, "route/route226-maison", False, False)
-ROUTE227_MAISON = Zone("Route 227 - Maison", 500, "route/route227-maison", False, False)
-ROUTE228_MAISON1 = Zone("Route 227 - Maison 1", 502, "route/route228-maison2", False, False)
-ROUTE228_MAISON2 = Zone("Route 227 - Maison 2", 503, "route/route228-maison2", False, False)
+RESTAURANTSEPTETOILES = Zone("Restaurant 7 Étoiles", 337, "route/restaurantSeptEtoiles", False, False, False)
+CAFECABANE = Zone("Café Cabane", 492, "route/cafeCabane", False, False, False)
+ROUTE210_MAISON = Zone("Route 210 - Maison", 364, "route/route210-maison", False, False, False)
+ROUTE212_MAISON = Zone("Route 212 - Maison", 372, "route/route212-maison", False, False, False)
+ROUTE216_MAISON = Zone("Route 216 - Maison", 384, "route/route216-maison", False, False, False)
+ROUTE217_MAISON = Zone("Route 217 - Maison", 386, "route/route217-maison", False, False, False)
+ROUTE225_MAISON = Zone("Route 225 - Maison", 498, "route/route226-maison", False, False, False)
+ROUTE226_MAISON = Zone("Route 226 - Maison", 499, "route/route226-maison", False, False, False)
+ROUTE227_MAISON = Zone("Route 227 - Maison", 500, "route/route227-maison", False, False, False)
+ROUTE228_MAISON1 = Zone("Route 227 - Maison 1", 502, "route/route228-maison2", False, False, False)
+ROUTE228_MAISON2 = Zone("Route 227 - Maison 2", 503, "route/route228-maison2", False, False, False)
 setConnectingDoors(Door(Position(706,790,SOUTHEAST), Position(9,12,RESTAURANTSEPTETOILES)), Door(Position(9,13,RESTAURANTSEPTETOILES), Position(706,791,SOUTHEAST)))
 setConnectingDoors(Door(Position(566,591,NORTHCENTER), Position(5,8,CAFECABANE)), Door(Position(5,9,CAFECABANE), Position(566,592,NORTHCENTER)))
 setConnectingDoors(Door(Position(564,516,NORTHCENTER), Position(4,8,ROUTE210_MAISON)), Door(Position(4,9,ROUTE210_MAISON), Position(564,517,NORTHCENTER)))
