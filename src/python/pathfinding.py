@@ -795,7 +795,7 @@ def checkPathIsFollowed(path):
 
 
 # Populate DOOR_GRAPH by adding every neighbour to every possible door
-# Takes around 30~35 minutes to generate, so we store it in a pkl file
+# Takes around 50 minutes to generate, so we store it in a pkl file
 def initDoorGraph():
 
     # Iterate on every single Door

@@ -111,7 +111,7 @@ class Door():
         self.connectedDoor = door
 
     def createDoorKey(self):
-        return tuple(sorted((self, self.connectedDoor), key = hash))
+        return DoorKey(tuple(sorted((self, self.connectedDoor), key = hash)))
 
     def __eq__(self, other):
         if isinstance(other, Door):
@@ -126,6 +126,16 @@ class Door():
     
     def __str__(self):
         return "Door (" + str(self.position) + ") connected to (" + str(self.destination) + ")"
+    
+    def __repr__(self):
+        return str(self)
+
+class DoorKey(tuple):
+    def __new__(cls, args):
+        return super().__new__(cls, args)
+    
+    def __str__(self):
+        return "DoorKey : " + str(self[0]) + "\n             " + str(self[1]) + "\n"
     
     def __repr__(self):
         return str(self)
