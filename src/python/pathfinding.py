@@ -1065,7 +1065,139 @@ def getLastDoorInPath(startDoorKey, endDoorKey):
         if (doorNode.fromDoor in startDoorKey and doorNode.toDoor in endDoorKey):
             return doorNode.toDoor
 
+class Path():
+    def __init__(self):
+        self.lastDoorDestination = None # First position the player will be after going through the last door
+        self.dijsktraPath = None        # Complete path the player needs to follow from position to last door
+        self.dijsktraDistance = 0       # Distance from position to last door
+        self.finalPath = None           # Complete path the player needs to follow from last door to reach destination
+        self.finalDistance = 0          # Distance from last door to destination
 
+
+# Returns last door you need to go through, its distance from the city, and its distance to the location
+def getEstimatedCityDistance(cityPath, destination, closestDoor, closestCity, distancesFromCity):
+
+    # We already ruled out direct path to destination, so we have to go through at least one door
+    if (closestCity.flyDoor == closestDoor):
+        cityPath.lastDoorDestination = closestCity.flyDoor.connectedDoor.destination
+        cityPath.dijsktraPath = []
+        cityPath.dijsktraDistance = 0
+        cityPath.finalDistance = closestCity.flyDoor.connectedDoor.destination.getDistanceTo(destination)
+        
+    # Need to go through at least one door
+    else:
+        skipClosestDoor = False
+
+        # Retrieve second-to-last door either from city fly door or directly from the path
+        if (len(cityPath.dijsktraPath) == 2):
+            secondToLastCityDoor = closestCity.flyDoor.connectedDoor
+        else:
+            secondToLastCityDoor = getLastDoorInPath(cityPath.dijsktraPath[-3], cityPath.dijsktraPath[-2])
+
+        # We check the second-to-last door to see if we can directly reach destination from there
+        if (secondToLastCityDoor.destination.zone == destination.zone):
+            if (destination.zone in zone.LABYRINTH_ZONES):
+                cityPath.finalPath = getMostEfficientPath(secondToLastCityDoor.destination, destination)
+                skipClosestDoor = cityPath.finalPath is not None
+            else:
+                skipClosestDoor = True
+        
+        # We don't have to go through closestDoor
+        if (skipClosestDoor):
+            cityPath.dijsktraPath.pop(-1) # Remove closestDoor in the path
+            cityPath.lastDoorDestination = secondToLastCityDoor.destination
+            cityPath.finalDistance = (cityPath.finalPath[-1].g if cityPath.finalPath
+                                      else cityPath.lastDoorDestination.getDistanceTo(destination)) # Don't use A* unless we have to
+
+            # Direct path between city and closestDoor
+            if (len(cityPath.dijsktraPath) == 1):
+                cityPath.dijsktraPath = [] # Skip dijsktraPath
+                cityPath.dijsktraDistance = 0
+
+            # Need to go through doors
+            else:
+                cityPath.dijsktraDistance = distancesFromCity[cityPath.dijsktraPath[-2]]
+                cityPath.dijsktraPath
+
+        # We have to go through closestDoor
+        else:
+            cityPath.lastDoorDestination = getLastDoorInPath(cityPath.dijsktraPath[-2], cityPath.dijsktraPath[-1]).destination
+            cityPath.dijsktraDistance = distancesFromCity[cityPath.dijsktraPath[-1]]
+            cityPath.finalDistance = cityPath.lastDoorDestination.getDistanceTo(destination) # Don't use A* unless we have to 
+
+
+# Returns last door you need to go through, its distance from the player, and its distance to the location
+def getEstimatedPlayerDistance(playerPath, destination, closestDoor, location, closestPositionDoor, pathToDoor):
+
+    # We already ruled out direct path to destination, so we have to go through at least one door
+    if (closestPositionDoor.connectedDoor == closestDoor):
+        playerPath.lastDoorDestination = closestPositionDoor.destination
+        playerPath.dijsktraPath = [pathToDoor]
+        playerPath.dijsktraDistance = pathToDoor[-1].g
+        playerPath.finalDistance = playerPath.lastDoorDestination.getDistanceTo(destination)
+
+    # Need to go through at least one door
+    else:
+        # Calculate distance from current position's nearest door to location's nearest door
+        paths, distancesFromPlayer = dijkstra(closestPositionDoor.createDoorKey())
+        dijsktraPlayerPath = processDijkstraPath(paths, closestDoor.createDoorKey())
+        skipClosestDoor = False
+
+        print("dijsktraPlayerPath")
+        print(dijsktraPlayerPath)
+
+        # Retrieve second-to-last door either from player's closest door or directly from the path
+        if (len(dijsktraPlayerPath) == 2):
+            secondToLastPlayerDoor = closestPositionDoor
+        else:
+            secondToLastPlayerDoor = getLastDoorInPath(dijsktraPlayerPath[-3], dijsktraPlayerPath[-2])
+
+        # We check the second-to-last door to see if we can directly reach destination from there
+        if (isinstance(location, Position) and secondToLastPlayerDoor.destination.zone == destination.zone):
+            if (destination.zone in zone.LABYRINTH_ZONES):
+                playerPath.finalPath = getMostEfficientPath(secondToLastPlayerDoor.destination, destination)
+                skipClosestDoor = playerPath.finalPath is not None
+            else:
+                skipClosestDoor = True
+
+        # We don't have to go through closestDoor
+        if (skipClosestDoor):
+            dijsktraPlayerPath.pop(-1) # Remove closestDoor in the path
+            playerPath.lastDoorDestination = secondToLastPlayerDoor.destination
+
+            # If we used A*, skip the dijsktraPlayerPath
+            if (playerPath.finalPath):
+
+                # Only one door : skip dijsktraPlayerPath
+                if (len(dijsktraPlayerPath) == 1):
+                    playerPath.dijsktraDistance = pathToDoor[-1].g
+                    playerPath.dijsktraPath = [pathToDoor] + [playerPath.finalPath] # Only one door : skip dijsktraPlayerPath
+                else:
+                    playerPath.dijsktraDistance = pathToDoor[-1].g + distancesFromPlayer[secondToLastPlayerDoor.createDoorKey()]
+                    playerPath.dijsktraPath = [pathToDoor] + [dijsktraPlayerPath] + [playerPath.finalPath]
+
+                playerPath.finalDistance = playerPath.finalPath[-1].g
+
+            # Don't use A* unless we have to
+            else:
+                # Only one door : skip dijsktraPlayerPath
+                if (len(dijsktraPlayerPath) == 1):
+                    playerPath.dijsktraDistance = pathToDoor[-1].g
+                    playerPath.dijsktraPath = [pathToDoor]
+                else:
+                    playerPath.dijsktraDistance = pathToDoor[-1].g + distancesFromPlayer[secondToLastPlayerDoor.createDoorKey()]
+                    playerPath.dijsktraPath = [pathToDoor] + [dijsktraPlayerPath]
+
+                playerPath.finalDistance = playerPath.lastDoorDestination.getDistanceTo(destination)
+
+        # We have to go through closestDoor
+        else:
+            playerPath.lastDoorDestination = getLastDoorInPath(dijsktraPlayerPath[-2], dijsktraPlayerPath[-1]).destination
+            playerPath.dijsktraDistance = pathToDoor[-1].g + distancesFromPlayer[dijsktraPlayerPath[-1]]
+            playerPath.finalDistance = playerPath.lastDoorDestination.getDistanceTo(destination) # Don't use A* unless we have to
+            playerPath.dijsktraPath = [pathToDoor] + [dijsktraPlayerPath]
+
+# Choose between flying to a position and directly to it, and return the path
 def getClosestFlyLocation(location):
 
     # Need to go to a Position but only Door paths are pretermined, find closest Door
@@ -1092,8 +1224,6 @@ def getClosestFlyLocation(location):
         if (locationDoorKey in distances):
             distanceFromLocation = distances[locationDoorKey]
 
-            print(str(city) + " - " + str(distanceFromLocation))
-
             # Save closest city when distance to location is the lowest
             if (distanceFromLocation < minDistanceFromCity):
                 minDistanceFromCity = distanceFromLocation
@@ -1101,77 +1231,51 @@ def getClosestFlyLocation(location):
                 pathsFromCity = paths
                 closestCity = city
 
-    # Generate complete path from city to closest door
-    dijsktraCityPath = processDijkstraPath(pathsFromCity, locationDoorKey)
-
     # We found location's closest city, but there might be a better path from our current position
     playerPosition = player.getPlayerData().position
     destination = location if isinstance(location, Position) else location.position
     playerDistanceToPosition = playerPosition.getDistanceTo(destination)
-    finalPlayerDistanceToLocation = 0
-    minDistanceFromPlayer = 0
-    lastPlayerDoor = None
 
+    playerPath = Path()
+    cityPath = Path()
+
+    # Generate complete dijsktra path from city to closest door
+    cityPath.dijsktraPath = processDijkstraPath(pathsFromCity, locationDoorKey)
+    cityPath.dijsktraDistance = minDistanceFromCity
+
+    skipAllCityProcesses = False
     skipAllCurrentPositionProcesses = False
     directPathFromCurrentPosition = None
-    directPathFromSecondToLastCityDoor = None
-    directPathFromSecondToLastPlayerDoor = None
 
-    print("minDistanceFromCity : " + str(minDistanceFromCity) + " (" + str(closestCity) + ")")
+    print("minDistanceFromCity : " + str(cityPath.dijsktraDistance) + " (" + str(closestCity) + ")")
     print("playerDistanceToPosition : " + str(playerDistanceToPosition))
 
+    # Directly go to the point if the closest fly location is within 50 cells
+    if (playerPosition.getDistanceTo(closestCity.flyDoor.position) < 50
+                and getMostEfficientPath(playerPosition, closestCity.flyDoor.position, maxCost = 50)):
+        print("Directly go to the point if the closest city is within 50 cells")
+        skipAllCityProcesses = True # Skip all parts involving city position
+
     # Fly to city if even the manhattan distance from player to door is too high
-    if (isinstance(location, Door) and playerPosition.zone == destination.zone
-        and playerDistanceToPosition > minDistanceFromCity and playerDistanceToPosition > 30):
+    elif (isinstance(location, Door) and playerPosition.zone == destination.zone 
+                and playerDistanceToPosition > cityPath.dijsktraDistance and playerDistanceToPosition > 50):
         print("Fly to city if even the manhattan distance from player to door is too high")
         skipAllCurrentPositionProcesses = True # Skip all parts involving player position
-        
+
 
     # Location is a Position, calculate distance from city more precisely
-    if (isinstance(location, Position)):
+    if (not skipAllCityProcesses and isinstance(location, Position)):
 
-        # Direct path between city and closestDoor
-        if (len(dijsktraCityPath) <= 2):
-            lastCityDoor = closestCity.flyDoor.connectedDoor
-            minDistanceFromCity = 0
-            finalCityDistanceToLocation = lastCityDoor.destination.getDistanceTo(destination) # Don't use A* unless we have to
-            dijsktraCityPath = [] # Skip dijsktraCityPath
-            
-        # Need to go through doors
-        else:
-            needToGoToClosestDoor = False
-            secondToLastCityDoor = getLastDoorInPath(dijsktraCityPath[-3], dijsktraCityPath[-2])
-
-            # We check the second-to-last door to see if we can directly reach destination from there
-            if (secondToLastCityDoor.destination.zone == destination.zone):
-                if (destination.zone in zone.LABYRINTH_ZONES):
-                    directPathFromSecondToLastCityDoor = getMostEfficientPath(secondToLastCityDoor.destination, destination)
-                    needToGoToClosestDoor = directPathFromSecondToLastCityDoor is not None
-                else:
-                    needToGoToClosestDoor = True
-
-            # We don't have to go through closestDoor
-            if (needToGoToClosestDoor):
-                dijsktraCityPath.pop(-1) # Remove closestDoor in the path
-
-                lastCityDoor = secondToLastCityDoor
-                minDistanceFromCity = distancesFromCity[dijsktraCityPath[-2]]
-                finalCityDistanceToLocation = (directPathFromSecondToLastCityDoor[-1].g if directPathFromSecondToLastCityDoor
-                                               else lastCityDoor.destination.getDistanceTo(destination)) # Don't use A* unless we have to
-
-            # We have to go through closestDoor
-            else:
-                lastCityDoor = getLastDoorInPath(dijsktraCityPath[-2], dijsktraCityPath[-1])
-                minDistanceFromCity = distancesFromCity[dijsktraCityPath[-1]]
-                finalCityDistanceToLocation = lastCityDoor.destination.getDistanceTo(destination) # Don't use A* unless we have to
+        # Populate cityPath object by calculating final door, distance to door and distance from door
+        getEstimatedCityDistance(cityPath, destination, closestDoor, closestCity, distancesFromCity)
 
         # Fly to city if even the manhattan distance from player to destination is too high
         if (playerPosition.zone == destination.zone
-            and playerDistanceToPosition > finalCityDistanceToLocation and playerDistanceToPosition > 30):
+            and playerDistanceToPosition > cityPath.finalDistance and playerDistanceToPosition > 50):
             print("Fly to city if even the manhattan distance from player to destination is too high")
             skipAllCurrentPositionProcesses = True # Skip all parts involving player position
 
-        print("minDistanceFromCity (" + str(minDistanceFromCity) + ") - finalCityDistanceToLocation (" + str(finalCityDistanceToLocation) + ")")
+        print("minDistanceFromCity (" + str(cityPath.dijsktraDistance) + ") - finalCityDistanceToLocation (" + str(cityPath.finalDistance) + ")")
 
 
     # Processes involving current player position
@@ -1182,21 +1286,21 @@ def getClosestFlyLocation(location):
 
         # Direct path between player and destination
         if (directPathFromCurrentPosition):
-            finalPlayerDistanceToLocation = directPathFromCurrentPosition[-1].g
-            playerPath = [directPathFromCurrentPosition]
+            playerPath.finalDistance = directPathFromCurrentPosition[-1].g
+            playerPath.dijsktraPath = [directPathFromCurrentPosition]
 
             # If we used A* from second-to-last city door, we have all the info we need
-            if (directPathFromSecondToLastCityDoor):
+            if (cityPath.finalPath):
                 print("If we used A* from second-to-last city door, we have all the info we need")
-                if (finalPlayerDistanceToLocation > minDistanceFromCity + finalCityDistanceToLocation and finalPlayerDistanceToLocation > 30):
-                    return closestCity, [dijsktraCityPath] + [directPathFromSecondToLastCityDoor]
+                if (playerPath.finalDistance > cityPath.dijsktraDistance + cityPath.finalDistance and playerPath.finalDistance > 50):
+                    return closestCity, [cityPath.dijsktraPath] + [cityPath.finalPath]
                 else:
-                    return None, playerPath
+                    return None, playerPath.dijsktraPath
 
             # If not, we can still decide to bike if even the manhattan distance from city to destination is too high
-            elif (finalPlayerDistanceToLocation < minDistanceFromCity + finalCityDistanceToLocation):
+            elif (playerPath.finalDistance < cityPath.dijsktraDistance + cityPath.finalDistance):
                 print("If not, we can still decide to bike if even the manhattan distance from city to destination is too high")
-                return None, playerPath
+                return None, playerPath.dijsktraPath
             
 
         # No direct path available from player position, find the nearest door to current position to estimate the distance
@@ -1207,157 +1311,96 @@ def getClosestFlyLocation(location):
             # There might be no door from our current position that leads to destination (probably on another island)
             if (not closestPositionDoor):
                 print("Can't reach destination from current position, we have to fly")
-                return closestCity, [dijsktraCityPath]
+                skipAllCurrentPositionProcesses = True
+        
+            # Populate playerPath object by calculating final door, distance to door and distance from door
+            if (not skipAllCurrentPositionProcesses):
+                getEstimatedPlayerDistance(playerPath, destination, closestDoor, location, closestPositionDoor, pathToDoor)
+                print("minDistanceFromPlayer (" + str(playerPath.dijsktraDistance) + ") - finalPlayerDistanceToLocation (" + str(playerPath.finalDistance) + ")")
 
-            # We already ruled out direct path to destination, so we have to go through at least one door
-            if (closestPositionDoor.connectedDoor == closestDoor):
-                lastPlayerDoor = closestDoor
-                minDistanceFromPlayer = pathToDoor[-1].g
-                finalPlayerDistanceToLocation = pathToDoor[-1].g
-                playerPath = [pathToDoor]
-            
-            # Need to go through at least one door
-            else:
-                # Calculate distance from current position's nearest door to location's nearest door
-                paths, distancesFromPlayer = dijkstra(closestPositionDoor.createDoorKey())
-                dijsktraPlayerPath = processDijkstraPath(paths, locationDoorKey)
-                needToGoToClosestDoor = False
-
-                # Retrieve second-to-last door either from player's closest door or directly from the path
-                if (len(dijsktraPlayerPath) == 2):
-                    secondToLastPlayerDoor = closestPositionDoor
-                else:
-                    secondToLastPlayerDoor = getLastDoorInPath(dijsktraPlayerPath[-3], dijsktraPlayerPath[-2])
-
-                # We check the second-to-last door to see if we can directly reach destination from there
-                if (isinstance(location, Position) and secondToLastPlayerDoor.destination.zone == destination.zone):
-                    if (destination.zone in zone.LABYRINTH_ZONES):
-                        directPathFromSecondToLastPlayerDoor = getMostEfficientPath(secondToLastPlayerDoor.destination, destination)
-                        needToGoToClosestDoor = directPathFromSecondToLastPlayerDoor is not None
-                    else:
-                        needToGoToClosestDoor = True
-
-                # We don't have to go through closestDoor
-                if (needToGoToClosestDoor):
-                    dijsktraPlayerPath.pop(-1) # Remove closestDoor in the path
-                    lastPlayerDoor = secondToLastPlayerDoor
-
-                    # If we used A*, skip the dijsktraPlayerPath
-                    if (directPathFromSecondToLastPlayerDoor):
-
-                        # Only one door : skip dijsktraPlayerPath
-                        if (len(dijsktraPlayerPath) == 1):
-                            minDistanceFromPlayer = pathToDoor[-1].g
-                            playerPath = [pathToDoor] + [directPathFromSecondToLastPlayerDoor] # Only one door : skip dijsktraPlayerPath
-                        else:
-                            minDistanceFromPlayer = pathToDoor[-1].g + distancesFromPlayer[secondToLastPlayerDoor.createDoorKey()]
-                            playerPath = [pathToDoor] + [dijsktraPlayerPath] + [directPathFromSecondToLastPlayerDoor]
-
-                        finalPlayerDistanceToLocation = directPathFromSecondToLastPlayerDoor[-1].g
-
-                    # Don't use A* unless we have to
-                    else:
-                        # Only one door : skip dijsktraPlayerPath
-                        if (len(dijsktraPlayerPath) == 1):
-                            minDistanceFromPlayer = pathToDoor[-1].g
-                            playerPath = [pathToDoor]
-                        else:
-                            minDistanceFromPlayer = pathToDoor[-1].g + distancesFromPlayer[secondToLastPlayerDoor.createDoorKey()]
-                            playerPath = [pathToDoor] + [dijsktraPlayerPath]
-
-                        finalPlayerDistanceToLocation = lastPlayerDoor.destination.getDistanceTo(destination)
-
-                # We have to go through closestDoor
-                else:
-                    lastPlayerDoor = getLastDoorInPath(dijsktraPlayerPath[-2], dijsktraPlayerPath[-1])
-                    minDistanceFromPlayer = pathToDoor[-1].g + distancesFromPlayer[dijsktraPlayerPath[-1]]
-                    finalPlayerDistanceToLocation = lastPlayerDoor.destination.getDistanceTo(destination) # Don't use A* unless we have to
-                    playerPath = [pathToDoor] + [dijsktraPlayerPath]
-
-            print("minDistanceFromPlayer (" + str(minDistanceFromPlayer) + ") - finalPlayerDistanceToLocation (" + str(finalPlayerDistanceToLocation) + ")")
 
         # We can filter out results if we have the exact distance from player to destination
-        if (directPathFromSecondToLastPlayerDoor):
+        if (playerPath.finalPath):
 
             # If we used A* from both second-to-last doors, we have all the info we need
-            if (directPathFromSecondToLastCityDoor):
+            if (cityPath.finalPath):
                 print("If we used A* from both second-to-last doors, we have all the info we need")
-                if (minDistanceFromCity + finalCityDistanceToLocation < minDistanceFromPlayer + finalPlayerDistanceToLocation):
-                    return closestCity, [dijsktraCityPath] + [directPathFromSecondToLastCityDoor]
+                if (cityPath.dijsktraDistance + cityPath.finalDistance < playerPath.dijsktraDistance + playerPath.finalDistance):
+                    return closestCity, [cityPath.dijsktraPath] + [cityPath.finalPath]
                 else:
-                    return None, playerPath
+                    return None, [playerPath.dijsktraPath] + [playerPath.finalPath]
 
             # If not, we can still decide to bike if even the manhattan distance from city to destination is too high
-            elif (minDistanceFromPlayer + finalPlayerDistanceToLocation < minDistanceFromCity + finalCityDistanceToLocation):
+            elif (playerPath.dijsktraDistance + playerPath.finalDistance < cityPath.dijsktraDistance + cityPath.finalDistance):
                 print("If not, we can still decide to bike if even the manhattan distance from city to destination is too high")
-                return None, playerPath
+                return None, [playerPath.dijsktraPath] + [playerPath.finalPath]
             
         # We can also filter out results if we have the exact distance from city to destination
-        elif (directPathFromSecondToLastCityDoor):
+        elif (cityPath.finalPath):
 
             # We can decide to fly if even the manhattan distance from player's second-to-last door to destination is too high
-            if (minDistanceFromCity + finalCityDistanceToLocation < minDistanceFromPlayer + finalPlayerDistanceToLocation):
+            if (cityPath.dijsktraDistance + cityPath.finalDistance < playerPath.dijsktraDistance + playerPath.finalDistance):
                 print("We can decide to fly if even the manhattan distance from player's second-to-last door to destination is too high")
-                return closestCity, [dijsktraCityPath] + [directPathFromSecondToLastCityDoor]
+                return closestCity, [cityPath.dijsktraPath] + [cityPath.finalPath]
             
-    print("lastCityDoor : " + str(lastCityDoor))
+    print("playerPath.lastDoorDestination : " + str(playerPath.lastDoorDestination))
+    print("cityPath.lastDoorDestination : " + str(cityPath.lastDoorDestination))
 
 
     # If location is a Door, we have all the data we need to know if we fly or not
     if isinstance(location, Door):
         print("If location is a Door, we have all the data we need to know if we fly or not")
-        if (minDistanceFromCity < minDistanceFromPlayer):
-            return closestCity, [dijsktraCityPath]
+        if (skipAllCurrentPositionProcesses or cityPath.dijsktraDistance < playerPath.dijsktraDistance and not skipAllCityProcesses):
+            return closestCity, [cityPath.dijsktraPath]
         else:
-            return None, playerPath
+            return None, [playerPath.dijsktraPath]
 
     # Location is a Position, we need to take into account the final path
     else:
-        # The direct paths differences have already been processed, we are now dealing with estimations
-        distanceToCityEstimation = lastCityDoor.destination.getDistanceTo(destination)
-        distanceToPlayerEstimation = (lastPlayerDoor.destination.getDistanceTo(destination) if lastPlayerDoor
-                                      else playerDistanceToPosition)
-
         # We could A* from lastCityDoor and lastPlayerDoor, but if the distances are similar it's just not worth it
-        # We'll just use a distance ratio, fly if the player is too far and bike otherwise
-        distanceRatio = (minDistanceFromPlayer + distanceToPlayerEstimation) / (minDistanceFromCity + distanceToCityEstimation)
-        print("\ndistanceRatio : " + str(distanceRatio))
+        if (not skipAllCurrentPositionProcesses and not skipAllCityProcesses):
+            distanceToCityEstimation = cityPath.lastDoorDestination.getDistanceTo(destination)
+            distanceToPlayerEstimation = (playerPath.lastDoorDestination.getDistanceTo(destination) if playerPath.lastDoorDestination
+                                        else playerDistanceToPosition)
+
+            # We'll just use a distance ratio, fly if the player is too far and bike otherwise
+            distanceRatio = (playerPath.dijsktraDistance + distanceToPlayerEstimation) / (cityPath.dijsktraDistance + distanceToCityEstimation)
+            print("(" + str(playerPath.dijsktraDistance) + " + " + str(distanceToPlayerEstimation) + ") / (" + str(cityPath.dijsktraDistance) + " + " + str(distanceToCityEstimation) + ") = " + str(distanceRatio))
 
         # Ratio is in favor of flying
-        if (distanceRatio > 1.2 or skipAllCurrentPositionProcesses):
+        if (not skipAllCityProcesses and (skipAllCurrentPositionProcesses or distanceRatio > 1.2)):
 
             # We'll need to use A* at some point, we might as well do it now
-            if (not directPathFromSecondToLastCityDoor):
-                directPathFromSecondToLastCityDoor = getMostEfficientPath(lastCityDoor.destination, destination)
+            if (not cityPath.finalPath):
+                cityPath.finalPath = getMostEfficientPath(cityPath.lastDoorDestination, destination)
 
                 # If there's a direct path from player position, we can actually directly compare it for a final check
-                if (directPathFromCurrentPosition or directPathFromSecondToLastPlayerDoor):
+                if (directPathFromCurrentPosition or playerPath.finalPath):
                     print("If there's a direct path from player position, we can actually directly compare it for a final check")
-                    if (minDistanceFromPlayer + finalPlayerDistanceToLocation < minDistanceFromCity + directPathFromSecondToLastCityDoor[-1].g):
-                        return None, playerPath
+                    if (playerPath.dijsktraDistance + playerPath.finalDistance < cityPath.dijsktraDistance + cityPath.finalPath[-1].g):
+                        return None, playerPath.dijsktraPath
                 
             # The path has been calculated and compared to other distances, and the better choice is to fly
             print("The path has been calculated and compared to other distances, and the better choice is to fly")
-            return closestCity, [dijsktraCityPath] + [directPathFromSecondToLastCityDoor]
+            return closestCity, [cityPath.dijsktraPath] + [cityPath.finalPath]
 
         # Ratio is neutral or in favor of direct path, and if neutral we choose the direct path
         else:
-            directPath = directPathFromCurrentPosition or directPathFromSecondToLastPlayerDoor
 
             # Whole path already calculated, just return it
-            if (directPath):
+            if (directPathFromCurrentPosition or playerPath.finalPath):
                 print("Path already calculated, just return it")
-                return None, playerPath
+                return None, [directPathFromCurrentPosition] if directPathFromCurrentPosition else [playerPath.finalPath]
 
             # Final path left to be calculated, use A*
-            directPath = getMostEfficientPath(lastPlayerDoor.destination, destination)
+            directPath = getMostEfficientPath(playerPath.lastDoorDestination, destination)
 
             # If there's a direct path from city, we can actually directly compare it for a final check
-            if (directPathFromSecondToLastCityDoor):
+            if (cityPath.finalPath):
                 print("If there's a direct path from city, we can actually directly compare it for a final check")
-                if (minDistanceFromPlayer + directPath[-1].g < minDistanceFromPlayer + finalPlayerDistanceToLocation):
-                    return closestCity, [dijsktraCityPath] + [directPathFromSecondToLastCityDoor]
+                if (cityPath.dijsktraDistance + cityPath.finalDistance < playerPath.dijsktraDistance + directPath[-1].g):
+                    return closestCity, [cityPath.dijsktraPath] + [cityPath.finalPath]
 
             # The path has been calculated and compared to other distances, and the better choice is not to fly
             print("The path has been calculated and compared to other distances, and the better choice is not to fly")
-            return None, playerPath + [directPath]
+            return None, playerPath.dijsktraPath + [directPath]
