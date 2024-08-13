@@ -13,7 +13,7 @@ import player
 import joypad
 import memory
 
-# Credits :
+# Credits for A* algorithm implementation :
 # - Python Implementation : https://medium.com/@nicholas.w.swift/easy-a-star-pathfinding-7e6689c7f7b2
 # - Improving Heuristics calculation : https://theory.stanford.edu/~amitp/GameProgramming/Heuristics.html
 
@@ -80,7 +80,20 @@ DIRECTIONS = [
     {"orientation": (1, 0),  "solidLedges": ["L","U","R"]}, # Down
 ]
 
-# Node class for A* Pathfinding
+
+
+
+
+
+##################################################################################################
+#                                                                                                #
+#     Methods responsible of using A* algorithm to find the best path between two positions      #
+#                                                                                                #
+##################################################################################################
+
+#################################
+# Node class for A* Pathfinding #
+#################################
 class Node():
     def __init__(self, position: Position, zoneMap, parent = None):
         self.parent = parent
@@ -147,189 +160,10 @@ class Node():
     def __repr__(self):
         return str(self)
 
-# DoorNode class for Dijkstra Pathfinding
-class DoorNode():
-    def __init__(self, fromDoor: Door, toDoor: Door, path = None):
-        self.fromDoor = fromDoor
-        self.toDoor = toDoor
-        self.path = path
 
-        if (path):
-            self.weight = self.path[-1].g
-        else:
-            self.weight = fromDoor.position.getDistanceTo(toDoor.position)
-
-    def __eq__(self, other):
-        if isinstance(other, DoorNode):
-            return self.fromDoor == other.fromDoor and self.toDoor == other.toDoor
-        return False
-    
-    def __str__(self):
-        return "Weight " + str(self.weight) + " from (" + str(self.fromDoor) + ")\n           to (" + str(self.toDoor) + ")\n"
-    
-    def __repr__(self):
-        return str(self)
-
-
-def updateMapWithPushedBoulders(zoneMap, boulderPosition, playerPosition):
-        
-    # Operations will depend on the player and boulders positions
-    xDiff = boulderPosition.X - playerPosition.X
-    yDiff = boulderPosition.Y - playerPosition.Y
-
-    # Update the map to take into account the pushed boulder
-    if (xDiff == 1):
-        zoneMap[boulderPosition.Y] = zoneMap[boulderPosition.Y][:boulderPosition.X] + "Ob" + zoneMap[boulderPosition.Y][boulderPosition.X+2:]
-    elif (xDiff == -1):
-        zoneMap[boulderPosition.Y] = zoneMap[boulderPosition.Y][:boulderPosition.X-1] + "bO" + zoneMap[boulderPosition.Y][boulderPosition.X+1:]
-    else:
-        zoneMap[boulderPosition.Y] = zoneMap[boulderPosition.Y][:boulderPosition.X] + "O" + zoneMap[boulderPosition.Y][boulderPosition.X+1:]
-        zoneMap[boulderPosition.Y + yDiff] = zoneMap[boulderPosition.Y + yDiff][:boulderPosition.X] + "b" + zoneMap[boulderPosition.Y + yDiff][boulderPosition.X+1:]
-
-
-def getMapAtCurrentState(processedNodes, originalMap):
-
-    # Keep track of boulders and obstacles for the input process
-    pushedBoulder = False
-    destroyedObstacles = []
-
-    # Create a copy of the original map that we can updatz
-    updatedMap = originalMap[:]
-
-    # Check every already processed node for pushed boulders
-    if (len(processedNodes) > 0):
-
-        # If a boulder has been pushed, update the map accordingly
-        for node in processedNodes:
-            if (node.pushBoulder): 
-                updateMapWithPushedBoulders(updatedMap, node.position, node.parent.position)
-                pushedBoulder = True
-
-            if (node.cellType in ["r","t"]):
-                destroyedObstacles.append(node.position)
-
-    return updatedMap, pushedBoulder, destroyedObstacles
-
-def isBoulderPushable(zoneMap, playerPosition, boulderPosition, orientation, blockingBoulders):
-
-    # Boulder is pushable if the cell after that is an empty one, and the boulder hasn't already been processed
-    return (zoneMap[boulderPosition.Y + orientation[0]][boulderPosition.X + orientation[1]] == "O" 
-                and (playerPosition, boulderPosition) not in blockingBoulders)
-
-def getRockClimbEndPosition(zoneMap, playerPosition, orientation):
-    
-    # Try to find the first cell after rock climb
-    for i in range(1,11):
-
-        # Found the end position of rock climb
-        if (zoneMap[playerPosition.Y + i*orientation[0]][playerPosition.X + i*orientation[1]] != "C"):
-            return Position(playerPosition.X + i*orientation[1], playerPosition.Y + i*orientation[0], playerPosition.zone)
-        
-    # No position has been found after 10 cells, not theoretically possible
-    return playerPosition
-
-def findSlopeDestinationCell(slopePosition):
-    # Check for the furthest free cell up the slope 
-    if (slopePosition.zone.map[slopePosition.Y - 3][slopePosition.X] == "X"):
-        return Position(slopePosition.X, slopePosition.Y - 2, slopePosition.zone)
-    elif (slopePosition.zone.map[slopePosition.Y - 4][slopePosition.X] == "X"):
-        return Position(slopePosition.X, slopePosition.Y - 3, slopePosition.zone)
-    else:
-        return Position(slopePosition.X, slopePosition.Y - 4, slopePosition.zone)
-
-def findSlopeMomentumCell(slopePosition):
-    zoneMap = slopePosition.zone.map
-
-    # Search for a close free cell to gain momentum in order to go up the slope
-    for orientation in [(1,0),(0,-1),(0,1)]: # Down, Left, Right
-        if (zoneMap[slopePosition.Y + 1 + orientation[0]][slopePosition.X + orientation[1]] in ["O","G","B"]):
-            return Position(slopePosition.X + orientation[1], slopePosition.Y + 1 + orientation[0], slopePosition.zone)
-
-def findRampDestinationCell(rampPosition, orientation):
-    # Check for the furthest free cell after jumping from the ramp
-    if (rampPosition.zone.map[rampPosition.Y][rampPosition.X + 5 * orientation] == "X"):
-        return Position(rampPosition.X + 4 * orientation, rampPosition.Y, rampPosition.zone)
-    elif (rampPosition.zone.map[rampPosition.Y][rampPosition.X + 6 * orientation] == "X"):
-        return Position(rampPosition.X + 5 * orientation, rampPosition.Y, rampPosition.zone)
-    else:
-        return Position(rampPosition.X + 6 * orientation, rampPosition.Y, rampPosition.zone)
-
-def generateSlopeNodePath(slopeNode, destinationNode, zoneMap):
-        
-    slopePath = []
-    slopePath.append(slopeNode)
-    slopePath.append(Node(slopeNode.bikeSlopeMomentumCell, zoneMap, slopePath[-1])) # Momentum Cell
-    slopePath.append(Node(slopeNode.position, zoneMap, slopePath[-1])) # Cell in front of the slope
-    
-    slopeDestinationId = 1
-
-    # Add nodes until we're at the top
-    while (destinationNode.position.Y < slopeNode.position.Y - slopeDestinationId):
-        slopePath.append(Node(Position(slopeNode.position.X, slopeNode.position.Y - slopeDestinationId, slopeNode.position.zone), zoneMap, slopePath[-1]))
-        slopeDestinationId += 1
-
-    for node in slopePath:
-        node.onABikeSlope = True
-
-    destinationNode.onABikeSlope = True
-    destinationNode.parent = slopePath[-1]
-
-    return slopePath[::-1]
-
-def areThreeRampCellsFree(zoneMap, currentPosition, orientation):
-
-    # Can only jump bike ramps if facing left or right
-    if (orientation[0] == 0):
-        # Can only jump bike ramps if we have free side cells to accelerate
-        if (orientation[1] == 1):
-            return zoneMap[currentPosition.Y][currentPosition.X-2:currentPosition.X+1] == "OOO"
-        elif (orientation[1] == -1):
-            return zoneMap[currentPosition.Y][currentPosition.X:currentPosition.X+3] == "OOO"
-        else:
-            return False
-    else:
-        return False
-
-def generateRampNodePath(rampNode, destinationNode, zoneMap):
-        
-    rampOrientation = -1 if destinationNode.position.X < rampNode.position.X else 1
-
-    rampPath = []
-    rampPath.append(rampNode) # Start on Ramp cell
-    rampPath.append(Node(Position(rampNode.position.X - rampOrientation, rampNode.position.Y, rampNode.position.zone), zoneMap, rampPath[-1])) # Go to Momentum Cell
-
-    # Add nodes until we're at the destination cell
-    for i in range(-2,6):
-        rampPath.append(Node(Position(rampNode.position.X + i * rampOrientation, rampNode.position.Y, rampNode.position.zone), zoneMap, rampPath[-1]))
-
-    for node in rampPath:
-        node.onABikeRamp = True
-
-    destinationNode.onABikeRamp = True
-    destinationNode.parent = rampPath[-1]
-
-    return rampPath[::-1]
-
-def sortBoulders(boulderList, endPosition):
-
-    # Calculate boulder distance to endPosition
-    for boulder in boulderList:
-        boulder[1].setDistanceTo(endPosition)
-
-    # Sort by distance to endPosition
-    sortedList = sorted(boulderList, key=lambda x: x[1].distance)
-
-    # Specific process for particular boulders that need to be pushed last
-    for boulder in PUZZLE_BOULDERS:
-        if (boulder in sortedList):
-            sortedList.remove(boulder)
-            sortedList.append(boulder)
-
-    return sortedList
-
-def removeAllBoulders(zoneMap):
-    return [row.replace('b', 'O') for row in zoneMap]
-
+#########################################################################################################
+# Find best possible path between two points in the same zone, while trying to push boulders if needeed #
+#########################################################################################################
 def getMostEfficientPath(start: Position, end: Position, zoneMap = None, isBelow = None, maxCost = None):
 
     # Log pathfinding calculation time
@@ -458,7 +292,10 @@ def getMostEfficientPath(start: Position, end: Position, zoneMap = None, isBelow
         print("Get most effective path from " + str(start) + " to " + str(end) + " (" + zoneMap[end.Y][end.X] + ") : " + str(round(time.time() - startTime,2)) + " seconds")
         return possiblePath
 
-# Use A* algorithm to find most efficient path
+
+#######################################################################################
+# Use A* algorithm to find most efficient path between two positions in the same zone #
+#######################################################################################
 def astar(start: Position, end: Position, zoneMap, isBelow = None, maxCost = None):
 
     # Boulders might block the way, we'll track them and process them if needed
@@ -634,48 +471,232 @@ def astar(start: Position, end: Position, zoneMap, isBelow = None, maxCost = Non
     return None, blockingBoulders
 
 
-def writePathInputsFromCurrentState(nodeList, breakNodeId):
 
-    # Get final position after player stopped moving
-    playerData = player.getPlayerData()
 
-    # If on a bike slope, just wait, we'll slide down eventually
-    while (playerData.position.getCell() == "V"):
-        waitFrames(1)
-        playerData = player.getPlayerData()
 
-    # a/A cells are either above or below a bridge, check the first remaining node to differentiate
-    if (playerData.position.getCell() in ["a","A"]):
-        isBelow = nodeList[breakNodeId].isBelow
+
+#########################################################################
+#                                                                       #
+#     Methods responsible of dealing with obstacles in A* algorithm     #
+#                                                                       #
+#########################################################################
+
+#####################################################################################
+# Retrieve every pushed boulder from processed nodes and update the map accordingly #
+#####################################################################################
+def getMapAtCurrentState(processedNodes, originalMap):
+
+    # Keep track of boulders and obstacles for the input process
+    pushedBoulder = False
+    destroyedObstacles = []
+
+    # Create a copy of the original map that we can updatz
+    updatedMap = originalMap[:]
+
+    # Check every already processed node for pushed boulders
+    if (len(processedNodes) > 0):
+
+        # If a boulder has been pushed, update the map accordingly
+        for node in processedNodes:
+            if (node.pushBoulder): 
+                updateMapWithPushedBoulders(updatedMap, node.position, node.parent.position)
+                pushedBoulder = True
+
+            if (node.cellType in ["r","t"]):
+                destroyedObstacles.append(node.position)
+
+    return updatedMap, pushedBoulder, destroyedObstacles
+
+
+#########################################################
+# Update boulder position on the map after being pushed #
+#########################################################
+def updateMapWithPushedBoulders(zoneMap, boulderPosition, playerPosition):
+        
+    # Operations will depend on the player and boulders positions
+    xDiff = boulderPosition.X - playerPosition.X
+    yDiff = boulderPosition.Y - playerPosition.Y
+
+    # Update the map to take into account the pushed boulder
+    if (xDiff == 1):
+        zoneMap[boulderPosition.Y] = zoneMap[boulderPosition.Y][:boulderPosition.X] + "Ob" + zoneMap[boulderPosition.Y][boulderPosition.X+2:]
+    elif (xDiff == -1):
+        zoneMap[boulderPosition.Y] = zoneMap[boulderPosition.Y][:boulderPosition.X-1] + "bO" + zoneMap[boulderPosition.Y][boulderPosition.X+1:]
     else:
-        isBelow = None
-
-    print("Wrong path ! Start again from " + str(playerData.position))
-
-    # If we need a new path while on a bike slope, start the go-up-the-slope sequence again
-    while (breakNodeId >= 0 and nodeList[breakNodeId].onABikeSlope):
-        breakNodeId -= 1
-
-    # Split the original nodeList into processed and remaining nodes
-    processedNodes = nodeList[:breakNodeId]
-    remainingNodes = nodeList[breakNodeId:]
-
-    # Update the map to take into account the pushed boulder and destroyed obstacles
-    updatedMap, strengthUsed, destroyedObstacles = getMapAtCurrentState(processedNodes, nodeList[0].position.zone.map)
-
-    # Go from player position to first node of the remaining nodes
-    firstNode = remainingNodes.pop(0)
-    nodeList = getMostEfficientPath(playerData.position, firstNode.position, updatedMap, isBelow)
-    nodeList.extend(remainingNodes)
-    print(nodeList)
-
-    # Retrieve all inputs needed to go to specified location
-    joypad.writePathfindingInput(nodeList, strengthUsed, destroyedObstacles)
-
-    return nodeList
+        zoneMap[boulderPosition.Y] = zoneMap[boulderPosition.Y][:boulderPosition.X] + "O" + zoneMap[boulderPosition.Y][boulderPosition.X+1:]
+        zoneMap[boulderPosition.Y + yDiff] = zoneMap[boulderPosition.Y + yDiff][:boulderPosition.X] + "b" + zoneMap[boulderPosition.Y + yDiff][boulderPosition.X+1:]
 
 
+################################################
+# Sort boulder list by distance to destination #
+################################################
+def sortBoulders(boulderList, endPosition):
 
+    # Calculate boulder distance to endPosition
+    for boulder in boulderList:
+        boulder[1].setDistanceTo(endPosition)
+
+    # Sort by distance to endPosition
+    sortedList = sorted(boulderList, key=lambda x: x[1].distance)
+
+    # Specific process for particular boulders that need to be pushed last
+    for boulder in PUZZLE_BOULDERS:
+        if (boulder in sortedList):
+            sortedList.remove(boulder)
+            sortedList.append(boulder)
+
+    return sortedList
+
+
+#############################################################################################################
+# Boulder is pushable if the cell after that is an empty one, and the boulder hasn't already been processed #
+#############################################################################################################
+def isBoulderPushable(zoneMap, playerPosition, boulderPosition, orientation, blockingBoulders):
+    return (zoneMap[boulderPosition.Y + orientation[0]][boulderPosition.X + orientation[1]] == "O" 
+                and (playerPosition, boulderPosition) not in blockingBoulders)
+
+
+###################################################
+# Replace all boulders with free cells on the map #
+###################################################
+def removeAllBoulders(zoneMap):
+    return [row.replace('b', 'O') for row in zoneMap]
+
+
+#############################################
+# Get final position after using Rock Climb #
+#############################################
+def getRockClimbEndPosition(zoneMap, playerPosition, orientation):
+    
+    # Try to find the first cell after rock climb
+    for i in range(1,11):
+
+        # Found the end position of rock climb
+        if (zoneMap[playerPosition.Y + i*orientation[0]][playerPosition.X + i*orientation[1]] != "C"):
+            return Position(playerPosition.X + i*orientation[1], playerPosition.Y + i*orientation[0], playerPosition.zone)
+        
+    # No position has been found after 10 cells, not theoretically possible
+    return playerPosition
+
+
+##################################################
+# Get final position after going up a bike slope #
+##################################################
+def findSlopeDestinationCell(slopePosition):
+    # Check for the furthest free cell up the slope 
+    if (slopePosition.zone.map[slopePosition.Y - 3][slopePosition.X] == "X"):
+        return Position(slopePosition.X, slopePosition.Y - 2, slopePosition.zone)
+    elif (slopePosition.zone.map[slopePosition.Y - 4][slopePosition.X] == "X"):
+        return Position(slopePosition.X, slopePosition.Y - 3, slopePosition.zone)
+    else:
+        return Position(slopePosition.X, slopePosition.Y - 4, slopePosition.zone)
+
+
+################################################################################
+# Find cell needed to be reached to gain momentum before going up a bike slope #
+################################################################################
+def findSlopeMomentumCell(slopePosition):
+    zoneMap = slopePosition.zone.map
+
+    # Search for a close free cell to gain momentum in order to go up the slope
+    for orientation in [(1,0),(0,-1),(0,1)]: # Down, Left, Right
+        if (zoneMap[slopePosition.Y + 1 + orientation[0]][slopePosition.X + orientation[1]] in ["O","G","B"]):
+            return Position(slopePosition.X + orientation[1], slopePosition.Y + 1 + orientation[0], slopePosition.zone)
+
+
+####################################################
+# Generate every node needed to go up a bike slope #
+####################################################
+def generateSlopeNodePath(slopeNode, destinationNode, zoneMap):
+        
+    slopePath = []
+    slopePath.append(slopeNode)
+    slopePath.append(Node(slopeNode.bikeSlopeMomentumCell, zoneMap, slopePath[-1])) # Momentum Cell
+    slopePath.append(Node(slopeNode.position, zoneMap, slopePath[-1])) # Cell in front of the slope
+    
+    slopeDestinationId = 1
+
+    # Add nodes until we're at the top
+    while (destinationNode.position.Y < slopeNode.position.Y - slopeDestinationId):
+        slopePath.append(Node(Position(slopeNode.position.X, slopeNode.position.Y - slopeDestinationId, slopeNode.position.zone), zoneMap, slopePath[-1]))
+        slopeDestinationId += 1
+
+    for node in slopePath:
+        node.onABikeSlope = True
+
+    destinationNode.onABikeSlope = True
+    destinationNode.parent = slopePath[-1]
+
+    return slopePath[::-1]
+
+
+#####################################################
+# Get final position after jumping from a bike ramp #
+#####################################################
+def findRampDestinationCell(rampPosition, orientation):
+    # Check for the furthest free cell after jumping from the ramp
+    if (rampPosition.zone.map[rampPosition.Y][rampPosition.X + 5 * orientation] == "X"):
+        return Position(rampPosition.X + 4 * orientation, rampPosition.Y, rampPosition.zone)
+    elif (rampPosition.zone.map[rampPosition.Y][rampPosition.X + 6 * orientation] == "X"):
+        return Position(rampPosition.X + 5 * orientation, rampPosition.Y, rampPosition.zone)
+    else:
+        return Position(rampPosition.X + 6 * orientation, rampPosition.Y, rampPosition.zone)
+
+
+######################################################################
+# Check if there is enough space to gain momentum before a bike ramp #
+######################################################################
+def areThreeRampCellsFree(zoneMap, currentPosition, orientation):
+
+    # Can only jump bike ramps if facing left or right
+    if (orientation[0] == 0):
+        # Can only jump bike ramps if we have free side cells to accelerate
+        if (orientation[1] == 1):
+            return zoneMap[currentPosition.Y][currentPosition.X-2:currentPosition.X+1] == "OOO"
+        elif (orientation[1] == -1):
+            return zoneMap[currentPosition.Y][currentPosition.X:currentPosition.X+3] == "OOO"
+        else:
+            return False
+    else:
+        return False
+
+
+#######################################################
+# Generate every node needed to jump from a bike ramp #
+#######################################################
+def generateRampNodePath(rampNode, destinationNode, zoneMap):
+    rampOrientation = -1 if destinationNode.position.X < rampNode.position.X else 1
+
+    rampPath = []
+    rampPath.append(rampNode) # Start on Ramp cell
+    rampPath.append(Node(Position(rampNode.position.X - rampOrientation, rampNode.position.Y, rampNode.position.zone), zoneMap, rampPath[-1])) # Go to Momentum Cell
+
+    # Add nodes until we're at the destination cell
+    for i in range(-2,6):
+        rampPath.append(Node(Position(rampNode.position.X + i * rampOrientation, rampNode.position.Y, rampNode.position.zone), zoneMap, rampPath[-1]))
+
+    for node in rampPath:
+        node.onABikeRamp = True
+
+    destinationNode.onABikeRamp = True
+    destinationNode.parent = rampPath[-1]
+
+    return rampPath[::-1]
+
+
+
+
+
+
+##########################################################################################################
+#                                                                                                        #
+#     Methods responsible of exploiting paths generated by A* algorithm and generating input presses     #
+#                                                                                                        #
+##########################################################################################################
+
+###################################################################
+# Generate the best path to go to location and process the inputs #
+###################################################################
 def goToLocation(location: Position):
 
     # Calculate path from current position
@@ -695,8 +716,11 @@ def goToLocation(location: Position):
     
     # Go from starting node to ending node
     processPath(path)
-    
 
+
+######################################################################################################
+# Generate every input needed to go through the provided node list and check if the path is followed #
+######################################################################################################
 def processPath(nodeList):
     print("Going from " + str(nodeList[0]) + " to " + str(nodeList[-1]))
 
@@ -707,6 +731,9 @@ def processPath(nodeList):
     checkPathIsFollowed(nodeList)
 
 
+##############################################################################
+# Make sure the player is following the provided path, and correct if needed #
+##############################################################################
 def checkPathIsFollowed(path):
 
     # We might bump into walls or moving NPCs, ecounter wild Pokémon, etc
@@ -794,8 +821,90 @@ def checkPathIsFollowed(path):
                 pathIndex = 0
 
 
-# Populate DOOR_GRAPH by adding every neighbour to every possible door
-# Takes around 50 minutes to generate, so we store it in a pkl file
+##############################################################################################
+# Erase inputs and start again from the already processed nodes and the current player state #
+##############################################################################################
+def writePathInputsFromCurrentState(nodeList, breakNodeId):
+
+    # Get final position after player stopped moving
+    playerData = player.getPlayerData()
+
+    # If on a bike slope, just wait, we'll slide down eventually
+    while (playerData.position.getCell() == "V"):
+        waitFrames(1)
+        playerData = player.getPlayerData()
+
+    # a/A cells are either above or below a bridge, check the first remaining node to differentiate
+    if (playerData.position.getCell() in ["a","A"]):
+        isBelow = nodeList[breakNodeId].isBelow
+    else:
+        isBelow = None
+
+    print("Wrong path ! Start again from " + str(playerData.position))
+
+    # If we need a new path while on a bike slope, start the go-up-the-slope sequence again
+    while (breakNodeId >= 0 and nodeList[breakNodeId].onABikeSlope):
+        breakNodeId -= 1
+
+    # Split the original nodeList into processed and remaining nodes
+    processedNodes = nodeList[:breakNodeId]
+    remainingNodes = nodeList[breakNodeId:]
+
+    # Update the map to take into account the pushed boulder and destroyed obstacles
+    updatedMap, strengthUsed, destroyedObstacles = getMapAtCurrentState(processedNodes, nodeList[0].position.zone.map)
+
+    # Go from player position to first node of the remaining nodes
+    firstNode = remainingNodes.pop(0)
+    nodeList = getMostEfficientPath(playerData.position, firstNode.position, updatedMap, isBelow)
+    nodeList.extend(remainingNodes)
+    print(nodeList)
+
+    # Retrieve all inputs needed to go to specified location
+    joypad.writePathfindingInput(nodeList, strengthUsed, destroyedObstacles)
+
+    return nodeList
+
+
+
+
+
+
+#########################################################################################################
+#                                                                                                       #
+#     Methods responsible of using Dijsktra's algorithm to find door-to-door paths across the world     #
+#                                                                                                       #
+#########################################################################################################
+
+###########################################
+# DoorNode class for Dijkstra Pathfinding #
+###########################################
+class DoorNode():
+    def __init__(self, fromDoor: Door, toDoor: Door, path = None):
+        self.fromDoor = fromDoor
+        self.toDoor = toDoor
+        self.path = path
+
+        if (path):
+            self.weight = self.path[-1].g
+        else:
+            self.weight = fromDoor.position.getDistanceTo(toDoor.position)
+
+    def __eq__(self, other):
+        if isinstance(other, DoorNode):
+            return self.fromDoor == other.fromDoor and self.toDoor == other.toDoor
+        return False
+    
+    def __str__(self):
+        return "Weight " + str(self.weight) + " from (" + str(self.fromDoor) + ")\n           to (" + str(self.toDoor) + ")\n"
+    
+    def __repr__(self):
+        return str(self)
+
+
+########################################################################
+# Populate DOOR_GRAPH by adding every neighbour to every possible door #
+# Takes around 50 minutes to generate, so we store it in a pkl file    #
+########################################################################
 def initDoorGraph():
 
     # Iterate on every single Door
@@ -826,6 +935,9 @@ def initDoorGraph():
     memory.saveGraph(DOOR_GRAPH, 'src/python/data/pkl/graph.pkl')
 
 
+###################################################################################
+# Retrieve the best possible path from any door to another and process the inputs #
+###################################################################################
 def goToWorldLocation(start, end):
 
     # Use Dijkstra to get best possible path from any door to any other door
@@ -858,8 +970,10 @@ def goToWorldLocation(start, end):
             else:
                 waitFrames(25)
 
-            print("Ready to process next path")
 
+####################################################################
+# Generate all nodes lists needed to go from one door to any other #
+####################################################################
 def getPathFromGraph(startDoor: Door, endDoor: Door):
     
     # Get shortest door-to-door path between two doors
@@ -903,6 +1017,9 @@ def getPathFromGraph(startDoor: Door, endDoor: Door):
                     return None
 
 
+#######################################################
+# Find best path from a door to another in DOOR_GRAPH #
+#######################################################
 def getShortestDoorPath(start: Door, end: Door):
     print("Find shortest path from " + str(start) + " to " + str(end))
 
@@ -916,6 +1033,9 @@ def getShortestDoorPath(start: Door, end: Door):
     return processDijkstraPath(paths, end)
 
 
+#######################################################################################
+# Take paths generated by Dijsktra's and find the one leading to the destination door #
+#######################################################################################
 def processDijkstraPath(paths, destination):
 
     # Create key from destination door in order to read in the DOOR_GRAPH
@@ -943,6 +1063,9 @@ def processDijkstraPath(paths, destination):
     return fullPath[::-1]
 
 
+########################################################################
+# Use Dijsktra's algorithm to find all paths and distances from a door #
+########################################################################
 def dijkstra(startingDoor):
 
     # Map the path/distance from each possible door to the starting door
@@ -986,85 +1109,10 @@ def dijkstra(startingDoor):
     # Once there's no more door to process, return the whole map
     return path, visited
 
-def getClosestDoor(location: Position):
 
-    # Get all doors in the zone and sort them by distance to the desired location
-    closestDoors = sorted(location.zone.doorList, key = lambda door: door.position.getDistanceTo(location))
-    currentClosestDoor = None
-    doorCost = None
-
-    # Retrieve the closest possible door that can actually lead to the location
-    for door in closestDoors:
-
-        # Get the path from the nearest door
-        doorPath = getMostEfficientPath(door.connectedDoor.destination, location, maxCost = doorCost)
-
-        # If a second path has been found with maxCost on, return it, if not the currentClosestDoor is the better option
-        if (currentClosestDoor):
-            return door if doorPath else currentClosestDoor
-
-        # First path has been found, since we're most likely between two doors, we'll compare them
-        if (doorPath):
-            currentClosestDoor = door
-            doorCost = doorPath[-1].g
-            print("doorCost : " + str(doorCost))
-
-    # Default : maybe there only was one available path, return currentClosestDoor
-    return currentClosestDoor
-
-def getBestPathDoor(playerPosition, destinationDoorKey):
-
-    # Sort doors by raw manhattan distance to destination
-    doorListByTrueDistance = []
-    closestCityDoor = None
-
-    # Calculate distance from every door in the zone to destination
-    for door in playerPosition.zone.doorList:
-        distances = dijkstra(door.createDoorKey())[1]
-
-        if (destinationDoorKey in distances):
-             doorListByTrueDistance.append([distances[destinationDoorKey], door])
-
-    # Sort doors by true distance to destination
-    closestDoors = sorted(doorListByTrueDistance, key = lambda door: door[0])
-
-    # If there's a City in the zone, search for the closest to destination
-    for door in closestDoors:
-        if (zone.isFlyDoor(door[1])):
-            closestCityDoor = door
-            break
-
-    # If the player is farther than a city, there's no point in directly going to the destination
-    if (closestCityDoor):
-        cityToExitDistance = closestCityDoor[0] - closestDoors[0][0]
-        playerToExitDistance = playerPosition.getDistanceTo(closestDoors[0][1].position)
-
-        if (playerToExitDistance > cityToExitDistance):
-            return None, None
-
-    # Retrieve the closest possible door that can actually lead to the location
-    for door in closestDoors:
-
-        # Get the path from current position to best door
-        doorPath = getMostEfficientPath(playerPosition, door[1].position)
-
-        # Path has been found from/to a near door, return it
-        if (doorPath):
-            return door[1], doorPath
-        
-    return None, None
-
-
-def getLastDoorInPath(startDoorKey, endDoorKey):
-
-    # Retrieve every path from the starting door
-    possiblePaths = DOOR_GRAPH[startDoorKey]
-
-    # Find its connection to the last door to get the final door
-    for doorNode in possiblePaths:
-        if (doorNode.fromDoor in startDoorKey and doorNode.toDoor in endDoorKey):
-            return doorNode.toDoor
-
+################################################################################################
+# Path class used by generateWorldPath method to store path data from city or current position #
+################################################################################################
 class Path():
     def __init__(self):
         self.lastDoorDestination = None # First position the player will be after going through the last door
@@ -1074,109 +1122,10 @@ class Path():
         self.finalDistance = 0          # Distance from last door to destination
 
 
-# Returns last door you need to go through, its distance from the city, and its distance to the location
-def getEstimatedCityDistance(cityPath, destination, closestDoor, closestCity, distancesFromCity):
-
-    # We already ruled out direct path to destination, so we have to go through at least one door
-    if (closestCity.flyDoor == closestDoor):
-        cityPath.lastDoorDestination = closestCity.flyDoor.connectedDoor.destination
-        cityPath.dijsktraPath = []
-        cityPath.dijsktraDistance = 0
-        cityPath.finalDistance = closestCity.flyDoor.connectedDoor.destination.getDistanceTo(destination)
-        
-    # Need to go through at least one door
-    else:
-        skipClosestDoor = False
-        lastSubpathDoor = closestCity.flyDoor.connectedDoor
-
-        # Check if any of the doors before closestDoor can reach the destination
-        for doorId in range(0, len(cityPath.dijsktraPath)):
-
-            # Check if we can directly reach destination from there
-            if (lastSubpathDoor.destination.zone == destination.zone):
-                if (destination.zone in zone.LABYRINTH_ZONES):
-                    cityPath.finalPath = getMostEfficientPath(lastSubpathDoor.destination, destination)
-                    skipClosestDoor = cityPath.finalPath is not None
-                else:
-                    skipClosestDoor = True
-
-                if (skipClosestDoor):
-                    break
-
-            # We couldn't find a path from last door, keep following the path
-            lastSubpathDoor = getLastDoorInPath(cityPath.dijsktraPath[doorId], cityPath.dijsktraPath[doorId + 1])
-
-        # Update dijsktraPath with the new last door destination
-        cityPath.lastDoorDestination = lastSubpathDoor.destination
-        cityPath.dijsktraPath = cityPath.dijsktraPath[:doorId + 1]
-        cityPath.finalDistance = (cityPath.finalPath[-1].g if cityPath.finalPath
-                                  else cityPath.lastDoorDestination.getDistanceTo(destination)) # Don't use A* unless we have to
-
-        # Direct path between city and closestDoor
-        if (len(cityPath.dijsktraPath) == 1):
-            cityPath.dijsktraPath = [] # Skip dijsktraPath
-            cityPath.dijsktraDistance = 0
-
-        # Need to go through doors
-        else:
-            cityPath.dijsktraDistance = distancesFromCity[cityPath.dijsktraPath[-1]]
-
-
-# Returns last door you need to go through, its distance from the player, and its distance to the location
-def getEstimatedPlayerDistance(playerPath, destination, closestDoor, location, closestPositionDoor, pathToDoor):
-
-    # We already ruled out direct path to destination, so we have to go through at least one door
-    if (closestPositionDoor.connectedDoor == closestDoor):
-        playerPath.lastDoorDestination = closestPositionDoor.destination
-        playerPath.dijsktraPath = [pathToDoor]
-        playerPath.dijsktraDistance = pathToDoor[-1].g
-        playerPath.finalDistance = playerPath.lastDoorDestination.getDistanceTo(destination)
-
-    # Need to go through at least one door
-    else:
-        # Calculate distance from current position's nearest door to location's nearest door
-        paths, distancesFromPlayer = dijkstra(closestPositionDoor.createDoorKey())
-        dijsktraPlayerPath = processDijkstraPath(paths, closestDoor.createDoorKey())
-
-        skipClosestDoor = False
-        lastSubpathDoor = closestPositionDoor
-
-        # Check if any of the doors before closestDoor can reach the destination
-        for doorId in range(0, len(dijsktraPlayerPath)):
-
-            # Check if we can directly reach destination from there
-            if (lastSubpathDoor.destination.zone == destination.zone):
-                if (destination.zone in zone.LABYRINTH_ZONES):
-                    playerPath.finalPath = getMostEfficientPath(lastSubpathDoor.destination, destination)
-                    skipClosestDoor = playerPath.finalPath is not None
-                else:
-                    skipClosestDoor = True
-
-                if (skipClosestDoor):
-                    break
-
-            # We couldn't find a path from last door, keep following the path
-            lastSubpathDoor = getLastDoorInPath(dijsktraPlayerPath[doorId], dijsktraPlayerPath[doorId + 1])
-
-        # Update dijsktraPath with the new last door destination
-        dijsktraPlayerPath = dijsktraPlayerPath[:doorId + 1]
-        playerPath.lastDoorDestination = lastSubpathDoor.destination
-        playerPath.finalDistance = (playerPath.finalPath[-1].g if playerPath.finalPath
-                                    else playerPath.lastDoorDestination.getDistanceTo(destination)) # Don't use A* unless we have to
-
-        # Only one door : skip dijsktraPlayerPath
-        if (len(dijsktraPlayerPath) == 1):
-            playerPath.dijsktraDistance = pathToDoor[-1].g
-            playerPath.dijsktraPath = [pathToDoor] + [playerPath.finalPath] if playerPath.finalPath else None
-
-        # Need to go through at least two doors : keep dijsktraPlayerPath
-        else:
-            playerPath.dijsktraDistance = pathToDoor[-1].g + distancesFromPlayer[lastSubpathDoor.createDoorKey()]
-            playerPath.dijsktraPath = [pathToDoor] + [dijsktraPlayerPath] + [playerPath.finalPath] if playerPath.finalPath else None
-
-
-# Choose between flying to a position and directly to it, and return the path
-def getClosestFlyLocation(location):
+#######################################################################################################
+# Choose between flying to a position or directly go to it, and return the complete node-to-node path #
+#######################################################################################################
+def generateWorldPath(location):
 
     # Need to go to a Position but only Door paths are pretermined, find closest Door
     if isinstance(location, Position):
@@ -1382,3 +1331,199 @@ def getClosestFlyLocation(location):
             # The path has been calculated and compared to other distances, and the better choice is not to fly
             print("The path has been calculated and compared to other distances, and the better choice is not to fly")
             return None, playerPath.dijsktraPath + [directPath]
+
+
+#############################################################################################################
+# Returns last door you need to go through, its distance from the city, and its distance to the destination #
+#############################################################################################################
+def getEstimatedCityDistance(cityPath, destination, closestDoor, closestCity, distancesFromCity):
+
+    # We already ruled out direct path to destination, so we have to go through at least one door
+    if (closestCity.flyDoor == closestDoor):
+        cityPath.lastDoorDestination = closestCity.flyDoor.connectedDoor.destination
+        cityPath.dijsktraPath = []
+        cityPath.dijsktraDistance = 0
+        cityPath.finalDistance = closestCity.flyDoor.connectedDoor.destination.getDistanceTo(destination)
+        
+    # Need to go through at least one door
+    else:
+        skipClosestDoor = False
+        lastSubpathDoor = closestCity.flyDoor.connectedDoor
+
+        # Check if any of the doors before closestDoor can reach the destination
+        for doorId in range(0, len(cityPath.dijsktraPath)):
+
+            # Check if we can directly reach destination from there
+            if (lastSubpathDoor.destination.zone == destination.zone):
+                if (destination.zone in zone.LABYRINTH_ZONES):
+                    cityPath.finalPath = getMostEfficientPath(lastSubpathDoor.destination, destination)
+                    skipClosestDoor = cityPath.finalPath is not None
+                else:
+                    skipClosestDoor = True
+
+                if (skipClosestDoor):
+                    break
+
+            # We couldn't find a path from last door, keep following the path
+            lastSubpathDoor = getLastDoorInPath(cityPath.dijsktraPath[doorId], cityPath.dijsktraPath[doorId + 1])
+
+        # Update dijsktraPath with the new last door destination
+        cityPath.lastDoorDestination = lastSubpathDoor.destination
+        cityPath.dijsktraPath = cityPath.dijsktraPath[:doorId + 1]
+        cityPath.finalDistance = (cityPath.finalPath[-1].g if cityPath.finalPath
+                                  else cityPath.lastDoorDestination.getDistanceTo(destination)) # Don't use A* unless we have to
+
+        # Direct path between city and closestDoor
+        if (len(cityPath.dijsktraPath) == 1):
+            cityPath.dijsktraPath = [] # Skip dijsktraPath
+            cityPath.dijsktraDistance = 0
+
+        # Need to go through doors
+        else:
+            cityPath.dijsktraDistance = distancesFromCity[cityPath.dijsktraPath[-1]]
+
+
+###############################################################################################################
+# Returns last door you need to go through, its distance from the player, and its distance to the destination #
+###############################################################################################################
+def getEstimatedPlayerDistance(playerPath, destination, closestDoor, location, closestPositionDoor, pathToDoor):
+
+    # We already ruled out direct path to destination, so we have to go through at least one door
+    if (closestPositionDoor.connectedDoor == closestDoor):
+        playerPath.lastDoorDestination = closestPositionDoor.destination
+        playerPath.dijsktraPath = [pathToDoor]
+        playerPath.dijsktraDistance = pathToDoor[-1].g
+        playerPath.finalDistance = playerPath.lastDoorDestination.getDistanceTo(destination)
+
+    # Need to go through at least one door
+    else:
+        # Calculate distance from current position's nearest door to location's nearest door
+        paths, distancesFromPlayer = dijkstra(closestPositionDoor.createDoorKey())
+        dijsktraPlayerPath = processDijkstraPath(paths, closestDoor.createDoorKey())
+
+        skipClosestDoor = False
+        lastSubpathDoor = closestPositionDoor
+
+        # Check if any of the doors before closestDoor can reach the destination
+        for doorId in range(0, len(dijsktraPlayerPath)):
+
+            # Check if we can directly reach destination from there
+            if (lastSubpathDoor.destination.zone == destination.zone):
+                if (destination.zone in zone.LABYRINTH_ZONES):
+                    playerPath.finalPath = getMostEfficientPath(lastSubpathDoor.destination, destination)
+                    skipClosestDoor = playerPath.finalPath is not None
+                else:
+                    skipClosestDoor = True
+
+                if (skipClosestDoor):
+                    break
+
+            # We couldn't find a path from last door, keep following the path
+            lastSubpathDoor = getLastDoorInPath(dijsktraPlayerPath[doorId], dijsktraPlayerPath[doorId + 1])
+
+        # Update dijsktraPath with the new last door destination
+        dijsktraPlayerPath = dijsktraPlayerPath[:doorId + 1]
+        playerPath.lastDoorDestination = lastSubpathDoor.destination
+        playerPath.finalDistance = (playerPath.finalPath[-1].g if playerPath.finalPath
+                                    else playerPath.lastDoorDestination.getDistanceTo(destination)) # Don't use A* unless we have to
+
+        # Only one door : skip dijsktraPlayerPath
+        if (len(dijsktraPlayerPath) == 1):
+            playerPath.dijsktraDistance = pathToDoor[-1].g
+            playerPath.dijsktraPath = [pathToDoor] + [playerPath.finalPath] if playerPath.finalPath else None
+
+        # Need to go through at least two doors : keep dijsktraPlayerPath
+        else:
+            playerPath.dijsktraDistance = pathToDoor[-1].g + distancesFromPlayer[lastSubpathDoor.createDoorKey()]
+            playerPath.dijsktraPath = [pathToDoor] + [dijsktraPlayerPath] + [playerPath.finalPath] if playerPath.finalPath else None
+
+
+#############################################
+# Find closest door to the desired location #
+#############################################
+def getClosestDoor(location: Position):
+
+    # Get all doors in the zone and sort them by distance to the desired location
+    closestDoors = sorted(location.zone.doorList, key = lambda door: door.position.getDistanceTo(location))
+    currentClosestDoor = None
+    doorCost = None
+
+    # Retrieve the closest possible door that can actually lead to the location
+    for door in closestDoors:
+
+        # Get the path from the nearest door
+        doorPath = getMostEfficientPath(door.connectedDoor.destination, location, maxCost = doorCost)
+
+        # If a second path has been found with maxCost on, return it, if not the currentClosestDoor is the better option
+        if (currentClosestDoor):
+            return door if doorPath else currentClosestDoor
+
+        # First path has been found, since we're most likely between two doors, we'll compare them
+        if (doorPath):
+            currentClosestDoor = door
+            doorCost = doorPath[-1].g
+            print("doorCost : " + str(doorCost))
+
+    # Default : maybe there only was one available path, return currentClosestDoor
+    return currentClosestDoor
+
+
+#######################################################################
+# Get the closest door to the player that can lead to the destination #
+#######################################################################
+def getBestPathDoor(playerPosition, destinationDoorKey):
+
+    # Sort doors by raw manhattan distance to destination
+    doorListByTrueDistance = []
+    closestCityDoor = None
+
+    # Calculate distance from every door in the zone to destination
+    for door in playerPosition.zone.doorList:
+        distances = dijkstra(door.createDoorKey())[1]
+
+        if (destinationDoorKey in distances):
+             doorListByTrueDistance.append([distances[destinationDoorKey], door])
+
+    # Sort doors by true distance to destination
+    closestDoors = sorted(doorListByTrueDistance, key = lambda door: door[0])
+
+    # If there's a City in the zone, search for the closest to destination
+    for door in closestDoors:
+        if (zone.isFlyDoor(door[1])):
+            closestCityDoor = door
+            break
+
+    # If the player is farther than a city, there's no point in directly going to the destination
+    if (closestCityDoor):
+        cityToExitDistance = closestCityDoor[0] - closestDoors[0][0]
+        playerToExitDistance = playerPosition.getDistanceTo(closestDoors[0][1].position)
+
+        if (playerToExitDistance > cityToExitDistance):
+            return None, None
+
+    # Retrieve the closest possible door that can actually lead to the location
+    for door in closestDoors:
+
+        # Get the path from current position to best door
+        doorPath = getMostEfficientPath(playerPosition, door[1].position)
+
+        # Path has been found from/to a near door, return it
+        if (doorPath):
+            return door[1], doorPath
+        
+    return None, None
+
+
+###########################################################
+# Get last position after going from startDoor to endDoor #
+###########################################################
+def getLastDoorInPath(startDoorKey, endDoorKey):
+
+    # Retrieve every path from the starting door
+    possiblePaths = DOOR_GRAPH[startDoorKey]
+
+    # Find its connection to the last door to get the final door
+    for doorNode in possiblePaths:
+        if (doorNode.fromDoor in startDoorKey and doorNode.toDoor in endDoorKey):
+            return doorNode.toDoor
+        
