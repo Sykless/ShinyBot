@@ -1527,3 +1527,40 @@ def getLastDoorInPath(startDoorKey, endDoorKey):
         if (doorNode.fromDoor in startDoorKey and doorNode.toDoor in endDoorKey):
             return doorNode.toDoor
         
+
+#############################################################################################
+# Find closest zone to current player position where you can Dig or Fly and return its path #
+#############################################################################################
+def findClosestFlyDigZone(playerPosition: Position):
+
+    # Find closest door to the player
+    closestNeighbourDoors = sorted(playerPosition.zone.doorList, key = lambda door: door.position.getDistanceTo(playerPosition))
+    startingDoor = closestNeighbourDoors[0]
+    pathToEndDoor = None
+    endZone = None
+
+    # Get all possible paths from closest door sorted by distance
+    paths, distances = dijkstra(startingDoor.createDoorKey())
+    closestDoors = sorted(distances.items(), key = lambda distance: distance[1])
+
+    # Find closest door that leads to a zone you can dig or fly
+    for doorKey, distance in closestDoors:
+        if (doorKey[0].destination.zone.canFly or doorKey[0].destination.zone.canDig):
+            endZone = doorKey[0].destination.zone
+
+        if (doorKey[1].destination.zone.canFly or doorKey[1].destination.zone.canDig):
+            endZone = doorKey[1].destination.zone
+
+        if (endZone):
+            endDoorKey = doorKey
+            break
+
+    # Find door-to-door path to exit doot
+    if (startingDoor not in endDoorKey):
+        pathToEndDoor = processDijkstraPath(paths, endDoorKey)
+
+    # Generate path from current position to closest door
+    pathToClosestDoor = getMostEfficientPath(playerPosition, startingDoor.position)
+
+    # Return complete path
+    return endZone, [pathToClosestDoor] + ([pathToEndDoor] if pathToEndDoor else [])
