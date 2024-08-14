@@ -47,6 +47,15 @@ class Zone():
             return self.zoneId == other.zoneId
         return False
     
+    def __str__(self):
+        return ("Zone " + str(self.name) + " (" + str(self.zoneId) + ")"
+                + " / can bike" if self.canBike else ""
+                + " / can fly" if self.canFly else ""
+                + " / can dig" if self.canDig else "")
+    
+    def __repr__(self):
+        return str(self)
+        
     def __hash__(self):
         return hash(self.zoneId)
 
@@ -414,7 +423,7 @@ ROUTE206_PASSAGECHARBOURG = Zone("Route 206 - Passage Charbourg", 351, "route/ro
 setConnectingDoors(Door(Position(302,688,SOUTHCENTER), Position(7,12,ROUTE206_PASSAGECHARBOURG)), Door(Position(7,13,ROUTE206_PASSAGECHARBOURG), Position(302,689,SOUTHCENTER)))
 
 # Passage Route 208 <-> Unionpolis
-ROUTE208 = Zone("Route 208", 354, "route/route208", True, True)
+ROUTE208 = Zone("Route 208", 354, "route/route208", True, True, False)
 ROUTE208_PASSAGEUNIONPOLIS = Zone("Route 208 - Passage Unionpolis", 109, "route/route208-passageUnionpolis", True, False, False)
 setConnectingDoors(Door(Position(448,726,ROUTE208), Position(1,7,ROUTE208_PASSAGEUNIONPOLIS)), Door(Position(0,7,ROUTE208_PASSAGEUNIONPOLIS), Position(447,726,ROUTE208)))
 setConnectingDoors(Door(Position(453,726,UNIONPOLIS), Position(10,7,ROUTE208_PASSAGEUNIONPOLIS)), Door(Position(11,7,ROUTE208_PASSAGEUNIONPOLIS), Position(454,726,UNIONPOLIS)))
@@ -440,13 +449,13 @@ setConnectingDoors(Door(Position(718,645,SOUTHEAST), Position(5,12,ROUTE214_PASS
 setConnectingDoors(Door(Position(718,639,VOILAROC), Position(5,3,ROUTE214_PASSAGEVOILAROC)), Door(Position(5,2,ROUTE214_PASSAGEVOILAROC), Position(718,638,VOILAROC)))
 
 # Passage Route 213 <-> Verchamps
-ROUTE213 = Zone("Route 213", 373, "route/route213", True, True)
+ROUTE213 = Zone("Route 213", 373, "route/route213", True, True, False)
 ROUTE213_PASSAGEVERCHAMPS = Zone("Route 213 - Passage Verchamps", 374, "route/route213-passageVerchamps", True, False, False)
 setConnectingDoors(Door(Position(640,812,SOUTH), Position(1,7,ROUTE213_PASSAGEVERCHAMPS)), Door(Position(0,7,ROUTE213_PASSAGEVERCHAMPS), Position(639,812,SOUTH)))
 setConnectingDoors(Door(Position(645,812,ROUTE213), Position(10,7,ROUTE213_PASSAGEVERCHAMPS)), Door(Position(11,7,ROUTE213_PASSAGEVERCHAMPS), Position(646,812,ROUTE213)))
 
 # Passage Route 218 <-> Féli-Cité
-ROUTE218 = Zone("Route 218", 388, "route/route218", True, True)
+ROUTE218 = Zone("Route 218", 388, "route/route218", True, True, False)
 ROUTE218_PASSAGEFELICITE = Zone("Route 218 - Passage Féli-Cité", 389, "route/route218-passageFelicite", True, False, False)
 setConnectingDoors(Door(Position(127,758,SOUTHWEST), Position(10,7,ROUTE218_PASSAGEFELICITE)), Door(Position(11,7,ROUTE218_PASSAGEFELICITE), Position(128,758,SOUTHWEST)))
 setConnectingDoors(Door(Position(122,758,ROUTE218), Position(1,7,ROUTE218_PASSAGEFELICITE)), Door(Position(0,7,ROUTE218_PASSAGEFELICITE), Position(121,758,ROUTE218)))
