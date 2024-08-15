@@ -758,6 +758,9 @@ def checkPathIsFollowed(path):
 
     while memory.readJoypadData() or playerPosition != path[-1].position:
 
+        # Don't check memory more than once a frame to avoid overloading the CPU
+        waitFrames(1)
+
         # Get current game and player data
         gameData = game.getGameData()
         playerPosition = player.getPlayerData().position
