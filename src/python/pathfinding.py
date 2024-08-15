@@ -140,6 +140,9 @@ class Node():
             self.isBelow = self.cellType in ["B","d"]
             self.isAbove = self.cellType in ["A","a","@"]
 
+    def getNodeKey(self):
+        return (self.position.X, self.position.Y, self.isAbove)
+
     # Two nodes may share the same position but be above or below a bridge, so we must check those conditions as well
     def __eq__(self, other):
         if isinstance(other, Node):
@@ -315,26 +318,27 @@ def astar(start: Position, end: Position, zoneMap, isBelow = None, maxCost = Non
         start_node.isAbove = not isBelow
 
     # Initialize both open and closed list
-    open_list = []
-    closed_list = []
+    open_dict = {}
+    closed_dict = {}
 
     # Add the start node
-    open_list.append(start_node)
+    open_dict[start_node.getNodeKey()] = start_node
 
     # Loop until you find the end
-    while len(open_list) > 0:
+    while len(open_dict) > 0:
 
         # Get the node with most efficient path
-        current_node = open_list[0]
-        current_index = 0
-        for index, item in enumerate(open_list):
+        current_key = next(iter(open_dict))
+        current_node = open_dict[current_key]
+
+        for key, item in open_dict.items():
             if item.f < current_node.f:
                 current_node = item
-                current_index = index
+                current_key = key
 
         # Pop the node off open list, add to closed list
-        open_list.pop(current_index)
-        closed_list.append(current_node)
+        open_dict.pop(current_key)
+        closed_dict[current_key] = current_node
 
         # Found the goal
         if current_node.position == end_node.position:
@@ -429,8 +433,11 @@ def astar(start: Position, end: Position, zoneMap, isBelow = None, maxCost = Non
         # Loop through children
         for child in children:
 
-            # Child is already in the closed list : don't process it
-            if len([closed_child for closed_child in closed_list if closed_child == child]) > 0:
+            # Create the NodeKey item to read inside the closed and open dictionnaries
+            childNodeKey = child.getNodeKey()
+
+            # Child is already in the closed_dict : don't process it
+            if childNodeKey in closed_dict:
                 continue
 
             # Default cell cost is 999, basically solid block
@@ -461,11 +468,13 @@ def astar(start: Position, end: Position, zoneMap, isBelow = None, maxCost = Non
             child.f = child.g + child.h
 
             # Child is already in the open list and a similar or better path exists : don't process it
-            if len([open_node for open_node in open_list if child == open_node and child.g >= open_node.g]) > 0:
-                continue
+            if childNodeKey in open_dict:
+                existing_node = open_dict[childNodeKey]
+                if child.g >= existing_node.g:
+                    continue
 
             # Add the child to the open list
-            open_list.append(child)
+            open_dict[childNodeKey] = child
 
     # We reached the end of the loop so no path has been found, maybe boulders are blocking the way
     return None, blockingBoulders
