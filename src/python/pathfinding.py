@@ -871,7 +871,6 @@ def writePathInputsFromCurrentState(nodeList, breakNodeId):
     firstNode = remainingNodes.pop(0)
     nodeList = getMostEfficientPath(playerData.position, firstNode.position, updatedMap, isBelow)
     nodeList.extend(remainingNodes)
-    print(nodeList)
 
     # Retrieve all inputs needed to go to specified location
     joypad.writePathfindingInput(nodeList, strengthUsed, destroyedObstacles)
@@ -1003,8 +1002,6 @@ def processWorldPath(worldPath, endPosition):
             # Door-to-door path
             elif (isinstance(firstElement, DoorKey)):
                 completeNodePath += getPathFromGraph(subPath)
-
-    print(*completeNodePath, sep = "\n\n")
 
     # Process every subpath between each doors
     for pathId in range(len(completeNodePath)):
@@ -1181,11 +1178,12 @@ def generateWorldPath(location, skipAllCityProcesses = False):
     # Need to go to a Position but only Door paths are pretermined, find closest Door
     if isinstance(location, Position):
         closestDoor = getClosestDoor(location)
-        print("closestDoor : " + str(closestDoor))
+        destination = location
 
     # Need to go to a Door, just use predetermined paths
     elif isinstance(location, Door):
         closestDoor = location
+        destination = location.position
 
     minDistanceFromCity = 9999
     closestCity = None
@@ -1211,15 +1209,13 @@ def generateWorldPath(location, skipAllCityProcesses = False):
 
     # We found location's closest city, but there might be a better path from our current position
     playerPosition = player.getPlayerData().position
-    destination = location if isinstance(location, Position) else location.position
-    skipAllCurrentPositionProcesses = False
-
     playerPath = Path()
     cityPath = Path()
-
+    
     # Generate complete dijsktra path from city to closest door
     cityPath.dijsktraPath = processDijkstraPath(pathsFromCity, locationDoorKey)
     cityPath.dijsktraDistance = minDistanceFromCity
+    skipAllCurrentPositionProcesses = False
 
     # Check if we can reach the location from our current position
     directPathFromCurrentPosition = getMostEfficientPath(playerPosition, destination)
@@ -1247,7 +1243,7 @@ def generateWorldPath(location, skipAllCityProcesses = False):
 
         # If the destination is within 100 cells, directly go to it
         if (playerPath.dijsktraDistance + playerPath.finalDistance < 50):
-            print("# If the destination is within 50 cells, directly go to it")
+            print("If the destination is within 50 cells, directly go to it")
             skipAllCityProcesses = True
 
         # If the city is within 50 cells, don't fly to it
@@ -1273,14 +1269,10 @@ def generateWorldPath(location, skipAllCityProcesses = False):
 
     # Ratio is in favor of flying
     if (not skipAllCityProcesses and (skipAllCurrentPositionProcesses or distanceRatio > 1.2)):
-        # The path has been calculated and compared to other distances, and the better choice is to fly
-        print("The path has been calculated and compared to other distances, and the better choice is to fly")
         return closestCity, [cityPath.dijsktraPath] + ([cityPath.finalPath] if isinstance(location, Position) else [])
 
     # Ratio is neutral or in favor of direct path, and if neutral we choose the direct path
     else:
-        # The path has been calculated and compared to other distances, and the better choice is not to fly
-        print("The path has been calculated and compared to other distances, and the better choice is not to fly")
         return None, playerPath.dijsktraPath + ([playerPath.finalPath] if isinstance(location, Position) else [])
 
 
