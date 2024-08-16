@@ -193,16 +193,30 @@ def writePathfindingInput(nodeList, strengthUsed = False, destroyedObstacles = [
 
                 # Very first slope/ramp node, prepare variables and start input sequence
                 if (node.bikeSlopeDestination or node.bikeRampDestination):
+                    
+                    # If we're not on bike, stop running
+                    if (not isOnBike):
+                        runSections += ("/" if runSections else "") + str(runSectionStart) + "-" + str(len(frameByFrameInputSequence))
+                        runSectionStart = -1
+
                     bikeCellCounter = 0
                     destination = node.bikeSlopeDestination if node.onABikeSlope else node.bikeRampDestination
                     frameByFrameInputSequence += (getInputsToProgressCell(isOnBike, previousNode.cellType, stopped, inputButton, playerDirection) # Move as usual
                                                     + 10 * "@" # Make sure we stopped
-                                                    + 2 * "B") # Increase bike speed (Check speed beforehand)
+                                                    + (5 * "@" + 5 * "Y" + 10 * "@" if not isOnBike else "")
+                                                    + 2 * "B") # Increase bike speed
+                    isOnBike = True
+
                 # Specific case : if starting in front of the slope, start the process right away
                 elif (nodeId == 1):
                     bikeCellCounter = 1
                     destination = previousNode.bikeSlopeDestination if node.onABikeSlope else previousNode.bikeRampDestination
-                    frameByFrameInputSequence += 2 * "B" # Increase bike speed (Check speed beforehand)
+                    
+                    # Increase speed if we didn't already
+                    if (frameByFrameInputSequence[-2:] == "BB"):
+                        frameByFrameInputSequence = frameByFrameInputSequence[:-2] # Stay on high speed
+                    else:
+                        frameByFrameInputSequence += "BB" # Increase bike speed
 
                 # Go to momentum cell to build up speed and go back to slope/ramp with max speed
                 if (bikeCellCounter == 1): frameByFrameInputSequence += getInputsToProgressCell(isOnBike, previousNode.cellType, True, inputButton, playerDirection)
@@ -254,8 +268,8 @@ def writePathfindingInput(nodeList, strengthUsed = False, destroyedObstacles = [
                 
                 # Start moving again to reach actual cell position
                 isOnBike = False
+                frameByFrameInputSequence += getInputsToProgressCell(isOnBike, previousNode.cellType, True, inputButton, playerDirection)
                 stopped = False
-                frameByFrameInputSequence += getInputsToProgressCell(isOnBike, previousNode.cellType, stopped, inputButton, inputButton)
 
             # Bike-cell when previously not on bike
             elif (not isOnBike and canBike(node)):
@@ -307,7 +321,7 @@ def canBikeOnCell(cellType):
     return cellType not in ["W","w","S","1","2","3","4","g"]
 
 def canBike(node):
-    return node.position.zone.canBike and not node.isSurfing and node.cellType not in ["W","w","S","1","2","3","4","g"]
+    return node.position.zone.canBike and canBikeOnCell(node.cellType) and not node.isSurfing
 
 def getHmInputs(hm, inputButton):
     return  (8 * inputButton       # Face the tree/rock/water/etc
