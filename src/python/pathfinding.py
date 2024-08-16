@@ -1,4 +1,5 @@
 from zone import Door
+from zone import DoorKey
 from zone import Position
 from utils import waitFrames
 
@@ -12,6 +13,7 @@ import action
 import player
 import joypad
 import memory
+import pokemon
 
 # Credits for A* algorithm implementation :
 # - Python Implementation : https://medium.com/@nicholas.w.swift/easy-a-star-pathfinding-7e6689c7f7b2
@@ -950,55 +952,92 @@ def initDoorGraph():
 ###################################################################################
 # Retrieve the best possible path from any door to another and process the inputs #
 ###################################################################################
-def goToWorldLocation(start, end):
+def goToWorldLocation(location):
 
-    # Use Dijkstra to get best possible path from any door to any other door
-    completePath = getPathFromGraph(start, end)
+    needToDig = False
+    playerPosition = player.getPlayerData().position
+    flyCity, completePath = generateWorldPath(location)
 
-    if (completePath):
-        for pathId in range(len(completePath)):
+    # Location is too far from current player position, so we fly to a close city before
+    if (flyCity):
 
-            # Process current path
-            currentPath = completePath[pathId]
+        # If we need to fly, we also need to be in a zone that enables it, or at least dig our way out
+        if (not playerPosition.zone.canFly):
 
-            # Retrieve next position from following path, or end position
-            if (pathId + 1 < len(completePath)):
-                nextPosition = completePath[pathId + 1][0].position
+            # Get out of the zone before using Dig or Fly
+            if (not playerPosition.zone.canDig):
+                endPosition, pathToExit = findClosestFlyDigZone(playerPosition)
+                processWorldPath(pathToExit, endPosition)
+
+                needToDig = not endPosition.zone.canFly
+
+            # We can Dig our way out to go to a zone enabling Fly
             else:
-                nextPosition = end.position
+                needToDig = True
 
-            # Go from starting node to ending node
-            processPath(currentPath)
+            # Still can't Fly but can Dig : use HM
+            if (needToDig):
+                action.useHM(pokemon.DIG_ID)
+
+        # Use Fly to go to the closest city
+        action.useHM(pokemon.FLY_ID, flyCity)
+
+    # Process generated path
+    processWorldPath(completePath, location.destination if isinstance(location, Door) else None)
+
+
+def processWorldPath(worldPath, endPosition):
+
+    completeNodePath = []
+
+    # Each subpath can be either a door-to-door or a node-no-node path
+    for subPath in worldPath:
+
+        if (subPath):
+            firstElement = subPath[0]
+
+            # Node-to-node path
+            if (isinstance(firstElement, Node)):
+                completeNodePath += [subPath]
+
+            # Door-to-door path
+            elif (isinstance(firstElement, DoorKey)):
+                completeNodePath += getPathFromGraph(subPath)
+
+    print(*completeNodePath, sep = "\n\n")
+
+    # Process every subpath between each doors
+    for pathId in range(len(completeNodePath)):
+
+        # Process current path
+        currentPath = completeNodePath[pathId]
+
+        # Go from starting node to ending node
+        processPath(currentPath)
+
+        # Only apply door animation between paths, or if the final position is a door destination
+        if (pathId + 1 < len(completeNodePath or endPosition)):
 
             # Wait until we exit the old zone (stairs animation) and poketch is visible (transition screen)
             while (not img.poketch.isOnScreen(img.getScreenshot()) or player.getPlayerData().position == currentPath[-1].position):
                 waitFrames(1)
 
-            # Already at next position after transition screen : wait a couple frames
-            if (player.getPlayerData().position == nextPosition):
-                waitFrames(5)
-
-            # Moving from door to actual next position, wait for walking animation to be over
-            else:
-                waitFrames(25)
+            # Moving from door to actual end position, wait for walking animation to be over
+            waitFrames(25)
 
 
 ####################################################################
 # Generate all nodes lists needed to go from one door to any other #
 ####################################################################
-def getPathFromGraph(startDoor: Door, endDoor: Door):
+def getPathFromGraph(doorToDoorPath):
     
-    # Get shortest door-to-door path between two doors
-    path = getShortestDoorPath(startDoor, endDoor)
-
-    if (len(path) > 1):
-        # Remove initial door, we're starting from it
-        path.pop(0)
-
+    # Cannot find path if there's only one door
+    if (len(doorToDoorPath) > 1):
+        
         # We're using currentDoorKey and nextDoorKey to navigate from path to path, starting from start door
         completePath = []
-        currentDoorKey = startDoor.createDoorKey()
-        nextDoorKey = path.pop(0)
+        currentDoorKey = doorToDoorPath.pop(0)
+        nextDoorKey = doorToDoorPath.pop(0)
 
         while True:
             # Get all paths from the current door
@@ -1014,8 +1053,8 @@ def getPathFromGraph(startDoor: Door, endDoor: Door):
                     currentDoorKey = doorNode.toDoor.connectedDoor.createDoorKey()
 
                     # Keep searching if there are doors left in the path
-                    if (len(path) > 0):
-                        nextDoorKey = path.pop(0)
+                    if (len(doorToDoorPath) > 0):
+                        nextDoorKey = doorToDoorPath.pop(0)
                     else:
                         return completePath
                     
