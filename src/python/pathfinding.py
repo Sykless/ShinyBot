@@ -1137,7 +1137,7 @@ class Path():
 #######################################################################################################
 # Choose between flying to a position or directly go to it, and return the complete node-to-node path #
 #######################################################################################################
-def generateWorldPath(location):
+def generateWorldPath(location, skipAllCityProcesses = False):
 
     # Need to go to a Position but only Door paths are pretermined, find closest Door
     if isinstance(location, Position):
@@ -1173,7 +1173,7 @@ def generateWorldPath(location):
     # We found location's closest city, but there might be a better path from our current position
     playerPosition = player.getPlayerData().position
     destination = location if isinstance(location, Position) else location.position
-    playerDistanceToPosition = playerPosition.getDistanceTo(destination)
+    skipAllCurrentPositionProcesses = False
 
     playerPath = Path()
     cityPath = Path()
@@ -1181,10 +1181,6 @@ def generateWorldPath(location):
     # Generate complete dijsktra path from city to closest door
     cityPath.dijsktraPath = processDijkstraPath(pathsFromCity, locationDoorKey)
     cityPath.dijsktraDistance = minDistanceFromCity
-
-    skipAllCityProcesses = False
-    skipAllCurrentPositionProcesses = False
-    directPathFromCurrentPosition = None
 
     print("minDistanceFromCity : " + str(cityPath.dijsktraDistance) + " (" + str(closestCity) + ")")
     print("playerDistanceToPosition : " + str(playerDistanceToPosition))
@@ -1225,8 +1221,9 @@ def generateWorldPath(location):
 
   
     # We'll use a distance ratio, fly if the player is too far and bike otherwise
-    distanceRatio = (playerPath.dijsktraDistance + playerPath.finalDistance) / (cityPath.dijsktraDistance + cityPath.finalDistance)
-    print("(" + str(playerPath.dijsktraDistance) + " + " + str(playerPath.finalDistance) + ") / (" + str(cityPath.dijsktraDistance) + " + " + str(cityPath.finalDistance) + ") = " + str(distanceRatio))
+    if (not skipAllCityProcesses and not skipAllCurrentPositionProcesses):
+        distanceRatio = (playerPath.dijsktraDistance + playerPath.finalDistance) / (cityPath.dijsktraDistance + cityPath.finalDistance)
+        print("(" + str(playerPath.dijsktraDistance) + " + " + str(playerPath.finalDistance) + ") / (" + str(cityPath.dijsktraDistance) + " + " + str(cityPath.finalDistance) + ") = " + str(distanceRatio))
 
     # Ratio is in favor of flying
     if (not skipAllCityProcesses and (skipAllCurrentPositionProcesses or distanceRatio > 1.2)):
@@ -1416,8 +1413,6 @@ def findClosestFlyDigZone(playerPosition: Position):
     # Find closest door to the player
     closestNeighbourDoors = sorted(playerPosition.zone.doorList, key = lambda door: door.position.getDistanceTo(playerPosition))
     startingDoor = closestNeighbourDoors[0]
-    pathToEndDoor = None
-    endZone = None
 
     # Get all possible paths from closest door sorted by distance
     paths, distances = dijkstra(startingDoor.createDoorKey())
@@ -1426,21 +1421,12 @@ def findClosestFlyDigZone(playerPosition: Position):
     # Find closest door that leads to a zone you can dig or fly
     for doorKey, distance in closestDoors:
         if (doorKey[0].destination.zone.canFly or doorKey[0].destination.zone.canDig):
-            endZone = doorKey[0].destination.zone
-
-        if (doorKey[1].destination.zone.canFly or doorKey[1].destination.zone.canDig):
-            endZone = doorKey[1].destination.zone
-
-        if (endZone):
-            endDoorKey = doorKey
+            endDoor = doorKey[0]
             break
 
-    # Find door-to-door path to exit doot
-    if (startingDoor not in endDoorKey):
-        pathToEndDoor = processDijkstraPath(paths, endDoorKey)
-
-    # Generate path from current position to closest door
-    pathToClosestDoor = getMostEfficientPath(playerPosition, startingDoor.position)
+        if (doorKey[1].destination.zone.canFly or doorKey[1].destination.zone.canDig):
+            endDoor = doorKey[1]
+            break
 
     # Return complete path
-    return endZone, [pathToClosestDoor] + ([pathToEndDoor] if pathToEndDoor else [])
+    return endDoor.destination, generateWorldPath(endDoor, skipAllCityProcesses = True)[1]
