@@ -14,7 +14,7 @@ def loadGraph(filename):
     with open(filename, 'rb') as f:
         return pickle.load(f)
 
-# WARNING : Pokemon Team data is only available during battle of if menu is open
+# WARNING : Pokemon Team data is only available during battle or if menu is open
 def readPokemonTeamData():
     return readJsonData("pokemonTeamData")
 

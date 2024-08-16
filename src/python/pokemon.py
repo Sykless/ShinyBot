@@ -88,56 +88,14 @@ class Status:
         self.burned = burned 
 
 class Pokemon:
-
-    def __init__(self):
-        self.pid = 0
-
-        self.pokedexId = 0
-        self.name = None
-        self.level = 0
-        self.moves = []
-        self.ability = None
-        self.item = None
-        self.currentHP = 0
-        self.stats = None
-        self.IV = None
-        self.EV = None
-        self.experience = 0
-        self.status = None
-
-        self.OT = None
-        self.met = None
-        self.nicknamed = False
-        self.nickname = None
-        self.isEgg = False
-        self.pokeball = None
-        self.female = False
-        self.genderless = False
-        self.friendship = 0
-        self.pokerus = 0
-        self.alternateForms = 0
-        self.originalLanguage = None
-        self.originGame = None
-
-        self.ribbons = None
-        self.contest = None
-        self.markings = 0
-        self.capsule = 0
-        self.sealCoordinates = 0
-
-        self.shinyValue = 0
-        self.isShiny = False
-
     def __init__(self, experience = None, ribbons = None, stats = None, sealCoordinates = None, currentHP = None, moves = None, met = None,
                  alternateForms = None, pokedexId = None, IV = None, OT = None, status = None, level = None, EV = None, pokeballId = None,
                  contest = None, female = None, pokerus = None, originalLanguage = None, markings = None, nickname = None, capsule = None,
                  genderless = None, originGame = None, nicknamed = None, item = None, pid = None, friendship = None, abilityId = None,
                  isEgg = None):
 
-        # Allow empty Pokemon creation if pid is None
-        if (pid != None and 0 <= pokedexId <= 493):
+        try:
             self.pid = pid
-
             self.pokedexId = pokedexId
             self.name = POKEMON_NAMES[pokedexId]
             self.level = level
@@ -173,10 +131,14 @@ class Pokemon:
             self.sealCoordinates = sealCoordinates
 
             self.shinyValue = getShinyValue(pid, self.OT.ID, self.OT.secretID)
-        
-        # Pokemon not shiny by default if pid is None
-        self.isShiny = pid != None and 0 <= pokedexId <= 493 and self.shinyValue < 255
+            self.isShiny = self.shinyValue < 255
 
+            self.isValid = True
+
+        # We might receive invalid data since team memory address is shared with other parameters when you're not in battle/menu
+        except IndexError:
+            self.isValid = False
+        
     def __str__(self):
         return (str(self.name) + " " + ("♀" if self.female else "♂")
                 + " level " + str(self.level) + " (" + self.ability.name + " - " + self.nature.name + ")" + " - PID = " + str(hex(self.pid)) + " - Shiny value : " + str(self.shinyValue)  + "\n"
@@ -202,13 +164,14 @@ def isHMAvailable(hmId):
         movePosition = 0
         pokemon = Pokemon(**jsonTeamData[pokemonPosition])
 
-        for move in pokemon.moves:
-            if (move.isHM()):
-                movePosition += 1
+        if (pokemon.isValid):
+            for move in pokemon.moves:
+                if (move.isHM()):
+                    movePosition += 1
 
-                # Return first pokemon with Fly available
-                if (move.id == hmId):
-                    return [pokemonPosition, movePosition]
+                    # Return first pokemon with Fly available
+                    if (move.id == hmId):
+                        return [pokemonPosition, movePosition]
     
     # No Pokemon with Fly
     print("No Pokemon with HM " + MOVE_NAMES[hmId] + " !")
