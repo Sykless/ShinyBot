@@ -79,7 +79,7 @@ while true do
     comm.mmfWrite("playerData", json.encode({["playerData"] = playerData}) .. "\x00")
 
     -- Debug : display position on screen
-    gui.text(0,0, string.format("(%d,%d) - (%d,%d), Zone : %d, Repel steps : %d, PID : %x\nBike : %s (speed = %d)", playerData.positionX, playerData.positionY, playerData.positionY + 1, playerData.positionX + 1, playerData.zone, gameData.repelSteps, wildPokemon.pid, tostring(playerData.isOnBike), playerData.bikeSpeed))
+    gui.text(0,0, string.format("(%d,%d) - (%d,%d), Zone : %d, Framecount : %d, PID : %x\nRepel steps : %d, Bike : %s (speed = %d)", playerData.positionX, playerData.positionY, playerData.positionY + 1, playerData.positionX + 1, playerData.zone, emu.framecount(), wildPokemon.pid, gameData.repelSteps, tostring(playerData.isOnBike), playerData.bikeSpeed))
     
     -- Input button retrieved from memory
     inputFromMemory()
