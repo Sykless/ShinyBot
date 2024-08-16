@@ -169,7 +169,7 @@ def useRepel():
         return None
 
 
-def flyToCity(city):
+def useHM(hmId, city = None):
 
     # Need to open menu first
     menuPosition = openMenu()
@@ -177,8 +177,8 @@ def flyToCity(city):
     # Menu open
     if (menuPosition > 0):
 
-        # Check if there is a Pokemon than can fly in our team
-        pokemonPosition, movePosition = pokemon.isFlyAvailable()
+        # Check if there is a Pokemon than can use the HM in our team
+        pokemonPosition, movePosition = pokemon.isHMAvailable(hmId)
 
         # Fly is available
         if (pokemonPosition is not None):
@@ -194,7 +194,7 @@ def flyToCity(city):
                 if (len(memory.readJoypadData()) == 0):
                     screenshot = img.getScreenshot()
                     
-                    # Pokemon menu : go to map menu through Fly
+                    # Pokemon menu : use HM
                     if (img.pokemonMenu.isOnScreen(screenshot)):
                         waitFrames(20) # Small lag after Pokémon menu is displayed
                         pokemonSelectionSequence = ""
@@ -203,27 +203,27 @@ def flyToCity(city):
                         if (pokemonPosition % 2 == RIGHT_ROW):
                             pokemonSelectionSequence += "r"
 
-                        # Press down depending on the Fly Pokémon position
+                        # Press down depending on the HM Pokémon position
                         pokemonSelectionSequence += "d" * int(pokemonPosition / 2) + "A" + "d" * movePosition + "A"
                         joypad.writeInput(pokemonSelectionSequence)
 
-                    # Fly used : exit function
+                    # HM used : exit function
                     elif (img.hmAnimation.isOnScreen(screenshot)):
 
                         # Wait until Poketch is no longer visible (transition screen)
-                        while (img.poketch.isOnScreen(img.getScreenshot())):
-                            pass
+                        img.waitUntilNotVisible(img.poketch)
 
                         # Wait until Poketch is visible again (Fly ended)
                         while (not img.poketch.isOnScreen(img.getScreenshot())):
-                            pass
+                            waitFrames(1)
 
-                        # Flying Pokémon goes back in the Pokéball animation
+                        # Animation time before player can move again (flying Pokemon goes back to pokeball, etc)
                         waitFrames(150)
 
                         return True
-                        
-                    else:
+                    
+                    # Only for Fly : move cursor to the city we need to fly to
+                    elif (hmId == pokemon.FLY_ID):
                         cursorPosition = img.getMapCursorPosition(screenshot)
 
                         # Map menu : move cursor to selected city
@@ -255,7 +255,7 @@ def flyToCity(city):
                             # Play input sequence and press A to fly to the selected city
                             joypad.writeInput(pokemonSelectionSequence + "A")
         
-        # No Pokémon with Fly, TODO go to the nearest Pokémon Center
+        # No Pokémon with the HM, TODO go to the nearest Pokémon Center
         else:
-            print("No flying Pokémon !")
+            print("No Pokémon with Hm " + pokemon.MOVE_NAMES[hmId] + " !")
             return None

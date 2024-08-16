@@ -89,6 +89,25 @@ thirdPage = Template("third-page", 183, 359, 6, 10, 1)
 useItem = Template("use-item", 8, 351, 192, 27, 1)
 newPokedexEntry = Template("new-pokedex-entry", 0, 0, 241, 15, 1)
 
+def waitUntilNotVisible(template):
+    framesNotVisible = 0
+
+    # Loop until the image is no longer visible
+    while True:
+        
+        # Increment counter when the image is not visible
+        if (not template.isOnScreen(getScreenshot())):
+            framesNotVisible += 1
+        else:
+            framesNotVisible = 0
+
+        # Screenshot can be partially cropped so we only stop after 3 frames in a row
+        if (framesNotVisible == 3):
+            break
+
+        # Only check screenshot once every frame
+        waitFrames(1)
+
 
 def isTemplateInImage(image, templateImage, threshold, templatemask = None):
     min_val, min_loc = getTemplatePosition(image, templateImage, cv2.TM_SQDIFF, templatemask)

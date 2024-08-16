@@ -5,6 +5,7 @@ from bag import Item
 import memory
 
 FLY_ID = 19
+DIG_ID = 91
 
 class Move:
     def __init__(self, id, PP, PPUp):
@@ -174,7 +175,7 @@ class Pokemon:
             self.shinyValue = getShinyValue(pid, self.OT.ID, self.OT.secretID)
         
         # Pokemon not shiny by default if pid is None
-        self.isShiny = pid != None and self.shinyValue < 255
+        self.isShiny = pid != None and 0 <= pokedexId <= 493 and self.shinyValue < 255
 
     def __str__(self):
         return (str(self.name) + " " + ("♀" if self.female else "♂")
@@ -194,7 +195,7 @@ class Pokemon:
                 + " = EV    = " + formatNumber(self.EV.HP) + " = " + formatNumber(self.EV.attack) + " = " + formatNumber(self.EV.defense) + " = " + formatNumber(self.EV.specialAttack) + " = " + formatNumber(self.EV.specialDefense) + " = " + formatNumber(self.EV.speed) + " =\n"
                 + " =============================================\n")
     
-def isFlyAvailable():
+def isHMAvailable(hmId):
     jsonTeamData = memory.readPokemonTeamData()
 
     for pokemonPosition in range(len(jsonTeamData)):
@@ -206,11 +207,11 @@ def isFlyAvailable():
                 movePosition += 1
 
                 # Return first pokemon with Fly available
-                if (move.id == FLY_ID):
+                if (move.id == hmId):
                     return [pokemonPosition, movePosition]
     
     # No Pokemon with Fly
-    print("No Pokemon with Fly")
+    print("No Pokemon with HM " + MOVE_NAMES[hmId] + " !")
     return [None, None]
 
 POKEMON_NAMES =  [
@@ -338,11 +339,11 @@ TYPE_LIST = ["Combat","Vol","Poison","Sol","Roche","Insecte","Spectre","Acier","
 
 HM_LIST = [
     FLY_ID, # Vol
+    DIG_ID, # Tunnel
     15,  # Coupe
     29,  # Coup d'Boule
     57,  # Surf
     70,  # Force
-    91,  # Tunnel
     100, # Téléport
     127, # Cascade
     135, # E-Coque
