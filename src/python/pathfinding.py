@@ -1182,22 +1182,6 @@ def generateWorldPath(location, skipAllCityProcesses = False):
     cityPath.dijsktraPath = processDijkstraPath(pathsFromCity, locationDoorKey)
     cityPath.dijsktraDistance = minDistanceFromCity
 
-    print("minDistanceFromCity : " + str(cityPath.dijsktraDistance) + " (" + str(closestCity) + ")")
-    print("playerDistanceToPosition : " + str(playerDistanceToPosition))
-
-    # Don't fly to the closest city if it is within 50 cells
-    if (getMostEfficientPath(playerPosition, closestCity.flyDoor.position, maxCost = 50)):
-        print("Don't fly to the closest city if it is within 50 cells")
-        skipAllCityProcesses = True # Skip all parts involving city position
-
-
-    # Location is a Position, calculate distance from city more precisely
-    if (not skipAllCityProcesses and isinstance(location, Position)):
-
-        # Populate cityPath object by calculating final door, distance to door and distance from door
-        getCityDistance(cityPath, destination, closestDoor, closestCity, distancesFromCity)
-
-
     # Check if we can reach the location from our current position
     directPathFromCurrentPosition = getMostEfficientPath(playerPosition, destination)
 
@@ -1219,7 +1203,30 @@ def generateWorldPath(location, skipAllCityProcesses = False):
         if (not skipAllCurrentPositionProcesses):
             getPlayerDistance(playerPath, destination, closestDoor, closestPositionDoor, pathToDoor)
 
-  
+    # Don't fly if the destination or the city is close to our current position
+    if (not skipAllCurrentPositionProcesses):
+
+        # If the destination is within 100 cells, directly go to it
+        if (playerPath.dijsktraDistance + playerPath.finalDistance < 50):
+            print("# If the destination is within 50 cells, directly go to it")
+            skipAllCityProcesses = True
+
+        # If the city is within 50 cells, don't fly to it
+        elif (getMostEfficientPath(playerPosition, closestCity.flyDoor.position, maxCost = 50)):
+            print("Don't fly to the closest city if it is within 50 cells")
+            skipAllCityProcesses = True
+
+
+    # Populate cityPath object by calculating final door, distance to door and distance from door
+    if (not skipAllCityProcesses and isinstance(location, Position)):
+        getCityDistance(cityPath, destination, closestDoor, closestCity, distancesFromCity)
+
+    # Just fly to city if the distance is 0
+    if (not skipAllCityProcesses and cityPath.dijsktraDistance + cityPath.finalDistance == 0):
+        print("Just fly to city if the distance is 0")
+        skipAllCurrentPositionProcesses = True
+
+
     # We'll use a distance ratio, fly if the player is too far and bike otherwise
     if (not skipAllCityProcesses and not skipAllCurrentPositionProcesses):
         distanceRatio = (playerPath.dijsktraDistance + playerPath.finalDistance) / (cityPath.dijsktraDistance + cityPath.finalDistance)
