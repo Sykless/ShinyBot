@@ -972,7 +972,7 @@ def goToWorldLocation(start, end):
 
             # Wait until we exit the old zone (stairs animation) and poketch is visible (transition screen)
             while (not img.poketch.isOnScreen(img.getScreenshot()) or player.getPlayerData().position == currentPath[-1].position):
-                pass
+                waitFrames(1)
 
             # Already at next position after transition screen : wait a couple frames
             if (player.getPlayerData().position == nextPosition):

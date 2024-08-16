@@ -7,6 +7,8 @@ import cv2
 
 from PIL import Image, ImageFile
 
+from utils import waitFrames
+
 # https://stackoverflow.com/questions/42462431/oserror-broken-data-stream-when-reading-image-file
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
@@ -315,6 +317,4 @@ def getScreenshot():
             # Convert RGB screenshot to BGR in order to be cv2-readable
             return cv2.cvtColor(numpy.array(screenshotImage), cv2.COLOR_RGB2BGR)
         except Exception as e:
-            pass
-            # print(screenshotBytes.read())
-            # print(str(e))
+            waitFrames(1) # Check one frame later after memory has been updated

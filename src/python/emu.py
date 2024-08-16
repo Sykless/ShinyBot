@@ -46,6 +46,9 @@ if (shinyBot and freeMode):
     print("Debug Screenshot mode")
 
 while shinyBot:
+    # Don't check memory more than once a frame to avoid overloading the CPU
+    waitFrames(1)
+
     # Read JSON Pokemon data from memory file
     jsonPokemonData = memory.readWildPokemonData()
 
@@ -70,8 +73,6 @@ while shinyBot:
         screenshot = img.getScreenshot()
         playerData = player.getPlayerData()
         gameData = game.getGameData()
-
-        waitFrames(1)
 
     # Only apply new input if no input is found in memory
     elif (len(joypadInput) == 0):

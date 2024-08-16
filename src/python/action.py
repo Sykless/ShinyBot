@@ -29,6 +29,9 @@ def openMenu():
     waitAfterPress = False
 
     while True:
+        # Don't check memory more than once a frame to avoid overloading the CPU
+        waitFrames(1)
+
         # Only apply new input if no input is found in memory
         if (len(memory.readJoypadData()) == 0):
             screenshot = img.getScreenshot()
@@ -96,6 +99,9 @@ def useRepel():
             repelUsed = False
 
             while True:
+                # Don't check memory more than once a frame to avoid overloading the CPU
+                waitFrames(1)
+
                 # Only apply new input if no input is found in memory
                 if (len(memory.readJoypadData()) == 0):
                     screenshot = img.getScreenshot()
@@ -181,6 +187,9 @@ def flyToCity(city):
             goToMenuSection(MENU_POKEMON, menuPosition)
 
             while True:
+                # Don't check memory more than once a frame to avoid overloading the CPU
+                waitFrames(1)
+
                 # Only apply new input if no input is found in memory
                 if (len(memory.readJoypadData()) == 0):
                     screenshot = img.getScreenshot()

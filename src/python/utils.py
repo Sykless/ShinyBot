@@ -1,5 +1,3 @@
-from bag import Bag
-
 import time
 import memory
 
