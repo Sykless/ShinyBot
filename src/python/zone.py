@@ -163,7 +163,7 @@ class City():
 # Check if position if a valid cell (reachable + in map bounds)
 def checkPositionValidity(position, zoneMap = None):
     try:
-        if ((position.zone.map if zoneMap is None else zoneMap)[position.Y][position.X] in ["X","N","I","s"," "]):
+        if ((position.zone.map if zoneMap is None else zoneMap)[position.Y][position.X] in ["X","I","s"," "]):
             print("Unreachable cell : " + str(position) + " (" + (position.zone.map if zoneMap is None else zoneMap)[position.Y][position.X] + ")")
             return False
     except IndexError:
