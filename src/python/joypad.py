@@ -318,7 +318,7 @@ def writePathfindingInput(nodeList, strengthUsed = False, destroyedObstacles = [
 
 
 def canBikeOnCell(cellType):
-    return cellType not in ["W","w","S","1","2","3","4","g"]
+    return cellType not in ["W","w","S","m","M","1","2","3","4","g"]
 
 def canBike(node):
     return node.position.zone.canBike and canBikeOnCell(node.cellType) and not node.isSurfing

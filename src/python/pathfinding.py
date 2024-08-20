@@ -34,14 +34,17 @@ CELL_COST = {
     # Traveling cells
     "O": 1, # Regular cell
     "Z": 1, # Zone (door, cave entrance)
-    "S": 10, # Swamp
+    "G": 3, # Grass
+    "g": 3, # Tall grass
     "1": 1, # 1-depth snow
     "2": 2, # 2-depth snow
     "3": 4, # 3-depth snow
     "4": 8, # 4-depth snow
+    "s": 1, # Swamp
+    "S": 10, # Deep swamp
+    "m": 3, # Marsh (Grass in swamp)
+    "M": 12, # Deep marsh (Grass in deep swamp)
     "V": 5, # Bike slope
-    "G": 3, # Grass
-    "g": 3, # Tall grass
     "E": 1, # Elevator
     "e": 1, # Elevator door
 
@@ -69,8 +72,9 @@ CELL_COST = {
 SOLID_BLOCKS = [
     "X", # Wall, Tree, etc
     "N", # NPC
-    "s", # Sign (Special process since it displays a message if coming from the bottom)
+    "P", # Post (Special process since it displays a message if coming from the bottom)
     "I", # Interactable (Static encounter, Shop, etc)
+    "i", # Interactable facing forward (PC, vending machine, etc)
     "b", # Boulder (Cannot be removed like Cut or Rock Smash, so is actually an obsctacle)
     "v", # Bike ramp
 ]
@@ -117,7 +121,7 @@ class Node():
         self.onABikeRamp = False
         self.bikeRampDestination = None
 
-        ### Special process for bridges since two cells share the same position, see solid blocks processing ###
+        ### Special process for bridges since two above/below cells share the same X,Y position, see solid blocks processing ###
         # We avoid starting on a bridge, so on starting node we consider we're below (except on a @ cell which is impossible)
         if (not parent):
             self.isBelow = self.cellType in  ["B","d","A","a"] 
@@ -412,8 +416,8 @@ def astar(start: Position, end: Position, zoneMap, isBelow = None, maxCost = Non
                 if (current_node.cellType in ["B","d"] and nextCellValue == "@"):
                     continue
 
-            # Don't go up if a sign is just above since it triggers a dialogue
-            if (topCellValue == "s" and new_position["orientation"] == (-1, 0)):
+            # Don't go up if a post is just above since it triggers a dialogue
+            if (topCellValue == "P" and new_position["orientation"] == (-1, 0)):
                 continue
             
             # Go up the slope, teleport up to three cells after the slope
@@ -451,14 +455,14 @@ def astar(start: Position, end: Position, zoneMap, isBelow = None, maxCost = Non
             
             # If repel is active, reduce encounter cells cost
             if (repelActive):
-                cellCost -= (2 if child.cellType in ["W","G","g"] else 0)
+                cellCost -= (2 if child.cellType in ["W","G","g","m","M"] else 0)
 
             # If biking is possible, increase non-bike cells cost when on a bike cell, and vice-versa
             if (canUseBike):
-                if (child.parent.cellType in ["W","S","1","2","3","4","g"]):
+                if (child.parent.cellType in ["W","g","s","S","m","M","1","2","3","4"]):
                     cellCost += (2 if child.cellType in ["O","G"] else 0)
                 else:
-                    cellCost += (2 if child.cellType in ["W","S","1","2","3","4","g"] else 0)
+                    cellCost += (2 if child.cellType in ["W","g","s","S","m","M","1","2","3","4"] else 0)
 
             # Don't add nodes that go above maxCost if provided
             if (maxCost is not None and current_node.g + cellCost > maxCost):

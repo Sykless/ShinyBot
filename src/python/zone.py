@@ -163,7 +163,7 @@ class City():
 # Check if position if a valid cell (reachable + in map bounds)
 def checkPositionValidity(position, zoneMap = None):
     try:
-        if ((position.zone.map if zoneMap is None else zoneMap)[position.Y][position.X] in ["X","I","s"," "]):
+        if ((position.zone.map if zoneMap is None else zoneMap)[position.Y][position.X] in ["X","I","i","P"," "]):
             print("Unreachable cell : " + str(position) + " (" + (position.zone.map if zoneMap is None else zoneMap)[position.Y][position.X] + ")")
             return False
     except IndexError:
@@ -482,10 +482,10 @@ setConnectingDoors(Door(Position(773,330,SECTEURCOMBAT_SOUTHEAST), Position(10,7
 
 # Entrée Charbourg
 ENTREECHARBOURG = Zone("Entrée Charbourg", 258, "dungeon/entreeCharbourg-1", True, False, True)
-ENTREECHARBOURG_SOUSSOL1 = Zone("Entrée Charbourg - Sous-Sol 1", 259, "dungeon/entreeCharbourg-2", True, False, True)
+ENTREECHARBOURG_SOUSSOL = Zone("Entrée Charbourg - Sous-Sol", 259, "dungeon/entreeCharbourg-2", True, False, True)
 setConnectingDoors(Door(Position(247,749,SOUTHWEST), Position(4,22,ENTREECHARBOURG)), Door(Position(3,22,ENTREECHARBOURG), Position(246,749,SOUTHWEST)))
 setConnectingDoors(Door(Position(257,749,SOUTHCENTER), Position(27,22,ENTREECHARBOURG)), Door(Position(28,22,ENTREECHARBOURG), Position(258,749,SOUTHCENTER)))
-setConnectingDoors(Door(Position(21,5,ENTREECHARBOURG), Position(48,4,ENTREECHARBOURG_SOUSSOL1)), Door(Position(47,4,ENTREECHARBOURG_SOUSSOL1), Position(20,5,ENTREECHARBOURG)))
+setConnectingDoors(Door(Position(21,5,ENTREECHARBOURG), Position(48,4,ENTREECHARBOURG_SOUSSOL)), Door(Position(47,4,ENTREECHARBOURG_SOUSSOL), Position(20,5,ENTREECHARBOURG)))
 
 # Entrée Charbourg
 MINECHARBOURG_ENTREE = Zone("Mine Charbourg - Entrée", 198, "dungeon/mineCharbourg-1", True, False, True)
@@ -892,7 +892,7 @@ ZONELIST = [
     ROUTE210_MAISON, ROUTE212_MAISON, ROUTE216_MAISON, ROUTE217_MAISON, ROUTE225_MAISON, ROUTE226_MAISON, ROUTE227_MAISON, ROUTE228_MAISON1, ROUTE228_MAISON2,
 
     # Dungeons
-    ENTREECHARBOURG, ENTREECHARBOURG_SOUSSOL1, CHEMINROCHEUX, MINECHARBOURG_ENTREE, MINECHARBOURG,
+    ENTREECHARBOURG, ENTREECHARBOURG_SOUSSOL, CHEMINROCHEUX, MINECHARBOURG_ENTREE, MINECHARBOURG,
     FORETVESTIGION, VIEUXCHATEAU, VIEUXCHATEAU_SALLEAMANGER, VIEUXCHATEAU_AILES, VIEUXCHATEAU_COULOIR, VIEUXCHATEAU_CHAMBRE1, VIEUXCHATEAU_CHAMBRE2, VIEUXCHATEAU_CHAMBRE3, VIEUXCHATEAU_CHAMBRE4, VIEUXCHATEAU_CHAMBRE5,
     GROTTEREVECHE, GROTTEREVECHE_SOUSSOL,
     TOURPERDUE_REZDECHAUSSEE, TOURPERDUE_ETAGE1, TOURPERDUE_ETAGE2, TOURPERDUE_ETAGE3, TOURPERDUE_ETAGE4,
@@ -1004,7 +1004,7 @@ ZONEDICTIONARY = {
     249: ROUTEVICTOIRE_PASSAGEROUTE224,
     254: CHEMINROCHEUX,
     258: ENTREECHARBOURG,
-    259: ENTREECHARBOURG_SOUSSOL1,
+    259: ENTREECHARBOURG_SOUSSOL,
     260: ILEPLEINELUNE,
     261: ILEPLEINELUNE_INTERIEUR,
     262: SECTEURCOMBAT_NORTHWEST, # Mont Abrupt - Extérieur
