@@ -60,6 +60,11 @@ ORIENTATION_OFFSET = 0x238A8
 
 SELECTEDBAGSECTION_OFFSET = 0x285C8
 SELECTEDBAGITEM_OFFSET = -0xCC80
+MARSHPOKEMON_OFFSET = 0x7F24
+SWARMPOKEMON_OFFSET = 0x7F28
+GARDENPOKEMON_TODAY_OFFSET = 0x7F30
+GARDENPOKEMON_YESTERDAY_OFFSET = 0x7F32
+GBAGAME_ADDRESS = 0x021BF8C2
 
 ORIENTATION = {"u","d","l","r"}
 
@@ -92,12 +97,34 @@ end
 function retrieveGameData()
 
     -- All memory addresses are stored in a single pointer, with different offsets for each
-    local gameDataAddress = memory.read_u32_le(GAMEDATA_POINTER) 
+    local gameDataAddress = memory.read_u32_le(GAMEDATA_POINTER)
+
+    local marshPokemonIds = memory.read_u32_le(baseAddress + MARSHPOKEMON_OFFSET)
+    local marshPokemonList = {
+        MARSHPOKEMON_LIST[getBits(marshPokemonIds,0,5)],  -- Zone 1
+        MARSHPOKEMON_LIST[getBits(marshPokemonIds,5,5)],  -- Zone 2
+        MARSHPOKEMON_LIST[getBits(marshPokemonIds,10,5)], -- Zone 3
+        MARSHPOKEMON_LIST[getBits(marshPokemonIds,15,5)], -- Zone 4
+        MARSHPOKEMON_LIST[getBits(marshPokemonIds,20,5)], -- Zone 5
+        MARSHPOKEMON_LIST[getBits(marshPokemonIds,25,5)], -- Zone 6
+    }
+
+    local gardenPokemonYesterday = 0
+    local gardenPokemonYesterdayId = memory.read_u16_le(baseAddress + GARDENPOKEMON_YESTERDAY_OFFSET)
+
+    if (gardenPokemonYesterdayId ~= 0xFFFF) then
+        gardenPokemonYesterday = GARDENPOKEMON_LIST[gardenPokemonYesterdayId]
+    end
 
     return {
         repelSteps = memory.readbyte(gameDataAddress + REPELSTEPS_OFFSET),
         selectedBagSection = memory.readbyte(gameDataAddress + SELECTEDBAGSECTION_OFFSET),
-        selectedBagItemId = memory.readbyte(gameDataAddress + SELECTEDBAGITEM_OFFSET)
+        selectedBagItemId = memory.readbyte(gameDataAddress + SELECTEDBAGITEM_OFFSET),
+        swarmPokemon = SWARMPOKEMON_LIST[memory.read_u32_le(baseAddress + SWARMPOKEMON_OFFSET) % 22],
+        marshPokemonList = marshPokemonList,
+        gardenPokemonToday = GARDENPOKEMON_LIST[memory.read_u16_le(baseAddress + GARDENPOKEMON_TODAY_OFFSET)],
+        gardenPokemonYesterday = gardenPokemonYesterday,
+        gbaGame = memory.readbyte(GBAGAME_ADDRESS),
     }
 end
 
@@ -106,6 +133,7 @@ function refreshPID()
     -- Pointer : Reference address
     pointer = memory.read_u32_le(PLATINUM_ADDRESS)
     baseAddress = pointer + 0xCFF4
+    saveAddress = pointer + 0x11B598
 
     -- PID : Pokemon unique ID
     allyPidAddress = baseAddress + 0xA0

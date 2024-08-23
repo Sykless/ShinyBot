@@ -4,6 +4,8 @@ import json
 import mmap
 import pickle
 
+from utils import waitFrames
+
 # Serialize the graph to a file
 def saveGraph(graph, filename):
     with open(filename, 'wb') as f:
@@ -86,3 +88,28 @@ def readJsonData(memoryfileName):
             print(str(e))
 
     return None
+
+def updateSpecialPokemon(marshPokemonId = None, swarmPokemonId = None, gardenPokemonIdToday = None, gardenPokemonIdYesterday = None, gbaGameId = None):
+    specialPokemon = []
+
+    if (marshPokemonId is not None):
+        specialPokemon.append("MARSH-" + str(marshPokemonId))
+
+    if (swarmPokemonId is not None):
+        specialPokemon.append("SWARM-" + str(swarmPokemonId))
+
+    if (gardenPokemonIdToday is not None):
+        specialPokemon.append("GARDENTODAY-" + str(gardenPokemonIdToday))
+
+    if (gardenPokemonIdYesterday is not None):
+        specialPokemon.append("GARDENYESTERDAY-" + str(gardenPokemonIdYesterday))
+
+    if (gbaGameId is not None):
+        specialPokemon.append("GBAGAME-" + str(gbaGameId))
+
+    if (specialPokemon):
+        print("/".join(specialPokemon))
+        writeMemoryData("specialPokemon", "/".join(specialPokemon))
+
+    # Values are only updated by emulator once every frame, wait 5 to make sure the values are updated
+    waitFrames(5)

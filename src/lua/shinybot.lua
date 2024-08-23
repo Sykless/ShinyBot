@@ -24,6 +24,7 @@ refreshPID()
 wildPokemon = decryptPokemonData(opposingPidAddress)
 
 console.log("pointer : 0x" .. getHexValue(pointer))
+console.log("baseAddress : 0x" .. getHexValue(baseAddress))
 console.log("Ally PID address : 0x" .. getHexValue(allyPidAddress))
 console.log("Ally PID : 0x" .. getHexValue(memory.read_u32_le(allyPidAddress)))
 console.log("Opposing PID address : 0x" .. getHexValue(opposingPidAddress))
@@ -37,6 +38,7 @@ comm.mmfWrite("bagData", string.rep("\x00", 20480))
 comm.mmfWrite("gameData", string.rep("\x00", 20480))
 comm.mmfWrite("playerData", string.rep("\x00", 20480))
 comm.mmfWrite("runSections", string.rep("\x00", 20480))
+comm.mmfWrite("specialPokemon", string.rep("\x00", 20480))
 
 -- Set screenshot memory file name
 comm.mmfWrite("screenshot", string.rep("\x00", 64000))
@@ -77,6 +79,9 @@ while true do
     -- Save player data (position, orientation, bike speed, etc) at every frame
     playerData = retrievePlayerData()
     comm.mmfWrite("playerData", json.encode({["playerData"] = playerData}) .. "\x00")
+
+    -- Check in memory if we need to override Swarm/Marsh/Garden Pokemon
+    readSpecialPokemonFromMemory()
 
     -- Debug : display position on screen
     gui.text(0,0, string.format("(%d,%d) - (%d,%d), Zone : %d, Framecount : %d, PID : %x\nRepel steps : %d, Bike : %s (speed = %d)", playerData.positionX, playerData.positionY, playerData.positionY + 1, playerData.positionX + 1, playerData.zone, emu.framecount(), wildPokemon.pid, gameData.repelSteps, tostring(playerData.isOnBike), playerData.bikeSpeed))

@@ -1,5 +1,4 @@
 import time
-import memory
 
 def waitFrames(numberOfFrames):
     time.sleep(numberOfFrames / 60) # 60 frames per second

@@ -99,8 +99,131 @@ function inputFromMemory()
     end
 end
 
+function readSpecialPokemonFromMemory()
+    -- Read data from memory file sent by Python script
+    local mmfSpecialPokemon = comm.mmfRead("specialPokemon", 20480)
+    local specialPokemonString = string.match(mmfSpecialPokemon, "[^\x00]+") -- Get everything before the first null \x00 character
+    local specialPokemonInt = {}
+
+    if (specialPokemonString) then
+        local specialPokemonSplit = splitString(specialPokemonString, "/")
+        local gardenPokemonToday = 0
+        local gardenPokemonYesterday = 0
+
+        -- Convert string sections to Pokemon IDs
+        for id, substring in ipairs(specialPokemonSplit) do
+            local stringSection = splitString(substring, "-")
+
+            -- Update Marsh/Swarm Pokemon and GBA game with provided IDs
+            if (stringSection[1] == "MARSH") then
+                updateMarshPokemon(tonumber(stringSection[2]))
+            elseif (stringSection[1] == "SWARM") then
+                updateSwarmPokemon(tonumber(stringSection[2]))
+            elseif (stringSection[1] == "GBAGAME") then
+                updateGBAGame(tonumber(stringSection[2]))
+            elseif (stringSection[1] == "GARDENTODAY") then
+                gardenPokemonToday = tonumber(stringSection[2])
+            elseif (stringSection[1] == "GARDENYESTERDAY") then
+                gardenPokemonYesterday = tonumber(stringSection[2])
+            end
+        end
+
+        -- Update Garden Pokemon with provided IDs
+        updateGardenPokemon(gardenPokemonToday, gardenPokemonYesterday)
+
+        -- Erase old memory values
+        comm.mmfWrite("specialPokemon", string.rep("\x00", 20480))
+    end
+end
+
+-- Simulate GBA game in GBA slot, makes certain Pokemon appear
+function updateGBAGame(gameId)
+    memory.write_u8(GBAGAME_ADDRESS - 0x02000000, gameId, "Main RAM")
+end
+
+function updateMarshPokemon(marshPokemonId)
+
+    marshSectionId = -1
+
+    -- Find sectionId from Pokédex ID
+    for sectionId, pokedexId in pairs(MARSHPOKEMON_LIST) do
+        if (pokedexId == marshPokemonId) then
+            marshSectionId = sectionId
+            break
+        end
+    end
+
+    -- If we found a marsh Pokémon matching the provided Pokédex ID, insert it in memory
+    if (marshSectionId >= 0) then
+
+        -- Each marsh zone is coded on 5 bits, apply the same Pokédex ID for each
+        zone1 = marshSectionId
+        zone2 = (zone1 << 5) + marshSectionId
+        zone3 = (zone2 << 5) + marshSectionId
+        zone4 = (zone3 << 5) + marshSectionId
+        zone5 = (zone4 << 5) + marshSectionId
+        zone6 = (zone5 << 5) + marshSectionId
+
+        -- Write new Pokémon marsh values in memory
+        memory.write_u32_le(baseAddress - 0x02000000 + MARSHPOKEMON_OFFSET, zone6, "Main RAM")
+    end
+end
+
+function updateSwarmPokemon(swarmPokemonId)
+
+    swarmSectionId = -1
+
+    -- Find sectionId from Pokédex ID
+    for sectionId, pokedexId in pairs(SWARMPOKEMON_LIST) do
+        if (pokedexId == swarmPokemonId) then
+            swarmSectionId = sectionId
+            break
+        end
+    end
+
+    -- If we found a marsh Pokémon matching the provided Pokédex ID, insert it in memory
+    if (swarmSectionId >= 0) then
+        memory.write_u32_le(baseAddress - 0x02000000 + SWARMPOKEMON_OFFSET, swarmSectionId, "Main RAM")
+    end
+end
+
+function updateGardenPokemon(gardenPokemonIdToday, gardenPokemonIdYesterday)
+
+    gardenSectionIdToday = -1
+    gardenSectionIdYesterday = -1
+
+    -- Find sectionId from Pokédex ID
+    for sectionId, pokedexId in pairs(GARDENPOKEMON_LIST) do
+        if (pokedexId == gardenPokemonIdToday) then
+            gardenSectionIdToday = sectionId
+        end
+
+        if (pokedexId == gardenPokemonIdYesterday) then
+            gardenSectionIdYesterday = sectionId
+        end
+
+        if (gardenSectionIdToday >= 0 and gardenSectionIdYesterday >= 0) then
+            break
+        end
+    end
+
+    -- If no garden Pokemon for today is provided, retrieve it in memory
+    if (gardenSectionIdToday == -1) then
+        gardenSectionIdToday = memory.read_u16_le(baseAddress + GARDENPOKEMON_TODAY_OFFSET)
+    end
+
+    -- Can"t have the same Pokémon today and yesterday
+    if (gardenSectionIdToday == gardenSectionIdYesterday or gardenSectionIdYesterday == -1) then
+        gardenSectionIdYesterday = 0xFFFF
+    end
+
+    -- Write new Pokémon swarm value in memory
+    memory.write_u16_le(baseAddress - 0x02000000 + GARDENPOKEMON_TODAY_OFFSET, gardenSectionIdToday, "Main RAM")
+    memory.write_u16_le(baseAddress - 0x02000000 + GARDENPOKEMON_YESTERDAY_OFFSET, gardenSectionIdYesterday, "Main RAM")
+end
+
 -- 32 bits multiplication, see http://www.sunshine2k.de/coding/c/mul32x32.html
-function multiply32(a,b) -- 
+function multiply32(a,b)
     local upper16BitsA = (a >> 16) & 0xFFFF
     local lower16BitsA = a % 0x10000
 

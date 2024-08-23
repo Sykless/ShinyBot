@@ -2,12 +2,19 @@ import img
 import bag
 import memory
 
+from pokemon import POKEMON_NAMES
+
 CLOSEBAGMENU = 24
 
 class Game:
-    def __init__(self, repelSteps, selectedBagSection, selectedBagItemId):
+    def __init__(self, repelSteps, selectedBagSection, selectedBagItemId, swarmPokemon, marshPokemonList, gardenPokemonToday, gardenPokemonYesterday, gbaGame):
         self.repelSteps = repelSteps
         self.selectedBagSection = None
+        self.swarmPokemon = swarmPokemon
+        self.marshPokemonList = [None] + marshPokemonList
+        self.gardenPokemonToday = gardenPokemonToday
+        self.gardenPokemonYesterday = gardenPokemonYesterday
+        self.gbaGame = gbaGame
 
         # Data only valid if in the bag menu
         if (0 <= selectedBagSection <= 7):
@@ -30,7 +37,13 @@ class Game:
                 self.selectedBagItem = bag.getItemFromBagId(selectedBagSection, selectedBagItemId)
 
     def __str__(self):
-        return str(self.repelSteps) + " repel steps remaining"
+        return (str(self.repelSteps) + " repel steps remaining\n"
+                + "Swarm Pokémon : " + POKEMON_NAMES[self.swarmPokemon] + "\n"
+                + "Garden Pokémon : Today : " + POKEMON_NAMES[self.gardenPokemonToday] + (" - Yesterday : " + POKEMON_NAMES[self.gardenPokemonYesterday] if self.gardenPokemonYesterday else "") + "\n"
+                + "Marsh Pokémon : " + " - ".join("Zone " + str(zoneId) + " : " + POKEMON_NAMES[self.marshPokemonList[zoneId]] for zoneId in range(1,7)) + "\n"
+                + "GBA Game : " + GBAGAME_NAMES[self.gbaGame])
 
 def getGameData():
     return Game(**memory.readGameData())
+
+GBAGAME_NAMES = ["None", "Saphir", "Rubis", "Émeraude", "Rouge Feu", "Vert Feuille"]
