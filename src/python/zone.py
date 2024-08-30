@@ -708,6 +708,7 @@ GROTTERETOUR_SALLE3 = Zone("Grotte Retour - Salle 3", 520, "dungeon/grotteRetour
 GROTTERETOUR_SALLE4 = Zone("Grotte Retour - Salle 4", 521, "dungeon/grotteRetour-4", True, False, False)
 GROTTERETOUR_SALLE5 = Zone("Grotte Retour - Salle 5", 522, "dungeon/grotteRetour-5", True, False, False)
 GROTTERETOUR_SALLE6 = Zone("Grotte Retour - Salle 6", 523, "dungeon/grotteRetour-6", True, False, False)
+GROTTERETOUR_SALLE6 = Zone("Grotte Retour - Salle 7", 524, "dungeon/grotteRetour-7", True, False, False)
 GROTTERETOUR_SALLE8 = Zone("Grotte Retour - Salle 8", 525, "dungeon/grotteRetour-8", True, False, False)
 GROTTERETOUR_SALLE9 = Zone("Grotte Retour - Salle 9", 526, "dungeon/grotteRetour-9", True, False, False)
 GROTTERETOUR_SALLE10 = Zone("Grotte Retour - Salle 10", 527, "dungeon/grotteRetour-10", True, False, False)
