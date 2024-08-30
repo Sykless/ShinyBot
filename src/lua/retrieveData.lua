@@ -57,6 +57,7 @@ BIKE_OFFSET = 0x1324
 BIKESPEED_OFFSET = 0x1320
 REPELSTEPS_OFFSET = 0x8087
 ORIENTATION_OFFSET = 0x238A8
+TIMEHOUR_ADDRESS = 0x021BF7C8
 
 SELECTEDBAGSECTION_OFFSET = 0x285C8
 SELECTEDBAGITEM_OFFSET = -0xCC80
@@ -65,6 +66,10 @@ SWARMPOKEMON_OFFSET = 0x7F28
 GARDENPOKEMON_TODAY_OFFSET = 0x7F30
 GARDENPOKEMON_YESTERDAY_OFFSET = 0x7F32
 GBAGAME_ADDRESS = 0x021BF8C2
+
+SKIP_ENCOUNTERTABLES = true
+WALKENCOUNTERTABLE_OFFSET = 0x233D0
+WATERENCOUNTERTABLE_OFFSET = WALKENCOUNTERTABLE_OFFSET + 0xCC
 
 ORIENTATION = {"u","d","l","r"}
 
@@ -117,6 +122,7 @@ function retrieveGameData()
     end
 
     return {
+        hourOfDay = memory.read_u32_le(TIMEHOUR_ADDRESS),
         repelSteps = memory.readbyte(gameDataAddress + REPELSTEPS_OFFSET),
         selectedBagSection = memory.readbyte(gameDataAddress + SELECTEDBAGSECTION_OFFSET),
         selectedBagItemId = memory.readbyte(gameDataAddress + SELECTEDBAGITEM_OFFSET),
@@ -125,7 +131,114 @@ function retrieveGameData()
         gardenPokemonToday = GARDENPOKEMON_LIST[memory.read_u16_le(baseAddress + GARDENPOKEMON_TODAY_OFFSET)],
         gardenPokemonYesterday = gardenPokemonYesterday,
         gbaGame = memory.readbyte(GBAGAME_ADDRESS),
+        encounterTables = SKIP_ENCOUNTERTABLES and {} or { -- Only retrieve encounter tables if needed
+            walkEncounterTable = retrieveWalkEncounterTable(),
+            waterEncounterTable = retrieveWaterEncounterTable()
+        }
     }
+end
+
+-- Only needed once to generate encounter tables for each zone in Python code
+function retrieveWalkEncounterTable()
+    local encounterTableAddress = baseAddress + WALKENCOUNTERTABLE_OFFSET
+
+    local walkEncountersTables = {}
+    local walkEncountersIdentifier = memory.read_u32_le(encounterTableAddress)
+
+    -- Retrieve every possible grass/cave encounters in the zone
+    if (walkEncountersIdentifier > 0) then
+        walkEncountersTables = {
+            walkEncountersIdentifier = walkEncountersIdentifier,
+            morningEncounters = {},
+            dayEncounters = {},
+            nightEncounters = {},
+            swarmEncounters = {},
+            pokeradarEncounters = {},
+            gbaEncounters = {}
+        }
+
+        -- Retrieve all 12 possible default encounters in grass/cave
+        for i = 0, 11 do
+            table.insert(walkEncountersTables["morningEncounters"], {pokedexId = memory.read_u32_le(encounterTableAddress + 8*i + 8),
+                                                                     level = memory.read_u32_le(encounterTableAddress + 8*i + 4)})
+        end
+
+        -- Replace encounters 3 and 4 (10% encounters) during the day
+        table.insert(walkEncountersTables["dayEncounters"], memory.read_u32_le(encounterTableAddress + 108))
+        table.insert(walkEncountersTables["dayEncounters"], memory.read_u32_le(encounterTableAddress + 112))
+
+        -- Replace encounters 3 and 4 (10% encounters) during the night
+        table.insert(walkEncountersTables["nightEncounters"], memory.read_u32_le(encounterTableAddress + 116))
+        table.insert(walkEncountersTables["nightEncounters"], memory.read_u32_le(encounterTableAddress + 120))
+
+        -- Replace encounters 1 and 2 (20% encounters) during a swarm
+        table.insert(walkEncountersTables["swarmEncounters"], memory.read_u32_le(encounterTableAddress + 100))
+        table.insert(walkEncountersTables["swarmEncounters"], memory.read_u32_le(encounterTableAddress + 104))
+
+        -- Replace encounters 5, 6 (10% encounters), 11 and 12 (1% encounters) on a pokeradar rare grass patch
+        table.insert(walkEncountersTables["pokeradarEncounters"], memory.read_u32_le(encounterTableAddress + 124))
+        table.insert(walkEncountersTables["pokeradarEncounters"], memory.read_u32_le(encounterTableAddress + 128))
+        table.insert(walkEncountersTables["pokeradarEncounters"], memory.read_u32_le(encounterTableAddress + 132))
+        table.insert(walkEncountersTables["pokeradarEncounters"], memory.read_u32_le(encounterTableAddress + 136))
+
+        -- Replace encounters 9 and 10 (4% encounters) if Sapphire is inserted in the GBA slot
+        table.insert(walkEncountersTables["gbaEncounters"], {memory.read_u32_le(encounterTableAddress + 172),
+                                                             memory.read_u32_le(encounterTableAddress + 176)})
+
+        -- Replace encounters 9 and 10 (4% encounters) if Ruby is inserted in the GBA slot
+        table.insert(walkEncountersTables["gbaEncounters"], {memory.read_u32_le(encounterTableAddress + 164),
+                                                             memory.read_u32_le(encounterTableAddress + 168)})
+
+        -- Replace encounters 9 and 10 (4% encounters) if Emerald is inserted in the GBA slot
+        table.insert(walkEncountersTables["gbaEncounters"], {memory.read_u32_le(encounterTableAddress + 180),
+                                                             memory.read_u32_le(encounterTableAddress + 184)})
+
+        -- Replace encounters 9 and 10 (4% encounters) if Fire Red is inserted in the GBA slot
+        table.insert(walkEncountersTables["gbaEncounters"], {memory.read_u32_le(encounterTableAddress + 188),
+                                                             memory.read_u32_le(encounterTableAddress + 192)})
+
+        -- Replace encounters 9 and 10 (4% encounters) if Leaf Green is inserted in the GBA slot
+        table.insert(walkEncountersTables["gbaEncounters"], {memory.read_u32_le(encounterTableAddress + 196),
+                                                             memory.read_u32_le(encounterTableAddress + 200)})
+    end
+
+    return walkEncountersTables
+end
+
+-- Only needed once to generate encounter tables for each zone in Python code
+function retrieveWaterEncounterTable()
+    local encounterTableAddress = baseAddress + WATERENCOUNTERTABLE_OFFSET
+
+    local waterEncountersTables = {}
+    local waterEncountersIdentifier = memory.read_u32_le(encounterTableAddress)
+
+    -- Retrieve every possible surf/rod encounters in the zone
+    if (waterEncountersIdentifier > 0) then
+        waterEncountersTables = {
+            surfEncounters = {},
+            oldRodEncounters = {},
+            goodRodEncounters = {},
+            superRodEncounters = {}
+        }
+
+        -- Retrieve all 5 surf encounters
+        for i = 0, 4 do
+            table.insert(waterEncountersTables["surfEncounters"], {pokedexId = memory.read_u32_le(encounterTableAddress + 8*i + 8),
+                                                                   minLevel = memory.read_u8(encounterTableAddress + 8*i + 5),
+                                                                   maxLevel = memory.read_u8(encounterTableAddress + 8*i + 4)})
+        end
+
+        -- Retrieve all 5 old/good/super rod encounters
+        for rodId, rodEncounters in ipairs({"oldRodEncounters", "goodRodEncounters", "superRodEncounters"}) do
+            for i = 0, 4 do
+                table.insert(waterEncountersTables[rodEncounters], {pokedexId = memory.read_u32_le(encounterTableAddress + 44 + 44*rodId + 8*i + 8),
+                                                                    minLevel = memory.read_u8(encounterTableAddress + 44 + 44*rodId + 8*i + 5),
+                                                                    maxLevel = memory.read_u8(encounterTableAddress + 44 + 44*rodId + 8*i + 4)})
+            end
+        end
+    end
+
+    return waterEncountersTables
 end
 
 -- opposingPidAddress may vary so we must refresh its value from time to time

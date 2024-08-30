@@ -7,7 +7,8 @@ from pokemon import POKEMON_NAMES
 CLOSEBAGMENU = 24
 
 class Game:
-    def __init__(self, repelSteps, selectedBagSection, selectedBagItemId, swarmPokemon, marshPokemonList, gardenPokemonToday, gardenPokemonYesterday, gbaGame):
+    def __init__(self, hourOfDay, repelSteps, selectedBagSection, selectedBagItemId, swarmPokemon, marshPokemonList, gardenPokemonToday, gardenPokemonYesterday, gbaGame, encounterTables):
+        self.hourOfDay = hourOfDay
         self.repelSteps = repelSteps
         self.selectedBagSection = None
         self.swarmPokemon = swarmPokemon
@@ -15,6 +16,7 @@ class Game:
         self.gardenPokemonToday = gardenPokemonToday
         self.gardenPokemonYesterday = gardenPokemonYesterday
         self.gbaGame = gbaGame
+        self.encounterTables = encounterTables
 
         # Data only valid if in the bag menu
         if (0 <= selectedBagSection <= 7):
@@ -35,6 +37,17 @@ class Game:
             # Retrieve item as usual
             else:
                 self.selectedBagItem = bag.getItemFromBagId(selectedBagSection, selectedBagItemId)
+
+    def displayEncounters(self):
+        for zoneType, encounterTable in self.encounterTables.items():
+            print(zoneType)
+
+            if (len(encounterTable) > 0):
+                for encounterType, encounters in encounterTable.items():
+                    print(encounterType)
+                    print(encounters)
+
+            print("\n\n")
 
     def __str__(self):
         return (str(self.repelSteps) + " repel steps remaining\n"
