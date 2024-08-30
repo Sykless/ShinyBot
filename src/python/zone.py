@@ -789,6 +789,7 @@ RUINESBONVILLE_SALLE7 = Zone("Ruines Bonville - Salle 7", 225, "dungeon/ruinesBo
 RUINESBONVILLE_SALLE7.setEncounterTables(encounter.RUINESBONVILLE)
 setConnectingDoors(Door(Position(93,7,TUNNELRUINEMANIAC), Position(713,670,SOUTHEAST)), Door(Position(712,670,SOUTHEAST), Position(92,7,TUNNELRUINEMANIAC)))
 setConnectingDoors(Door(Position(1,7,TUNNELRUINEMANIAC), Position(8,3,RUINESBONVILLE_SALLE7)), Door(Position(9,3,RUINESBONVILLE_SALLE7), Position(2,7,TUNNELRUINEMANIAC)))
+setConnectingDoors(Door(Position(5,12,RUINESBONVILLE_SALLE7), Position(597,653,NORTHCENTER)), Door(Position(597,652,NORTHCENTER), Position(5,11,RUINESBONVILLE_SALLE7)))
 
 # Mont Couronné
 MONTCOURONNE_PASSAGECHARBOURG = Zone("Mont Couronné - Passage Charbourg", 207, "dungeon/montCouronne-1", True, False, True)
@@ -1212,11 +1213,6 @@ ZONELIST = [
 	COLONNESLANCES, SALLEORIGINELLE,
 ]
 
-# Particular zones where you can't always directly move from one point to another
-LABYRINTH_ZONES = [
-    GROTTEREVECHE, ILEDEFER, MONTCOURONNE_PASSAGEVESTIGION, MONTCOURONNE_SALLE1, MONTCOURONNE_SALLE3, ROUTEVICTOIRE, ROUTEVICTOIRE_SALLEOUEST, VIEUXCHATEAU_AILES
-]
-
 ZONEDICTIONARY = {
     3: SOUTHWEST, # Féli-Cité
     4: FELICITE_SHOP,
@@ -1550,8 +1546,4 @@ OBSOLETEDOORS = [
     Door(Position(54,268,ILEPLEINELUNE), Position(17,21,ILENOUVELLUNE_INTERIEUR)),
     Door(Position(17,22,ILEPLEINELUNE_INTERIEUR), Position(138,269,ILENOUVELLUNE)),
     Door(Position(138,268,ILENOUVELLUNE), Position(17,21,ILENOUVELLUNE_INTERIEUR)),
-
-    # Don't include thoee doors because they create an exception (would need to add NORTHCENTER to LABYRINTH_ZONES)
-    Door(Position(5,12,RUINESBONVILLE_SALLE7), Position(597,653,NORTHCENTER)),
-    Door(Position(597,652,NORTHCENTER), Position(5,11,RUINESBONVILLE_SALLE7))
 ]
