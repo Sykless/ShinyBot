@@ -155,7 +155,7 @@ class Pokemon:
                 + " = IV    = " + formatNumber(self.IV.HP) + " = " + formatNumber(self.IV.attack) + " = " + formatNumber(self.IV.defense) + " = " + formatNumber(self.IV.specialAttack) + " = " + formatNumber(self.IV.specialDefense) + " = " + formatNumber(self.IV.speed) + " =\n"
                 + " =============================================\n"
                 + " = EV    = " + formatNumber(self.EV.HP) + " = " + formatNumber(self.EV.attack) + " = " + formatNumber(self.EV.defense) + " = " + formatNumber(self.EV.specialAttack) + " = " + formatNumber(self.EV.specialDefense) + " = " + formatNumber(self.EV.speed) + " =\n"
-                + " =============================================\n")
+                + " =============================================\n") if hasattr(self, 'name') else ("Unknown Pokémon : " + str(self.pokedexId))
     
 def isHMAvailable(hmId):
     jsonTeamData = memory.readPokemonTeamData()
