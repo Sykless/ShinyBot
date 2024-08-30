@@ -7,6 +7,7 @@ dofile "decryptPokemon.lua"
 console.clear()
 console.log("\nShinybot started\n")
 
+SKIP_ENCOUNTERS = true
 PLATINUM_ADDRESS = 0x02101F0C
 
 local json = require "json"
@@ -70,6 +71,11 @@ while true do
         -- Write Bag data in memory
         bag = retrieveBag()
         comm.mmfWrite("bagData", json.encode({["bagData"] = bag}) .. "\x00")
+    end
+
+    -- Set Repel steps to a fixed number to prevent it from decreasing
+    if (SKIP_ENCOUNTERS) then
+        memory.write_u8(memory.read_u32_le(GAMEDATA_POINTER) - 0x02000000 + REPELSTEPS_OFFSET, 5, "Main RAM")
     end
 
     -- Save game data (current selection, repel steps remaining, etc) at every frame
