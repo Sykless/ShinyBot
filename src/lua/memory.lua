@@ -107,8 +107,8 @@ function readSpecialPokemonFromMemory()
 
     if (specialPokemonString) then
         local specialPokemonSplit = splitString(specialPokemonString, "/")
-        local gardenPokemonToday = 0
-        local gardenPokemonYesterday = 0
+        local gardenPokemonToday = -1
+        local gardenPokemonYesterday = -1
 
         -- Convert string sections to Pokemon IDs
         for id, substring in ipairs(specialPokemonSplit) do
@@ -141,71 +141,25 @@ function updateGBAGame(gameId)
     memory.write_u8(GBAGAME_ADDRESS - 0x02000000, gameId, "Main RAM")
 end
 
-function updateMarshPokemon(marshPokemonId)
+function updateMarshPokemon(marshSectionId)
 
-    marshSectionId = -1
+    -- Each marsh zone is coded on 5 bits, apply the same Pokémon ID for each
+    zone1 = marshSectionId
+    zone2 = (zone1 << 5) + marshSectionId
+    zone3 = (zone2 << 5) + marshSectionId
+    zone4 = (zone3 << 5) + marshSectionId
+    zone5 = (zone4 << 5) + marshSectionId
+    zone6 = (zone5 << 5) + marshSectionId
 
-    -- Find sectionId from Pokédex ID
-    for sectionId, pokedexId in pairs(MARSHPOKEMON_LIST) do
-        if (pokedexId == marshPokemonId) then
-            marshSectionId = sectionId
-            break
-        end
-    end
-
-    -- If we found a marsh Pokémon matching the provided Pokédex ID, insert it in memory
-    if (marshSectionId >= 0) then
-
-        -- Each marsh zone is coded on 5 bits, apply the same Pokédex ID for each
-        zone1 = marshSectionId
-        zone2 = (zone1 << 5) + marshSectionId
-        zone3 = (zone2 << 5) + marshSectionId
-        zone4 = (zone3 << 5) + marshSectionId
-        zone5 = (zone4 << 5) + marshSectionId
-        zone6 = (zone5 << 5) + marshSectionId
-
-        -- Write new Pokémon marsh values in memory
-        memory.write_u32_le(baseAddress - 0x02000000 + MARSHPOKEMON_OFFSET, zone6, "Main RAM")
-    end
+    -- Write new Pokémon marsh values in memory
+    memory.write_u32_le(baseAddress - 0x02000000 + MARSHPOKEMON_OFFSET, zone6, "Main RAM")
 end
 
-function updateSwarmPokemon(swarmPokemonId)
-
-    swarmSectionId = -1
-
-    -- Find sectionId from Pokédex ID
-    for sectionId, pokedexId in pairs(SWARMPOKEMON_LIST) do
-        if (pokedexId == swarmPokemonId) then
-            swarmSectionId = sectionId
-            break
-        end
-    end
-
-    -- If we found a marsh Pokémon matching the provided Pokédex ID, insert it in memory
-    if (swarmSectionId >= 0) then
-        memory.write_u32_le(baseAddress - 0x02000000 + SWARMPOKEMON_OFFSET, swarmSectionId, "Main RAM")
-    end
+function updateSwarmPokemon(swarmSectionId)
+    memory.write_u32_le(baseAddress - 0x02000000 + SWARMPOKEMON_OFFSET, swarmSectionId, "Main RAM")
 end
 
-function updateGardenPokemon(gardenPokemonIdToday, gardenPokemonIdYesterday)
-
-    gardenSectionIdToday = -1
-    gardenSectionIdYesterday = -1
-
-    -- Find sectionId from Pokédex ID
-    for sectionId, pokedexId in pairs(GARDENPOKEMON_LIST) do
-        if (pokedexId == gardenPokemonIdToday) then
-            gardenSectionIdToday = sectionId
-        end
-
-        if (pokedexId == gardenPokemonIdYesterday) then
-            gardenSectionIdYesterday = sectionId
-        end
-
-        if (gardenSectionIdToday >= 0 and gardenSectionIdYesterday >= 0) then
-            break
-        end
-    end
+function updateGardenPokemon(gardenSectionIdToday, gardenSectionIdYesterday)
 
     -- If no garden Pokemon for today is provided, retrieve it in memory
     if (gardenSectionIdToday == -1) then

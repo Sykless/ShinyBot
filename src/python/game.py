@@ -1,6 +1,7 @@
 import img
 import bag
 import memory
+import encounter
 
 from data import POKEMON_NAMES
 
@@ -14,7 +15,7 @@ class Game:
         self.swarmPokemon = swarmPokemon
         self.marshPokemonList = [None] + marshPokemonList
         self.gardenPokemonToday = gardenPokemonToday
-        self.gardenPokemonYesterday = gardenPokemonYesterday
+        self.gardenPokemonYesterday = gardenPokemonYesterday if gardenPokemonYesterday != 0xFFFF else None
         self.gbaGame = gbaGame
         self.encounterTables = encounterTables
 
@@ -51,9 +52,9 @@ class Game:
 
     def __str__(self):
         return (str(self.repelSteps) + " repel steps remaining\n"
-                + "Swarm Pokémon : " + POKEMON_NAMES[self.swarmPokemon] + "\n"
-                + "Garden Pokémon : Today : " + POKEMON_NAMES[self.gardenPokemonToday] + (" - Yesterday : " + POKEMON_NAMES[self.gardenPokemonYesterday] if self.gardenPokemonYesterday else "") + "\n"
-                + "Marsh Pokémon : " + " - ".join("Zone " + str(zoneId) + " : " + POKEMON_NAMES[self.marshPokemonList[zoneId]] for zoneId in range(1,7)) + "\n"
+                + "Swarm Pokémon : " + POKEMON_NAMES[encounter.SWARMPOKEMON_LIST[self.swarmPokemon]] + "\n"
+                + "Garden Pokémon : Today : " + POKEMON_NAMES[encounter.GARDENPOKEMON_LIST[self.gardenPokemonToday]] + (" - Yesterday : " + POKEMON_NAMES[encounter.GARDENPOKEMON_LIST[self.gardenPokemonYesterday]] if self.gardenPokemonYesterday else "") + "\n"
+                + "Marsh Pokémon : " + " - ".join("Zone " + str(zoneId) + " : " + POKEMON_NAMES[encounter.MARSHPOKEMON_LIST[self.marshPokemonList[zoneId]]] for zoneId in range(1,7)) + "\n"
                 + "GBA Game : " + GBAGAME_NAMES[self.gbaGame])
 
 def getGameData():

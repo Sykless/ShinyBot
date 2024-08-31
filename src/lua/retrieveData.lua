@@ -106,30 +106,23 @@ function retrieveGameData()
 
     local marshPokemonIds = memory.read_u32_le(baseAddress + MARSHPOKEMON_OFFSET)
     local marshPokemonList = {
-        MARSHPOKEMON_LIST[getBits(marshPokemonIds,0,5)],  -- Zone 1
-        MARSHPOKEMON_LIST[getBits(marshPokemonIds,5,5)],  -- Zone 2
-        MARSHPOKEMON_LIST[getBits(marshPokemonIds,10,5)], -- Zone 3
-        MARSHPOKEMON_LIST[getBits(marshPokemonIds,15,5)], -- Zone 4
-        MARSHPOKEMON_LIST[getBits(marshPokemonIds,20,5)], -- Zone 5
-        MARSHPOKEMON_LIST[getBits(marshPokemonIds,25,5)], -- Zone 6
+        getBits(marshPokemonIds,0,5),  -- Zone 1
+        getBits(marshPokemonIds,5,5),  -- Zone 2
+        getBits(marshPokemonIds,10,5), -- Zone 3
+        getBits(marshPokemonIds,15,5), -- Zone 4
+        getBits(marshPokemonIds,20,5), -- Zone 5
+        getBits(marshPokemonIds,25,5), -- Zone 6
     }
-
-    local gardenPokemonYesterday = 0
-    local gardenPokemonYesterdayId = memory.read_u16_le(baseAddress + GARDENPOKEMON_YESTERDAY_OFFSET)
-
-    if (gardenPokemonYesterdayId ~= 0xFFFF) then
-        gardenPokemonYesterday = GARDENPOKEMON_LIST[gardenPokemonYesterdayId]
-    end
 
     return {
         hourOfDay = memory.read_u32_le(TIMEHOUR_ADDRESS),
         repelSteps = memory.readbyte(gameDataAddress + REPELSTEPS_OFFSET),
         selectedBagSection = memory.readbyte(gameDataAddress + SELECTEDBAGSECTION_OFFSET),
         selectedBagItemId = memory.readbyte(gameDataAddress + SELECTEDBAGITEM_OFFSET),
-        swarmPokemon = SWARMPOKEMON_LIST[memory.read_u32_le(baseAddress + SWARMPOKEMON_OFFSET) % 22],
+        swarmPokemon = memory.read_u32_le(baseAddress + SWARMPOKEMON_OFFSET) % 22,
         marshPokemonList = marshPokemonList,
-        gardenPokemonToday = GARDENPOKEMON_LIST[memory.read_u16_le(baseAddress + GARDENPOKEMON_TODAY_OFFSET)],
-        gardenPokemonYesterday = gardenPokemonYesterday,
+        gardenPokemonToday = memory.read_u16_le(baseAddress + GARDENPOKEMON_TODAY_OFFSET),
+        gardenPokemonYesterday = memory.read_u16_le(baseAddress + GARDENPOKEMON_YESTERDAY_OFFSET),
         gbaGame = memory.readbyte(GBAGAME_ADDRESS),
         encounterTables = SKIP_ENCOUNTERTABLES and {} or { -- Only retrieve encounter tables if needed
             walkEncounterTable = retrieveWalkEncounterTable(),

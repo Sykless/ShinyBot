@@ -4,6 +4,8 @@ import json
 import mmap
 import pickle
 
+import encounter
+from data import POKEMON_NAMES
 from utils import waitFrames
 
 # Serialize the graph to a file
@@ -93,16 +95,20 @@ def updateSpecialPokemon(marshPokemonId = None, swarmPokemonId = None, gardenPok
     specialPokemon = []
 
     if (marshPokemonId is not None):
-        specialPokemon.append("MARSH-" + str(marshPokemonId))
+        marshPokemonId = marshPokemonId if isinstance(marshPokemonId, int) else POKEMON_NAMES.index(marshPokemonId)
+        specialPokemon.append("MARSH-" + str(encounter.MARSHPOKEMON_LIST.index(marshPokemonId)))
 
     if (swarmPokemonId is not None):
-        specialPokemon.append("SWARM-" + str(swarmPokemonId))
+        swarmPokemonId = swarmPokemonId if isinstance(swarmPokemonId, int) else POKEMON_NAMES.index(swarmPokemonId)
+        specialPokemon.append("SWARM-" + str(encounter.SWARMPOKEMON_LIST.index(swarmPokemonId)))
 
     if (gardenPokemonIdToday is not None):
-        specialPokemon.append("GARDENTODAY-" + str(gardenPokemonIdToday))
+        gardenPokemonIdToday = gardenPokemonIdToday if isinstance(gardenPokemonIdToday, int) else POKEMON_NAMES.index(gardenPokemonIdToday)
+        specialPokemon.append("GARDENTODAY-" + str(encounter.GARDENPOKEMON_LIST.index(gardenPokemonIdToday)))
 
     if (gardenPokemonIdYesterday is not None):
-        specialPokemon.append("GARDENYESTERDAY-" + str(gardenPokemonIdYesterday))
+        gardenPokemonIdYesterday = gardenPokemonIdYesterday if isinstance(gardenPokemonIdYesterday, int) else POKEMON_NAMES.index(gardenPokemonIdYesterday)
+        specialPokemon.append("GARDENYESTERDAY-" + str(encounter.GARDENPOKEMON_LIST.index(gardenPokemonIdYesterday)))
 
     if (gbaGameId is not None):
         specialPokemon.append("GBAGAME-" + str(gbaGameId))
