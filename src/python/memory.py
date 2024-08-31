@@ -4,7 +4,7 @@ import json
 import mmap
 import pickle
 
-import encounter
+from encounter import SPECIALENCOUNTERS
 from data import POKEMON_NAMES
 from utils import waitFrames
 
@@ -96,19 +96,19 @@ def updateSpecialPokemon(marshPokemonId = None, swarmPokemonId = None, gardenPok
 
     if (marshPokemonId is not None):
         marshPokemonId = marshPokemonId if isinstance(marshPokemonId, int) else POKEMON_NAMES.index(marshPokemonId)
-        specialPokemon.append("MARSH-" + str(encounter.MARSHPOKEMON_LIST.index(marshPokemonId)))
+        specialPokemon.append("MARSH-" + str(SPECIALENCOUNTERS["marsh"].index(marshPokemonId)))
 
     if (swarmPokemonId is not None):
         swarmPokemonId = swarmPokemonId if isinstance(swarmPokemonId, int) else POKEMON_NAMES.index(swarmPokemonId)
-        specialPokemon.append("SWARM-" + str(encounter.SWARMPOKEMON_LIST.index(swarmPokemonId)))
+        specialPokemon.append("SWARM-" + str(SPECIALENCOUNTERS["swarm"].index(swarmPokemonId)))
 
     if (gardenPokemonIdToday is not None):
         gardenPokemonIdToday = gardenPokemonIdToday if isinstance(gardenPokemonIdToday, int) else POKEMON_NAMES.index(gardenPokemonIdToday)
-        specialPokemon.append("GARDENTODAY-" + str(encounter.GARDENPOKEMON_LIST.index(gardenPokemonIdToday)))
+        specialPokemon.append("GARDENTODAY-" + str(SPECIALENCOUNTERS["garden"].index(gardenPokemonIdToday)))
 
     if (gardenPokemonIdYesterday is not None):
         gardenPokemonIdYesterday = gardenPokemonIdYesterday if isinstance(gardenPokemonIdYesterday, int) else POKEMON_NAMES.index(gardenPokemonIdYesterday)
-        specialPokemon.append("GARDENYESTERDAY-" + str(encounter.GARDENPOKEMON_LIST.index(gardenPokemonIdYesterday)))
+        specialPokemon.append("GARDENYESTERDAY-" + str(SPECIALENCOUNTERS["garden"].index(gardenPokemonIdYesterday)))
 
     if (gbaGameId is not None):
         specialPokemon.append("GBAGAME-" + str(gbaGameId))
