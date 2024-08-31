@@ -2,7 +2,7 @@ import img
 import bag
 import memory
 
-from pokemon import POKEMON_NAMES
+from data import POKEMON_NAMES
 
 CLOSEBAGMENU = 24
 

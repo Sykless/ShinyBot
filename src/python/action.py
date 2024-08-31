@@ -1,6 +1,5 @@
 import img
 import bag
-import zone
 import game
 import joypad
 import memory

@@ -1,5 +1,6 @@
 
 from pokemon import Pokemon
+from data import POKEMON_NAMES
 from utils import waitFrames
 
 import bag

@@ -1,4 +1,4 @@
-from pokemon import POKEMON_NAMES
+from data import POKEMON_NAMES
 import copy
 
 SAPPHIRE = 1
