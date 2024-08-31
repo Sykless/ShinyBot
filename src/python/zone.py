@@ -241,7 +241,7 @@ def getZoneById(zoneId):
     zone = ZONEDICTIONARY[zoneId]
 
     # If the zone has subzones, set the zoneId of the corresponding subzone
-    if (zone.subZones):
+    if (zone.subzoneList):
         zone.setZoneId(zoneId)
 
     return zone
