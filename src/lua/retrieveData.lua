@@ -47,20 +47,20 @@ function retrieveBagSection(sectionId)
     return bagSection
 end
 
-GAMEDATA_POINTER = 0x021C0974
+ZONE_OFFSET = 0x1280
+POSITIONX_OFFSET = 0x1288
+POSITIONY_OFFSET = 0x128C
 
-ZONE_OFFSET = 0x1294
-POSITIONX_OFFSET = 0x129C
-POSITIONY_OFFSET = 0x12A0
+BIKE_OFFSET = 0x1310
+BIKESPEED_OFFSET = 0x130C
+REPELSTEPS_OFFSET = 0x8073
+ORIENTATION_OFFSET = 0x23894
 
-BIKE_OFFSET = 0x1324
-BIKESPEED_OFFSET = 0x1320
-REPELSTEPS_OFFSET = 0x8087
-ORIENTATION_OFFSET = 0x238A8
 TIMEHOUR_ADDRESS = 0x021BF7C8
 
-SELECTEDBAGSECTION_OFFSET = 0x285C8
-SELECTEDBAGITEM_OFFSET = -0xCC80
+SELECTEDBAGSECTION_OFFSET = 0x285B4
+SELECTEDBAGITEM_OFFSET = -0xCC94
+
 MARSHPOKEMON_OFFSET = 0x7F24
 SWARMPOKEMON_OFFSET = 0x7F28
 GARDENPOKEMON_TODAY_OFFSET = 0x7F30
@@ -74,10 +74,7 @@ WATERENCOUNTERTABLE_OFFSET = WALKENCOUNTERTABLE_OFFSET + 0xCC
 ORIENTATION = {"u","d","l","r"}
 
 function retrievePlayerData()
-    -- All memory addresses are stored in a single pointer, with different offsets for each
-    local gameDataAddress = memory.read_u32_le(GAMEDATA_POINTER) 
-
-    local orientationValue = memory.read_u16_le(gameDataAddress + ORIENTATION_OFFSET)
+    local orientationValue = memory.read_u16_le(baseAddress + ORIENTATION_OFFSET)
     local orientation = "d" -- Default orientation is down
 
     -- This is the only value we actually need to be sure of, since we're using it as an array id
@@ -86,23 +83,20 @@ function retrievePlayerData()
     end
 
     return {
-        zone = memory.read_u16_le(gameDataAddress + ZONE_OFFSET),
-        positionX = memory.read_u16_le(gameDataAddress + POSITIONX_OFFSET),
-        positionY = memory.read_u16_le(gameDataAddress + POSITIONY_OFFSET),
+        zone = memory.read_u16_le(baseAddress + ZONE_OFFSET),
+        positionX = memory.read_u16_le(baseAddress + POSITIONX_OFFSET),
+        positionY = memory.read_u16_le(baseAddress + POSITIONY_OFFSET),
         orientation = orientation,
         
         -- This memory address is actually used for multiple states, only state = 1 (isOnBike) is useful to us
-        isOnBike = memory.read_u16_le(gameDataAddress + BIKE_OFFSET) == 1,
+        isOnBike = memory.read_u16_le(baseAddress + BIKE_OFFSET) == 1,
 
         -- Add 3 to convert 0 -> 1 values to speed 3 and 4 (bike speeds used in the game)
-        bikeSpeed = memory.read_u8(gameDataAddress + BIKESPEED_OFFSET) + 3,
+        bikeSpeed = memory.read_u8(baseAddress + BIKESPEED_OFFSET) + 3,
     }
 end
 
 function retrieveGameData()
-
-    -- All memory addresses are stored in a single pointer, with different offsets for each
-    local gameDataAddress = memory.read_u32_le(GAMEDATA_POINTER)
 
     local marshPokemonIds = memory.read_u32_le(baseAddress + MARSHPOKEMON_OFFSET)
     local marshPokemonList = {
@@ -116,9 +110,9 @@ function retrieveGameData()
 
     return {
         hourOfDay = memory.read_u32_le(TIMEHOUR_ADDRESS),
-        repelSteps = memory.readbyte(gameDataAddress + REPELSTEPS_OFFSET),
-        selectedBagSection = memory.readbyte(gameDataAddress + SELECTEDBAGSECTION_OFFSET),
-        selectedBagItemId = memory.readbyte(gameDataAddress + SELECTEDBAGITEM_OFFSET),
+        repelSteps = memory.readbyte(baseAddress + REPELSTEPS_OFFSET),
+        selectedBagSection = memory.readbyte(baseAddress + SELECTEDBAGSECTION_OFFSET),
+        selectedBagItemId = memory.readbyte(baseAddress + SELECTEDBAGITEM_OFFSET),
         swarmPokemon = memory.read_u32_le(baseAddress + SWARMPOKEMON_OFFSET) % 22,
         marshPokemonList = marshPokemonList,
         gardenPokemonToday = memory.read_u16_le(baseAddress + GARDENPOKEMON_TODAY_OFFSET),
@@ -237,11 +231,9 @@ end
 -- opposingPidAddress may vary so we must refresh its value from time to time
 function refreshPID()
     -- Pointer : Reference address
-    pointer = memory.read_u32_le(PLATINUM_ADDRESS)
-    baseAddress = pointer + 0xCFF4
-    saveAddress = pointer + 0x11B598
+    baseAddress = memory.read_u32_le(PLATINUM_ADDRESS) + 0xCFF4
 
     -- PID : Pokemon unique ID
     allyPidAddress = baseAddress + 0xA0
-    opposingPidAddress = memory.read_u32_le(pointer + 0x352F4) + 0x7A0
+    opposingPidAddress = memory.read_u32_le(baseAddress + 0x28300) + 0x7A0
 end
