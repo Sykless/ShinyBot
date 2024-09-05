@@ -8,7 +8,6 @@ console.clear()
 console.log("\nShinybot started\n")
 
 SKIP_ENCOUNTERS = true
-PLATINUM_ADDRESS = 0x02101F0C
 
 local json = require "json"
 
@@ -18,18 +17,20 @@ local pokemonTeam = {}
 local wildPokemon = {}
 local bag = {}
 
+-- Diamond = D, Pearl = P, Platinum = PL
+GAMECODE = retriveGameCode()
+
 -- Calculate PID memory addresses needed for data processing
 refreshPID()
 
 -- Get wild Pokemon encrypted data from PID address to display PID
-wildPokemon = decryptPokemonData(opposingPidAddress)
-
-console.log("pointer : 0x" .. getHexValue(pointer))
+wildPokemon = decryptPokemonData(wildPidAddress)
+console.log("Game : " .. GAMECODE)
 console.log("baseAddress : 0x" .. getHexValue(baseAddress))
 console.log("Ally PID address : 0x" .. getHexValue(allyPidAddress))
 console.log("Ally PID : 0x" .. getHexValue(memory.read_u32_le(allyPidAddress)))
-console.log("Opposing PID address : 0x" .. getHexValue(opposingPidAddress))
-console.log("Opposing PID : 0x" .. getHexValue(memory.read_u32_le(opposingPidAddress)))
+console.log("Wild PID address : 0x" .. getHexValue(wildPidAddress))
+console.log("Wild PID : 0x" .. getHexValue(memory.read_u32_le(wildPidAddress)))
 
 -- Clear previously used data, fill every byte with null values
 comm.mmfWrite("joypad", string.rep("\x00", 20480))
@@ -65,7 +66,12 @@ while true do
         comm.mmfWrite("pokemonTeamData", json.encode({["pokemonTeamData"] = pokemonTeam}) .. "\x00")
 
         -- Write wild Pokemon data in memory
-        wildPokemon = decryptPokemonData(opposingPidAddress) -- Get Pokemon encrypted data from PID address
+        if (wildPidAddress > 0) then
+            wildPokemon = decryptPokemonData(wildPidAddress) -- Get Pokemon encrypted data from PID address
+        else
+            wildPokemon = {pid = 0}
+        end
+
         comm.mmfWrite("wildPokemonData", json.encode({["wildPokemonData"] = wildPokemon}) .. "\x00")
 
         -- Write Bag data in memory
@@ -75,7 +81,7 @@ while true do
 
     -- Set Repel steps to a fixed number to prevent it from decreasing
     if (SKIP_ENCOUNTERS) then
-        memory.write_u8(memory.read_u32_le(GAMEDATA_POINTER) - 0x02000000 + REPELSTEPS_OFFSET, 5, "Main RAM")
+        memory.write_u8(baseAddress - 0x02000000 + MEMORYADDRESSES[GAMECODE]["REPELSTEPS_OFFSET"], 5, "Main RAM")
     end
 
     -- Save game data (current selection, repel steps remaining, etc) at every frame

@@ -1,4 +1,57 @@
 
+DIAMOND_ADDRESS = 0x021CCEBC
+PLATINUM_ADDRESS = 0x02101F0C
+
+MEMORYADDRESSES = {
+    D = {
+        BASE_ADDRESS = 0x021CCEBC,
+        BASE_OFFSET = 0xD26C,
+        PARTYPOKEMON_OFFSET = 0x98,
+        WILDPOKEMONADDRESS_OFFSET = 0x2ABCC,
+        WILDPOKEMON_OFFSET = -0x11A8,
+        ZONE_OFFSET = 0x1238,
+        POSITIONX_OFFSET = 0x1240,
+        POSITIONY_OFFSET = 0x1244,
+        REPELSTEPS_OFFSET = 0x73E0,
+        BIKE_OFFSET = 0x12C8,
+        BIKESPEED_OFFSET = 0x12C4
+    },
+    PL = {
+        BASE_ADDRESS = 0x02101F0C,
+        BASE_OFFSET = 0xCFF4,
+        PARTYPOKEMON_OFFSET = 0xA0,
+        WILDPOKEMONADDRESS_OFFSET = 0x28300,
+        WILDPOKEMON_OFFSET = 0x7A0,
+        ZONE_OFFSET = 0x1280,
+        POSITIONX_OFFSET = 0x1288,
+        POSITIONY_OFFSET = 0x128C,
+        REPELSTEPS_OFFSET = 0x8073,
+        BIKE_OFFSET = 0x1310,
+        BIKESPEED_OFFSET = 0x130C
+    }
+}
+
+GAMECODE_ADDRESS = 0x023FFE08
+
+GBAGAME_ADDRESS = 0x021BF8C2
+TIMEHOUR_ADDRESS = 0x021BF7C8
+
+
+ORIENTATION_OFFSET = 0x23894
+
+SELECTEDBAGSECTION_OFFSET = 0x285B4
+SELECTEDBAGITEM_OFFSET = -0xCC94
+
+MARSHPOKEMON_OFFSET = 0x7F24
+SWARMPOKEMON_OFFSET = 0x7F28
+GARDENPOKEMON_TODAY_OFFSET = 0x7F30
+GARDENPOKEMON_YESTERDAY_OFFSET = 0x7F32
+
+SKIP_ENCOUNTERTABLES = true
+WALKENCOUNTERTABLE_OFFSET = 0x233D0
+WATERENCOUNTERTABLE_OFFSET = WALKENCOUNTERTABLE_OFFSET + 0xCC
+
+ORIENTATION = {"u","d","l","r"}
 
 local BAG = {
     GENERAL_ITEMS = {ADDRESS = 0x630, NUMBER_OF_SLOTS = 165},
@@ -10,6 +63,33 @@ local BAG = {
     BALLS = {ADDRESS = 0xCEC, NUMBER_OF_SLOTS = 15},
     BATTLEITEMS = {ADDRESS = 0xD28, NUMBER_OF_SLOTS = 30}
 }
+
+function retriveGameCode()
+    local firstLetter = memory.read_u8(GAMECODE_ADDRESS)
+    local secondLetter = memory.read_u8(GAMECODE_ADDRESS + 1)
+
+    if secondLetter == 0 then
+        return string.char(firstLetter)
+    else
+        return string.char(firstLetter) .. string.char(secondLetter)
+    end
+end
+
+function refreshPID()
+    -- Pointer : Reference address
+    baseAddress = memory.read_u32_le(MEMORYADDRESSES[GAMECODE]["BASE_ADDRESS"]) + MEMORYADDRESSES[GAMECODE]["BASE_OFFSET"]
+
+    -- PID : Pokemon unique ID
+    allyPidAddress = baseAddress + MEMORYADDRESSES[GAMECODE]["PARTYPOKEMON_OFFSET"]
+    wildPidAddress = memory.read_u32_le(baseAddress + MEMORYADDRESSES[GAMECODE]["WILDPOKEMONADDRESS_OFFSET"])
+
+    -- Only set wildPidAddress if the retrieved value is an actual address
+    if (wildPidAddress > 0x02000000 and wildPidAddress < 0x03000000) then
+        wildPidAddress = wildPidAddress + MEMORYADDRESSES[GAMECODE]["WILDPOKEMON_OFFSET"]
+    else
+        wildPidAddress = 0
+    end
+end
 
 -- Retrieve each bag section
 function retrieveBag()
@@ -23,7 +103,7 @@ function retrieveBag()
         balls = retrieveBagSection("BALLS"),
         battleItems = retrieveBagSection("BATTLEITEMS"),
     }
-
+    --0x64793839
     return bagData
 end
 
@@ -47,32 +127,6 @@ function retrieveBagSection(sectionId)
     return bagSection
 end
 
-ZONE_OFFSET = 0x1280
-POSITIONX_OFFSET = 0x1288
-POSITIONY_OFFSET = 0x128C
-
-BIKE_OFFSET = 0x1310
-BIKESPEED_OFFSET = 0x130C
-REPELSTEPS_OFFSET = 0x8073
-ORIENTATION_OFFSET = 0x23894
-
-TIMEHOUR_ADDRESS = 0x021BF7C8
-
-SELECTEDBAGSECTION_OFFSET = 0x285B4
-SELECTEDBAGITEM_OFFSET = -0xCC94
-
-MARSHPOKEMON_OFFSET = 0x7F24
-SWARMPOKEMON_OFFSET = 0x7F28
-GARDENPOKEMON_TODAY_OFFSET = 0x7F30
-GARDENPOKEMON_YESTERDAY_OFFSET = 0x7F32
-GBAGAME_ADDRESS = 0x021BF8C2
-
-SKIP_ENCOUNTERTABLES = true
-WALKENCOUNTERTABLE_OFFSET = 0x233D0
-WATERENCOUNTERTABLE_OFFSET = WALKENCOUNTERTABLE_OFFSET + 0xCC
-
-ORIENTATION = {"u","d","l","r"}
-
 function retrievePlayerData()
     local orientationValue = memory.read_u16_le(baseAddress + ORIENTATION_OFFSET)
     local orientation = "d" -- Default orientation is down
@@ -83,16 +137,16 @@ function retrievePlayerData()
     end
 
     return {
-        zone = memory.read_u16_le(baseAddress + ZONE_OFFSET),
-        positionX = memory.read_u16_le(baseAddress + POSITIONX_OFFSET),
-        positionY = memory.read_u16_le(baseAddress + POSITIONY_OFFSET),
+        zone = memory.read_u16_le(baseAddress + MEMORYADDRESSES[GAMECODE]["ZONE_OFFSET"]),
+        positionX = memory.read_u16_le(baseAddress + MEMORYADDRESSES[GAMECODE]["POSITIONX_OFFSET"]),
+        positionY = memory.read_u16_le(baseAddress + MEMORYADDRESSES[GAMECODE]["POSITIONY_OFFSET"]),
         orientation = orientation,
-        
+
         -- This memory address is actually used for multiple states, only state = 1 (isOnBike) is useful to us
-        isOnBike = memory.read_u16_le(baseAddress + BIKE_OFFSET) == 1,
+        isOnBike = memory.read_u16_le(baseAddress + MEMORYADDRESSES[GAMECODE]["BIKE_OFFSET"]) == 1,
 
         -- Add 3 to convert 0 -> 1 values to speed 3 and 4 (bike speeds used in the game)
-        bikeSpeed = memory.read_u8(baseAddress + BIKESPEED_OFFSET) + 3,
+        bikeSpeed = memory.read_u8(baseAddress + MEMORYADDRESSES[GAMECODE]["BIKESPEED_OFFSET"]) + 3,
     }
 end
 
@@ -110,7 +164,8 @@ function retrieveGameData()
 
     return {
         hourOfDay = memory.read_u32_le(TIMEHOUR_ADDRESS),
-        repelSteps = memory.readbyte(baseAddress + REPELSTEPS_OFFSET),
+        repelSteps = memory.readbyte(baseAddress + MEMORYADDRESSES[GAMECODE]["REPELSTEPS_OFFSET"]),
+
         selectedBagSection = memory.readbyte(baseAddress + SELECTEDBAGSECTION_OFFSET),
         selectedBagItemId = memory.readbyte(baseAddress + SELECTEDBAGITEM_OFFSET),
         swarmPokemon = memory.read_u32_le(baseAddress + SWARMPOKEMON_OFFSET) % 22,
@@ -226,14 +281,4 @@ function retrieveWaterEncounterTable()
     end
 
     return waterEncountersTables
-end
-
--- opposingPidAddress may vary so we must refresh its value from time to time
-function refreshPID()
-    -- Pointer : Reference address
-    baseAddress = memory.read_u32_le(PLATINUM_ADDRESS) + 0xCFF4
-
-    -- PID : Pokemon unique ID
-    allyPidAddress = baseAddress + 0xA0
-    opposingPidAddress = memory.read_u32_le(baseAddress + 0x28300) + 0x7A0
 end
