@@ -5,6 +5,7 @@ from utils import waitFrames
 
 import time
 
+import emu
 import bag
 import img
 import zone
@@ -24,6 +25,9 @@ MENU_LINE = 3
 NEXT_PAGE_BUTTON = 0
 PREVIOUS_PAGE_BUTTON = 1
 CANCEL_BUTTON = 2
+
+# Launch BizHawk and make sure the game is ready to be run
+emu.initBizHawk(fullscreen = False)
 
 GENERATE_GRAPH = False
 startTime = time.time()

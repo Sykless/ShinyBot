@@ -46,6 +46,13 @@ comm.mmfWrite("specialPokemon", string.rep("\x00", 20480))
 comm.mmfWrite("screenshot", string.rep("\x00", 64000))
 comm.mmfSetFilename("screenshot")
 
+-- Don't start process as long as zone = 0 (game not launched)
+while memory.read_u16_le(baseAddress + MEMORYADDRESSES[GAMECODE]["ZONE_OFFSET"]) == 0 do
+    emu.frameadvance() -- Next frame
+    refreshPID()
+end
+
+-- Retrieve memory data for Python script
 while true do
     -- Save a screenshot in memory file every frame
     comm.mmfScreenshot()
