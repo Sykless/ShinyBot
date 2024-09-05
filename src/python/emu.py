@@ -3,6 +3,8 @@ from pokemon import Pokemon
 from data import POKEMON_NAMES
 from utils import waitFrames
 
+import time
+
 import bag
 import img
 import zone
@@ -11,6 +13,7 @@ import player
 import action
 import joypad
 import memory
+import pokemon
 import pathfinding
 
 LEFT_ROW = 0
@@ -23,25 +26,27 @@ PREVIOUS_PAGE_BUTTON = 1
 CANCEL_BUTTON = 2
 
 GENERATE_GRAPH = False
+startTime = time.time()
 
 if (GENERATE_GRAPH):
     pathfinding.initDoorGraph()
+    print("Graph generated in " + str(round(time.time() - startTime,2)) + " seconds")
 else:
     pathfinding.DOOR_GRAPH = memory.loadGraph('src/python/data/pkl/graph.pkl')
+    print("Graph loaded in " + str(round(time.time() - startTime,2)) + " seconds")
 
 freeMode = True
-shinyBot = False
+shinyBot = True
 catchAllMode = False
 
-spinMode = False
+spinMode = True
 backToShop = True
-
-pokemon = Pokemon() # Empty Pokemon object
 loadedPokemonPid = 0
 
 jsonPokemonData = memory.readWildPokemonData()
 jsonTeamData = memory.readPokemonTeamData()
 playerData = player.getPlayerData()
+gameData = game.getGameData()
 
 if (shinyBot and freeMode):
     print("Debug Screenshot mode")
@@ -56,7 +61,6 @@ while shinyBot:
     # Check if a new wild Pokemon has been found
     if (jsonPokemonData and jsonPokemonData["pid"] not in [0, loadedPokemonPid]):
         # Convert JSON data to Pokemon object
-        print(jsonPokemonData)
         pokemon = Pokemon(**jsonPokemonData)
         loadedPokemonPid = pokemon.pid
 
@@ -79,7 +83,7 @@ while shinyBot:
     elif (len(joypadInput) == 0):
         screenshot = img.getScreenshot()
         playerData = player.getPlayerData()
-        
+
         # Overworld
         if (img.poketch.isOnScreen(screenshot)):
 
@@ -242,3 +246,7 @@ while shinyBot:
                 
         elif (img.useItem.isOnScreen(screenshot)):
             joypad.writeInput("AA", endSequence = "@@@@@")
+
+        # Default : mash B
+        else:
+            joypad.writeInput("B")
