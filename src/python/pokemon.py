@@ -98,7 +98,7 @@ class Pokemon:
         try:
             self.pid = pid
             self.pokedexId = pokedexId
-            self.name = POKEMON_NAMES[pokedexId]
+            self.name = data.POKEMON_NAMES[pokedexId]
             self.level = level
             self.moves = [Move(**jsonMove) for jsonMove in moves]
             self.ability = Ability(abilityId)

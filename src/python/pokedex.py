@@ -1,5 +1,10 @@
-import encounter
 from data import POKEMON_NAMES
+from data import GBAGAME_NAMES
+
+from encounter import ENCOUNTERTABLES_LIST
+from encounter import BASEENCOUNTER_RATES
+from encounter import SPECIALENCOUNTERS
+from encounter import SPECIALGRASSENCOUNTERS
 
 class PokedexEntry():
     def __init__(self, pokedexId):
@@ -7,11 +12,14 @@ class PokedexEntry():
         self.name = POKEMON_NAMES[pokedexId]
         self.evolvesFrom = None
         self.evolvesInto = []
+        self.encounterTables = {}
 
     # Link evolution to base Pokémon
     def setEvolvesInto(self, evolutionList):
+        self.evolvesInto = []
+
         for evolution in evolutionList:
-            self.evolvesInto = POKEDEX[evolution]
+            self.evolvesInto.append(POKEDEX[evolution])
             POKEDEX[evolution].evolvesFrom = self
 
 
@@ -207,6 +215,153 @@ EVOLUTIONS = {
     459: [460],  # Blizzi - Blizzaroi
     489: [490]   # Phione - Manaphy (not really an evolution but used to mark it as an egg)
 }
+    
+def populatePokedex():
 
-for pokedexId, evolution in EVOLUTIONS.items():
-    POKEDEX[pokedexId].setEvolvesInto(evolution)
+    # Setup evolutions for each Pokémon
+    for pokedexId, evolution in EVOLUTIONS.items():
+        POKEDEX[pokedexId].setEvolvesInto(evolution)
+
+    # Search in each zone if a Pokémon can be found in water or grass
+    for zone in ENCOUNTERTABLES_LIST:
+        
+        # Grass encounters
+        if (zone.baseEncounters):
+
+            # Morning
+            for encounter in zone.baseEncounters:
+                addPokedexEncounter(encounter.pokedexId, zone.name, "morning", encounter.rate)
+                addPokedexEncounter(encounter.pokedexId, zone.name, "day", encounter.rate)
+                addPokedexEncounter(encounter.pokedexId, zone.name, "night", encounter.rate)
+
+            # Day
+            for dayId, encounterSlot in {0:2, 1:3}.items():
+                addPokedexEncounter(zone.dayEncounters[dayId], zone.name, "day", BASEENCOUNTER_RATES[encounterSlot])
+                removePokedexEncounter(zone, "day", encounterSlot)
+
+            # Night
+            for nightId, encounterSlot in {0:2, 1:3}.items():
+                addPokedexEncounter(zone.nightEncounters[nightId], zone.name, "night", BASEENCOUNTER_RATES[encounterSlot])
+                removePokedexEncounter(zone, "night", encounterSlot)
+
+            # Pokéradar
+            for pokeradarId, encounterSlot in {0:4, 1:5, 2:10, 3:11}.items():
+                if (zone.pokeradarEncounters[pokeradarId] != zone.baseEncounters[encounterSlot].pokedexId):
+                    addPokedexEncounter(zone.pokeradarEncounters[pokeradarId], zone.name, "pokeradar", BASEENCOUNTER_RATES[encounterSlot])
+
+            # Swarm
+            for swarmId, encounterSlot in {0:0, 1:1}.items():
+                if (zone.swarmEncounters[swarmId] != zone.baseEncounters[encounterSlot].pokedexId):
+                    addPokedexEncounter(zone.swarmEncounters[swarmId], zone.name, "swarm", BASEENCOUNTER_RATES[encounterSlot])
+
+            # GBA
+            for gbaGame in range(1,6):
+                for gbaId, encounterSlot in {0:8, 1:9}.items():
+                    if (zone.gbaEncounters[gbaGame][gbaId] != zone.baseEncounters[encounterSlot].pokedexId):
+                        addPokedexEncounter(zone.gbaEncounters[gbaGame][gbaId], zone.name + " (" + GBAGAME_NAMES[gbaGame] + ")", "gba", BASEENCOUNTER_RATES[encounterSlot])
+
+        # Water encounters
+        if (zone.surfEncounters):
+            for environment, encounterTable in {"surf": zone.surfEncounters, "oldrod": zone.oldRodEncounters, "goodrod": zone.goodRodEncounters, "superrod": zone.superRodEncounters}.items():
+
+                # Surf - Old/Good/Super rod
+                for encounter in encounterTable:
+                    addPokedexEncounter(encounter.pokedexId, zone.name, environment, encounter.rate)
+
+
+    # Add special encounters (static, roaming, fossils, etc)
+    for environment, encounterTable in SPECIALENCOUNTERS.items():
+        for pokedexId in encounterTable:
+            POKEDEX[pokedexId].encounterTables[environment] = True
+
+    # Add Garden/Marsh encounters
+    for environment, zoneName in {"garden": "Jardin Trophée", "marsh": "Grand Marais"}.items():
+        for pokedexId in list(set(SPECIALGRASSENCOUNTERS[environment])):
+            addPokedexEncounter(pokedexId, zoneName, environment, BASEENCOUNTER_RATES[6] + BASEENCOUNTER_RATES[7])
+
+    # If a Pokémon cannot be found in the wild, check if its pre-evolution or evolution can
+    for pokedexId, pokemon in POKEDEX.items():
+
+        if (not pokemon.encounterTables):
+
+            # Check pre-evolutions encounters, we might be able to evolve one of them
+            preEvolution = pokemon.evolvesFrom
+            if (preEvolution):
+
+                # PreEvolution can be found in the wild : add encounter
+                if (canBeFoundInGame(preEvolution.encounterTables)):
+                    addPokedexEncounter(pokedexId, preEvolution.pokedexId, "evolution", True)
+
+                # PreEvolution's pre-evolution can be found in the wild : add encounter
+                if (preEvolution.evolvesFrom and canBeFoundInGame(preEvolution.evolvesFrom.encounterTables)):
+                    addPokedexEncounter(pokedexId, preEvolution.evolvesFrom.pokedexId, "evolution", True)
+
+            # Check evolutions encounters, we might be able to hatch an egg from one of them
+            if (pokemon.evolvesInto):
+                for evolution in pokemon.evolvesInto:
+
+                    # Evolution can be found in the wild : add encounter
+                    if (canBeFoundInGame(evolution.encounterTables)):
+                        addPokedexEncounter(pokedexId, evolution.pokedexId, "hatch", True)
+
+                    for secondEvolution in evolution.evolvesInto:
+
+                        # 2nd Evolution can be found in the wild : add encounter
+                        if (canBeFoundInGame(secondEvolution.encounterTables)):
+                            addPokedexEncounter(pokedexId, secondEvolution.pokedexId, "hatch", True)
+
+def canBeFoundInGame(encounterTable):
+    return (encounterTable
+            and not (len(encounterTable) == 1
+                     and ("evolution" in encounterTable
+                          or "hatch" in encounterTable)))
+
+def addPokedexEncounter(pokedexId, zoneName, environment, rate):
+
+    if (environment not in POKEDEX[pokedexId].encounterTables):
+        POKEDEX[pokedexId].encounterTables[environment] = {}
+
+    if (zoneName not in POKEDEX[pokedexId].encounterTables[environment]):
+        POKEDEX[pokedexId].encounterTables[environment][zoneName] = 0
+
+    POKEDEX[pokedexId].encounterTables[environment][zoneName] += rate
+
+def removePokedexEncounter(zone, environment, encounterSlot):
+    POKEDEX[zone.baseEncounters[encounterSlot].pokedexId].encounterTables[environment][zone.name] -= BASEENCOUNTER_RATES[encounterSlot]
+
+    if (POKEDEX[zone.baseEncounters[encounterSlot].pokedexId].encounterTables[environment][zone.name] == 0):
+        del POKEDEX[zone.baseEncounters[encounterSlot].pokedexId].encounterTables[environment][zone.name]
+
+    if (not POKEDEX[zone.baseEncounters[encounterSlot].pokedexId].encounterTables[environment]):
+        del POKEDEX[zone.baseEncounters[encounterSlot].pokedexId].encounterTables[environment]
+
+
+def printPokedex():
+    with open("pokedex.txt", "w", encoding="utf-8") as file:
+        for pokedexId, pokemon in POKEDEX.items():
+            file.write(str(pokedexId) + " - " + pokemon.name + "\n")
+
+            if (pokemon.encounterTables):
+                for environment, encounterTable in pokemon.encounterTables.items():
+                    if (environment == "evolution"):
+                        for evolution in encounterTable:
+                            file.write("\tEvolves from " + POKEMON_NAMES[evolution] + "\n")
+
+                    elif (environment == "hatch"):
+                        for evolution in encounterTable:
+                            file.write("\tHatches from " + POKEMON_NAMES[evolution] + "\n")
+
+                    else:
+                        file.write("\t" + environment.capitalize() + "\n")
+
+                        if (environment not in SPECIALENCOUNTERS):
+                            for encounter, rate in encounterTable.items():
+                                file.write("\t\t" + str(encounter) + " : " + str(rate) + "%\n")
+                    
+            else:
+                file.write("\tCannot be found\n")
+
+            file.write("\n")
+
+populatePokedex()
+printPokedex()

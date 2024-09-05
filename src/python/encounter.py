@@ -11,17 +11,23 @@ JARDINTROPHEE_ID = 287
 GRANDMARAIS_PARC1_ID = 504
 GRANDMARAIS_PARC6_ID = 509
 
-# Pokémon not normally encountered in grass or water
-SPECIALENCOUNTERS = {
+# Pokemon encountered in grass under special conditions
+SPECIALGRASSENCOUNTERS = {
     "garden": [133, 438, 440, 52, 173, 35, 174, 311, 39, 132, 351, 312, 439, 183, 113, 298],
     "swarm": [84, 263, 104, 246, 231, 206, 209, 325, 96, 225, 100, 83, 300, 177, 296, 98, 327, 374, 127, 222, 309, 287],
     "marsh": [454, 352, 352, 455, 451, 453, 195, 452, 451, 453, 195, 115, 46, 452, 102, 102, 451, 453, 451, 455, 193, 285, 46, 115, 316, 357, 316, 285, 451, 455, 453, 114],
+}
+
+# Pokémon not encountered in grass or water
+SPECIALENCOUNTERS = {
     "static": [377, 378, 379, 425, 442, 479, 480, 482, 483, 484, 485, 486, 487, 491, 492, 493],
     "fossil": [138, 140, 142, 345, 347, 408, 410],
     "honey": [190, 214, 412, 415, 420, 446],
     "roaming": [144, 145, 146, 481, 488],
+    "starter": [387, 390, 393],
     "given": [137, 447],
-    "manaphy": [490]
+    "manaphy": [490],
+    "feebas": [349]
 }
 
 # There are respectively 12, 5 and 5 different possible encounters while walking or surfing/fishing, each has a fixed encounter rate
@@ -45,6 +51,16 @@ class Encounter():
 class EncounterTables():
     def __init__(self, name, topLeftPosition = None, bottomRightBottom = None):
         self.name = name
+        self.baseEncounters = []
+        self.dayEncounters = []
+        self.nightEncounters = []
+        self.pokeradarEncounters = []
+        self.swarmEncounters = []
+        self.gbaEncounters = []
+        self.surfEncounters = []
+        self.oldRodEncounters = []
+        self.goodRodEncounters = []
+        self.superRodEncounters = []
 
         if (topLeftPosition):
             self.topLeftPosition = topLeftPosition

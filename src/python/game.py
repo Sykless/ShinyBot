@@ -2,8 +2,9 @@ import img
 import bag
 import memory
 
-from encounter import SPECIALENCOUNTERS
+from encounter import SPECIALGRASSENCOUNTERS
 from data import POKEMON_NAMES
+from data import GBAGAME_NAMES
 
 CLOSEBAGMENU = 24
 
@@ -52,12 +53,10 @@ class Game:
 
     def __str__(self):
         return (str(self.repelSteps) + " repel steps remaining\n"
-                + "Swarm Pokémon : " + POKEMON_NAMES[SPECIALENCOUNTERS["swarm"][self.swarmPokemon]] + "\n"
-                + "Garden Pokémon : Today : " + POKEMON_NAMES[SPECIALENCOUNTERS["garden"][self.gardenPokemonToday]] + (" - Yesterday : " + POKEMON_NAMES[SPECIALENCOUNTERS["garden"][self.gardenPokemonYesterday]] if self.gardenPokemonYesterday else "") + "\n"
-                + "Marsh Pokémon : " + " - ".join("Zone " + str(zoneId) + " : " + POKEMON_NAMES[SPECIALENCOUNTERS["marsh"][self.marshPokemonList[zoneId]]] for zoneId in range(1,7)) + "\n"
+                + "Swarm Pokémon : " + POKEMON_NAMES[SPECIALGRASSENCOUNTERS["swarm"][self.swarmPokemon]] + "\n"
+                + "Garden Pokémon : Today : " + POKEMON_NAMES[SPECIALGRASSENCOUNTERS["garden"][self.gardenPokemonToday]] + (" - Yesterday : " + POKEMON_NAMES[SPECIALGRASSENCOUNTERS["garden"][self.gardenPokemonYesterday]] if self.gardenPokemonYesterday else "") + "\n"
+                + "Marsh Pokémon : " + " - ".join("Zone " + str(zoneId) + " : " + POKEMON_NAMES[SPECIALGRASSENCOUNTERS["marsh"][self.marshPokemonList[zoneId]]] for zoneId in range(1,7)) + "\n"
                 + "GBA Game : " + GBAGAME_NAMES[self.gbaGame])
 
 def getGameData():
     return Game(**memory.readGameData())
-
-GBAGAME_NAMES = ["None", "Saphir", "Rubis", "Émeraude", "Rouge Feu", "Vert Feuille"]

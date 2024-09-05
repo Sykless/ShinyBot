@@ -182,3 +182,5 @@ ITEM_NAMES = [
     "Clé Chambre", "Lettre Chen", "Lun'Aile", "Carte Membre", "Flûte Azur", "Passe Bateau", "Passe Concours", "Pierre Magma", "Colis", "Bon 1", "Bon 2", "Bon 3", "Clé Stockage",
     "Potionsecret", "Magnéto VS", "Gracidée", "Clé Secrète"
 ]
+
+GBAGAME_NAMES = ["None", "Saphir", "Rubis", "Émeraude", "Rouge Feu", "Vert Feuille"]
