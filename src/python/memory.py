@@ -91,6 +91,13 @@ def readJsonData(memoryfileName):
 
     return None
 
+def isLuaScriptRunning():
+    clearMemoryData("playerData")
+    waitFrames(2)
+
+    # If player data is still null 2 frames after being emptied, the lua script is not running
+    return True if readPlayerData() else False
+
 def updateSpecialPokemon(marshPokemonId = None, swarmPokemonId = None, gardenPokemonIdToday = None, gardenPokemonIdYesterday = None, gbaGameId = None):
     specialPokemon = []
 

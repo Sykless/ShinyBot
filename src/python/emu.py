@@ -12,12 +12,183 @@ import pygetwindow as gw
 from PIL import Image
 from pywinauto import Application
 
+import memory
 import emukeyboard
 
 GAME_HEIGHT = 384
 GAME_WIDTH = 256
 TOPBORDER_SIZE = 1
 MENU_COLOR = (240,240,240)
+
+def initBizHawk(fullscreen = False):
+    # Retrieve BizHawk window by executable
+    bizhawkWindow = findWindowByExecutable("EmuHawk.exe", "BizHawk")
+
+    # Game not launched : don't bother navigating in the menu, close the emulator and relaunch it
+    if (bizhawkWindow and "Pokemon" not in bizhawkWindow.title):
+        win32gui.PostMessage(bizhawkWindow._hWnd, win32con.WM_CLOSE, 0, 0)
+        time.sleep(0.5)
+        bizhawkWindow = None
+
+    # BizHawk is not open, launch it
+    if (not bizhawkWindow):
+        bizhawkWindow = launchBizHawk()
+
+    # Makes the window take up the whole height and set it to the left of the screen
+    resizeWindow(bizhawkWindow, fullscreen)
+    print(bizhawkWindow)
+
+    # Run shinybot Lua Script
+    runLuaScript(bizhawkWindow)
+
+def waitUntilOpen(executableName, titleWindow):
+
+    # Polling for the window to appear
+    maxWaitTime = 10  # Max time to wait (in seconds)
+    pollInterval = 0.1  # Time between each poll (in seconds)
+    elapsedTime = 0
+
+    # Periodically check if the window is open
+    while elapsedTime < maxWaitTime:
+        window = findWindowByExecutable(executableName, titleWindow)
+        if window:
+            return window
+        time.sleep(pollInterval)
+        elapsedTime += pollInterval
+
+def launchBizHawk():
+    print("BizHawk not open, opening it...")
+
+    try:
+        process = subprocess.Popen("C:/Users/Fra/Documents/Programmes/BizHawk/EmuHawk.exe C:/Users/Fra/Documents/Programmation/ShinyBot/roms/PokemonVersionPlatine.nds")
+    except OSError as e:
+        print(f"Error: {e}")
+        print("Please run this script as an administrator.")
+        exit(1)
+
+    # Wait until BizHawk window is open
+    bizhawkWindow = waitUntilOpen("EmuHawk.exe", "BizHawk")
+
+    # Wait until ROM finishes loading
+    print("ROM launching...")
+    time.sleep(2)
+    print("BizHawk open !")
+
+    return bizhawkWindow
+
+
+def retrieveBordersSize(window):
+
+    # Unique Windows identifier
+    hwnd = window._hWnd
+
+    # Restore window if minimized
+    if window.isMinimized:
+        window.restore()
+        time.sleep(0.1)
+
+    # Activate window in order to accept inputs (menu toggle on/off)
+    window.activate()
+
+    # Temporarly set window size to 500x100 and add borders to calculate menu size
+    borderStyle = win32gui.GetWindowLong(hwnd, win32con.GWL_STYLE) | win32con.WS_OVERLAPPEDWINDOW
+    win32gui.SetWindowLong(hwnd, win32con.GWL_STYLE, borderStyle)
+    win32gui.SetWindowPos(hwnd, win32con.HWND_NOTOPMOST, 0, 0, 500, 100, 
+            win32con.SWP_FRAMECHANGED | win32con.SWP_SHOWWINDOW)
+
+    # Get titlebar height and borders sizeS by comparing window size to app size
+    titleBarHeight, borderSize = getBordersSize(hwnd)
+
+    # Retrieve menu size from screenshot
+    screenshot = captureWindow(hwnd)
+    menuHeight = getMenuHeight(screenshot, titleBarHeight, borderSize)
+
+    return titleBarHeight, borderSize, menuHeight
+
+
+def resizeWindow(window, fullscreen):
+
+    # Retrieve titlebar, menu and borders size
+    titleBarHeight, borderSize, menuHeight = retrieveBordersSize(window)
+    hwnd = window._hWnd
+
+    # Fullscreen : hide titlebar/menu at the top of the screen and put the app in front of Windows taskbar
+    if (fullscreen):
+        # Apply a new style to remove the borders and titlebar
+        borderlessStyle = win32gui.GetWindowLong(hwnd, win32con.GWL_STYLE) & ~win32con.WS_OVERLAPPEDWINDOW
+        win32gui.SetWindowLong(hwnd, win32con.GWL_STYLE, borderlessStyle)
+
+        # Toggle off menu if present
+        if (menuHeight > 0):
+            emukeyboard.pressButton("Menu")
+
+        # Get whole screen height resolution
+        screenHeight = ctypes.windll.user32.GetSystemMetrics(1)
+
+        windowHeight = screenHeight # Take the whole screen height
+        windowWidth = (int(screenHeight # Only take game height for ratio calculation
+                        * GAME_WIDTH / GAME_HEIGHT)) # Keep original game ratio
+
+        # Move BizHawk window to the top-left of the screen, make it not stay on top
+        win32gui.SetWindowPos(hwnd, win32con.HWND_TOPMOST, 0, 0, windowWidth, windowHeight, 
+            win32con.SWP_FRAMECHANGED | win32con.SWP_SHOWWINDOW)
+        
+    # Not fullscreen : keep titlebar, menu and taskbar
+    else:
+        # Apply a new style to restore borders and titlebar
+        borderStyle = win32gui.GetWindowLong(hwnd, win32con.GWL_STYLE) | win32con.WS_OVERLAPPEDWINDOW
+        win32gui.SetWindowLong(hwnd, win32con.GWL_STYLE, borderStyle)
+
+        # Toggle menu if absent
+        if (menuHeight == 0):
+            emukeyboard.pressButton("Menu")
+
+            # Retrieve updated menu size
+            screenshot = captureWindow(hwnd)
+            menuHeight = getMenuHeight(screenshot, titleBarHeight, borderSize)
+
+        # Get screen height minus the task bar
+        screenHeight = getScreenHeightMinusTaskbar()
+
+        windowHeight = (screenHeight # Take the whole screen height minus the taskbar
+                        + borderSize # Hide transparent border behind the taskbar
+                        + TOPBORDER_SIZE) # Hide the single half-transparent pixel border behind the taskbar
+
+        windowWidth = (int((screenHeight - titleBarHeight - menuHeight) # Only take game height for ratio calculation
+                        * GAME_WIDTH / GAME_HEIGHT) # Keep original game ratio
+                        + 2 * borderSize) # Add both left/right borders
+        
+        # Move BizHawk window to the top-left of the screen, make it not stay on top
+        win32gui.SetWindowPos(hwnd, win32con.HWND_NOTOPMOST, -borderSize, -TOPBORDER_SIZE, windowWidth, windowHeight, 
+            win32con.SWP_FRAMECHANGED | win32con.SWP_SHOWWINDOW)
+        
+
+def runLuaScript(bizhawkWindow):
+    
+    # Lua Console window
+    luaConsoleWindow = findWindowByExecutable("EmuHawk.exe", "Lua Console")
+
+    # Lua Console not open, press L to open it
+    if (not luaConsoleWindow):
+        emukeyboard.pressButton("Lua Console")
+        luaConsoleWindow = waitUntilOpen("EmuHawk.exe", "Lua Console")
+
+    # Check if script is already running
+    luaScriptRunning = memory.isLuaScriptRunning()
+
+    # If script is not running, just restart the console to automatically start the script
+    if (not luaScriptRunning):
+        win32gui.PostMessage(luaConsoleWindow._hWnd, win32con.WM_CLOSE, 0, 0)
+        time.sleep(0.5)
+
+        # Give BizHawk focus, then press L again to open the Lua Console
+        bizhawkWindow.activate()
+        emukeyboard.pressButton("Lua Console")
+        luaConsoleWindow = waitUntilOpen("EmuHawk.exe", "Lua Console")
+
+    # Minimize the window after we're done with it
+    luaConsoleWindow.minimize()
+
 
 def findWindowByExecutable(executablePath, windowTitle):
     windows = gw.getWindowsWithTitle(windowTitle)
@@ -107,145 +278,3 @@ def captureWindow(hwnd):
     saveDC.DeleteDC()
 
     return screnshot
-
-def initBizHawk(fullscreen = False):
-    # Retrieve BizHawk window by executable
-    bizhawkWindow = findWindowByExecutable("EmuHawk.exe", "BizHawk")
-
-    # Game not launched : don't bother navigating in the menu, close the emulator and relaunch it
-    if (bizhawkWindow and "Pokemon" not in bizhawkWindow.title):
-        win32gui.PostMessage(bizhawkWindow._hWnd, win32con.WM_CLOSE, 0, 0)
-        time.sleep(0.5)
-        bizhawkWindow = None
-
-    # BizHawk is not open, launch it
-    if (not bizhawkWindow):
-        bizhawkWindow = launchBizHawk()
-
-    # Makes the window take up the whole height and set it to the left of the screen
-    resizeWindow(bizhawkWindow, fullscreen)
-    print(bizhawkWindow)
-
-    # Lua Console window
-    luaConsoleWindow = findWindowByExecutable("EmuHawk.exe", "Lua Console")
-
-    if (luaConsoleWindow):
-        print("Lua Console open")
-        luaConsoleWindow.minimize()
-    else:
-        print("Lua Console not open")
-        emukeyboard.pressButton("Lua Console")
-
-def launchBizHawk():
-    print("BizHawk not open, opening it...")
-
-    try:
-        process = subprocess.Popen("C:/Users/Fra/Documents/Programmes/BizHawk/EmuHawk.exe C:/Users/Fra/Documents/Programmation/ShinyBot/roms/PokemonVersionPlatine.nds")
-    except OSError as e:
-        print(f"Error: {e}")
-        print("Please run this script as an administrator.")
-        exit(1)
-
-    # Polling for the window to appear
-    maxWaitTime = 10  # Max time to wait (in seconds)
-    pollInterval = 0.1  # Time between each poll (in seconds)
-    elapsedTime = 0
-
-    # Periodically check if the window is open
-    while elapsedTime < maxWaitTime:
-        bizhawkWindow = findWindowByExecutable("EmuHawk.exe", "BizHawk")
-        if bizhawkWindow:
-            break
-        time.sleep(pollInterval)
-        elapsedTime += pollInterval
-
-    # ROM launching
-    print("ROM launching...")
-    time.sleep(2)
-    print("BizHawk open !")
-
-    return bizhawkWindow
-
-def retrieveBordersSize(window):
-
-    # Unique Windows identifier
-    hwnd = window._hWnd
-
-    # Restore window if minimized
-    if window.isMinimized:
-        window.restore()
-        time.sleep(0.1)
-
-    # Activate window in order to accept inputs (menu toggle on/off)
-    window.activate()
-
-    # Temporarly set window size to 500x100 and add borders to calculate menu size
-    borderStyle = win32gui.GetWindowLong(hwnd, win32con.GWL_STYLE) | win32con.WS_OVERLAPPEDWINDOW
-    win32gui.SetWindowLong(hwnd, win32con.GWL_STYLE, borderStyle)
-    win32gui.SetWindowPos(hwnd, win32con.HWND_NOTOPMOST, 0, 0, 500, 100, 
-            win32con.SWP_FRAMECHANGED | win32con.SWP_SHOWWINDOW)
-
-    # Get titlebar height and borders sizeS by comparing window size to app size
-    titleBarHeight, borderSize = getBordersSize(hwnd)
-
-    # Retrieve menu size from screenshot
-    screenshot = captureWindow(hwnd)
-    menuHeight = getMenuHeight(screenshot, titleBarHeight, borderSize)
-
-    return titleBarHeight, borderSize, menuHeight
-
-def resizeWindow(window, fullscreen):
-
-    # Retrieve titlebar, menu and borders size
-    titleBarHeight, borderSize, menuHeight = retrieveBordersSize(window)
-    hwnd = window._hWnd
-
-    # Fullscreen : hide titlebar/menu at the top of the screen and put the app in front of Windows taskbar
-    if (fullscreen):
-        # Apply a new style to remove the borders and titlebar
-        borderlessStyle = win32gui.GetWindowLong(hwnd, win32con.GWL_STYLE) & ~win32con.WS_OVERLAPPEDWINDOW
-        win32gui.SetWindowLong(hwnd, win32con.GWL_STYLE, borderlessStyle)
-
-        # Toggle off menu if present
-        if (menuHeight > 0):
-            emukeyboard.pressButton("Menu")
-
-        # Get whole screen height resolution
-        screenHeight = ctypes.windll.user32.GetSystemMetrics(1)
-
-        windowHeight = screenHeight # Take the whole screen height
-        windowWidth = (int(screenHeight # Only take game height for ratio calculation
-                        * GAME_WIDTH / GAME_HEIGHT)) # Keep original game ratio
-
-        # Move BizHawk window to the top-left of the screen, make it not stay on top
-        win32gui.SetWindowPos(hwnd, win32con.HWND_TOPMOST, 0, 0, windowWidth, windowHeight, 
-            win32con.SWP_FRAMECHANGED | win32con.SWP_SHOWWINDOW)
-        
-    # Not fullscreen : keep titlebar, menu and taskbar
-    else:
-        # Apply a new style to restore borders and titlebar
-        borderStyle = win32gui.GetWindowLong(hwnd, win32con.GWL_STYLE) | win32con.WS_OVERLAPPEDWINDOW
-        win32gui.SetWindowLong(hwnd, win32con.GWL_STYLE, borderStyle)
-
-        # Toggle menu if absent
-        if (menuHeight == 0):
-            emukeyboard.pressButton("Menu")
-
-            # Retrieve updated menu size
-            screenshot = captureWindow(hwnd)
-            menuHeight = getMenuHeight(screenshot, titleBarHeight, borderSize)
-
-        # Get screen height minus the task bar
-        screenHeight = getScreenHeightMinusTaskbar()
-
-        windowHeight = (screenHeight # Take the whole screen height minus the taskbar
-                        + borderSize # Hide transparent border behind the taskbar
-                        + TOPBORDER_SIZE) # Hide the single half-transparent pixel border behind the taskbar
-
-        windowWidth = (int((screenHeight - titleBarHeight - menuHeight) # Only take game height for ratio calculation
-                        * GAME_WIDTH / GAME_HEIGHT) # Keep original game ratio
-                        + 2 * borderSize) # Add both left/right borders
-        
-        # Move BizHawk window to the top-left of the screen, make it not stay on top
-        win32gui.SetWindowPos(hwnd, win32con.HWND_NOTOPMOST, -borderSize, -TOPBORDER_SIZE, windowWidth, windowHeight, 
-            win32con.SWP_FRAMECHANGED | win32con.SWP_SHOWWINDOW)

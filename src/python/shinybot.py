@@ -29,6 +29,10 @@ CANCEL_BUTTON = 2
 # Launch BizHawk and make sure the game is ready to be run
 emu.initBizHawk(fullscreen = False)
 
+# Don't run Python script is Lua Script is not running
+if (not memory.isLuaScriptRunning()):
+    exit()
+
 GENERATE_GRAPH = False
 startTime = time.time()
 
@@ -53,7 +57,7 @@ playerData = player.getPlayerData()
 gameData = game.getGameData()
 
 if (shinyBot and freeMode):
-    print("Debug Screenshot mode")
+    print("Free mode")
 
 while shinyBot:
     # Don't check memory more than once a frame to avoid overloading the CPU
