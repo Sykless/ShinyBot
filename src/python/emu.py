@@ -20,28 +20,43 @@ GAME_WIDTH = 256
 TOPBORDER_SIZE = 1
 MENU_COLOR = (240,240,240)
 
-def initBizHawk(fullscreen = False):
-    # Retrieve BizHawk window by executable
-    bizhawkWindow = findWindowByExecutable("EmuHawk.exe", "BizHawk")
+class Emulator():
+    def __init__(self, name, executableName, partialTitle, menuColor):
+        self.name = name
+        self.executableName = executableName
+        self.partialTitle = partialTitle
+        self.menuColor = menuColor
+
+    def __eq__(self, other):
+        return isinstance(other, Emulator) and self.name == other.name
+
+BIZHAWK = Emulator("BizHawk", "EmuHawk.exe", "Pokemon", [(240,240,240)])
+MELONDS = Emulator("melonDS", "melonDS.exe", "[", [(242,242,242), (255,255,255)])
+
+def initEmulator(emulator, gameName, fullscreen = False):
+
+    # Retrieve emulator window by executable
+    emulatorWindow = findWindowByExecutable(emulator.name, emulator.executableName)
 
     # Game not launched : don't bother navigating in the menu, close the emulator and relaunch it
-    if (bizhawkWindow and "Pokemon" not in bizhawkWindow.title):
-        win32gui.PostMessage(bizhawkWindow._hWnd, win32con.WM_CLOSE, 0, 0)
+    if (emulatorWindow and emulator.partialTitle not in emulatorWindow.title):
+        win32gui.PostMessage(emulatorWindow._hWnd, win32con.WM_CLOSE, 0, 0)
         time.sleep(0.5)
-        bizhawkWindow = None
+        emulatorWindow = None
 
-    # BizHawk is not open, launch it
-    if (not bizhawkWindow):
-        bizhawkWindow = launchBizHawk()
+    # Emulator not open, launch it
+    if (not emulatorWindow):
+        emulatorWindow = launchEmu(emulator, gameName)
 
     # Makes the window take up the whole height and set it to the left of the screen
-    resizeWindow(bizhawkWindow, fullscreen)
-    print(bizhawkWindow)
+    resizeWindow(emulator, emulatorWindow, fullscreen)
+    print(emulatorWindow)
 
-    # Run shinybot Lua Script
-    runLuaScript(bizhawkWindow)
+    # Run shinybot Lua Script on BizHawk
+    if (emulator == BIZHAWK):
+        runLuaScript(emulatorWindow)
 
-def waitUntilOpen(executableName, titleWindow):
+def waitUntilOpen(titleWindow, executableName):
 
     # Polling for the window to appear
     maxWaitTime = 10  # Max time to wait (in seconds)
@@ -50,34 +65,34 @@ def waitUntilOpen(executableName, titleWindow):
 
     # Periodically check if the window is open
     while elapsedTime < maxWaitTime:
-        window = findWindowByExecutable(executableName, titleWindow)
+        window = findWindowByExecutable(titleWindow, executableName)
         if window:
             return window
         time.sleep(pollInterval)
         elapsedTime += pollInterval
 
-def launchBizHawk():
-    print("BizHawk not open, opening it...")
+def launchEmu(emulator, pokemonGameVersion):
+    print("Emulator not open, opening it...")
 
     try:
-        process = subprocess.Popen("C:/Users/Fra/Documents/Programmes/BizHawk/EmuHawk.exe C:/Users/Fra/Documents/Programmation/ShinyBot/roms/PokemonVersionPlatine.nds")
+        process = subprocess.Popen("../../Programmes/" + emulator.name + "/" + emulator.executableName + " roms/PokemonVersion" + pokemonGameVersion + ".nds")
     except OSError as e:
         print(f"Error: {e}")
         print("Please run this script as an administrator.")
         exit(1)
 
-    # Wait until BizHawk window is open
-    bizhawkWindow = waitUntilOpen("EmuHawk.exe", "BizHawk")
+    # Wait until emulator window is open
+    emuWindow = waitUntilOpen(emulator.name, emulator.executableName)
 
     # Wait until ROM finishes loading
     print("ROM launching...")
     time.sleep(2)
-    print("BizHawk open !")
+    print("Emulator open !")
 
-    return bizhawkWindow
+    return emuWindow
 
 
-def retrieveBordersSize(window):
+def retrieveBordersSize(emulator, window):
 
     # Unique Windows identifier
     hwnd = window._hWnd
@@ -101,15 +116,16 @@ def retrieveBordersSize(window):
 
     # Retrieve menu size from screenshot
     screenshot = captureWindow(hwnd)
-    menuHeight = getMenuHeight(screenshot, titleBarHeight, borderSize)
+    screenshot.save("testdebug.png")
+    menuHeight = getMenuHeight(screenshot, titleBarHeight, borderSize, emulator.menuColor)
 
     return titleBarHeight, borderSize, menuHeight
 
 
-def resizeWindow(window, fullscreen):
+def resizeWindow(emulator, window, fullscreen):
 
     # Retrieve titlebar, menu and borders size
-    titleBarHeight, borderSize, menuHeight = retrieveBordersSize(window)
+    titleBarHeight, borderSize, menuHeight = retrieveBordersSize(emulator, window)
     hwnd = window._hWnd
 
     # Fullscreen : hide titlebar/menu at the top of the screen and put the app in front of Windows taskbar
@@ -119,14 +135,15 @@ def resizeWindow(window, fullscreen):
         win32gui.SetWindowLong(hwnd, win32con.GWL_STYLE, borderlessStyle)
 
         # Toggle off menu if present
-        if (menuHeight > 0):
+        if (emulator == BIZHAWK and menuHeight > 0):
             emukeyboard.pressButton("Menu")
+            menuHeight = 0
 
         # Get whole screen height resolution
         screenHeight = ctypes.windll.user32.GetSystemMetrics(1)
 
         windowHeight = screenHeight # Take the whole screen height
-        windowWidth = (int(screenHeight # Only take game height for ratio calculation
+        windowWidth = (int((screenHeight - menuHeight) # Only take game height for ratio calculation
                         * GAME_WIDTH / GAME_HEIGHT)) # Keep original game ratio
 
         # Move BizHawk window to the top-left of the screen, make it not stay on top
@@ -140,12 +157,12 @@ def resizeWindow(window, fullscreen):
         win32gui.SetWindowLong(hwnd, win32con.GWL_STYLE, borderStyle)
 
         # Toggle menu if absent
-        if (menuHeight == 0):
+        if (emulator == BIZHAWK and menuHeight == 0):
             emukeyboard.pressButton("Menu")
 
             # Retrieve updated menu size
             screenshot = captureWindow(hwnd)
-            menuHeight = getMenuHeight(screenshot, titleBarHeight, borderSize)
+            menuHeight = getMenuHeight(screenshot, titleBarHeight, borderSize, emulator.menuColor)
 
         # Get screen height minus the task bar
         screenHeight = getScreenHeightMinusTaskbar()
@@ -166,12 +183,12 @@ def resizeWindow(window, fullscreen):
 def runLuaScript(bizhawkWindow):
     
     # Lua Console window
-    luaConsoleWindow = findWindowByExecutable("EmuHawk.exe", "Lua Console")
+    luaConsoleWindow = findWindowByExecutable("Lua Console", BIZHAWK.executableName)
 
     # Lua Console not open, press L to open it
     if (not luaConsoleWindow):
         emukeyboard.pressButton("Lua Console")
-        luaConsoleWindow = waitUntilOpen("EmuHawk.exe", "Lua Console")
+        luaConsoleWindow = waitUntilOpen("Lua Console", BIZHAWK.executableName)
 
     # Check if script is already running
     luaScriptRunning = memory.isLuaScriptRunning()
@@ -184,13 +201,13 @@ def runLuaScript(bizhawkWindow):
         # Give BizHawk focus, then press L again to open the Lua Console
         bizhawkWindow.activate()
         emukeyboard.pressButton("Lua Console")
-        luaConsoleWindow = waitUntilOpen("EmuHawk.exe", "Lua Console")
+        luaConsoleWindow = waitUntilOpen("Lua Console", BIZHAWK.executableName)
 
     # Minimize the window after we're done with it
     luaConsoleWindow.minimize()
 
 
-def findWindowByExecutable(executablePath, windowTitle):
+def findWindowByExecutable(windowTitle, executableName):
     windows = gw.getWindowsWithTitle(windowTitle)
 
     # Iterate on every window containing a specific string in their title
@@ -208,9 +225,9 @@ def findWindowByExecutable(executablePath, windowTitle):
             lines = output.splitlines()
             if lines:
                 # Split the CSV line to retrieve executable name and strip any extra quotes
-                windowExecutablePath = lines[0].split(',')[0].strip('"')
+                windowExecutableName = lines[0].split(',')[0].strip('"')
                 
-                if windowExecutablePath == executablePath:
+                if windowExecutableName == executableName:
                     return window
         except Exception as e:
             print(f"Error checking window: {e}")
@@ -230,7 +247,7 @@ def getBordersSize(hwnd):
 
     return titleBarHeight, borderSize
 
-def getMenuHeight(screenshot, titleBarHeight, borderSize):
+def getMenuHeight(screenshot, titleBarHeight, borderSize, menuColor):
     height = screenshot.size[1]
 
     # Iterate on each first pixel until we find a pixel with a different color
@@ -238,7 +255,7 @@ def getMenuHeight(screenshot, titleBarHeight, borderSize):
         firstPixel = screenshot.getpixel((borderSize, y + titleBarHeight))
 
         # Different color : we reached the end of the menu
-        if (firstPixel != MENU_COLOR):
+        if (firstPixel not in menuColor):
             return y
     
     # Default : menu not present

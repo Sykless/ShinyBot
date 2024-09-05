@@ -27,7 +27,7 @@ PREVIOUS_PAGE_BUTTON = 1
 CANCEL_BUTTON = 2
 
 # Launch BizHawk and make sure the game is ready to be run
-emu.initBizHawk(fullscreen = False)
+emu.initEmulator(emu.BIZHAWK, "Platine", fullscreen = False)
 
 # Don't run Python script is Lua Script is not running
 if (not memory.isLuaScriptRunning()):
