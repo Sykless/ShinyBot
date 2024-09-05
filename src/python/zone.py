@@ -999,7 +999,7 @@ setConnectingDoors(Door(Position(47,2,MONTABRUPT_SALLE2), Position(7,17,MONTABRU
 # Lac Vérité
 LACVERITE = Zone("Lac Vérité", 312, "dungeon/lacVérité", True, True, False)
 LACVERITE.setEncounterTables(encounter.LACVERITE)
-LACVERITE_CAVERNEVERITE = Zone("Lac Vérité - Caverne Vérité", 313, "dungeon/grotteCre", True, False, False)
+LACVERITE_CAVERNEVERITE = Zone("Lac Vérité - Caverne Vérité", 313, "dungeon/caverneVerite", True, False, False)
 RIVELACVERITE = SubZone("Rive Lac Vérité", 334, (32,800), (95,863))
 setConnectingDoors(Door(Position(46,55,LACVERITE), Position(80,844,SOUTHWEST)), Door(Position(80,843,SOUTHWEST), Position(46,54,LACVERITE)))
 setConnectingDoors(Door(Position(32,32,LACVERITE), Position(14,29,LACVERITE_CAVERNEVERITE)), Door(Position(14,30,LACVERITE_CAVERNEVERITE), Position(32,33,LACVERITE)))
@@ -1007,7 +1007,7 @@ setConnectingDoors(Door(Position(32,32,LACVERITE), Position(14,29,LACVERITE_CAVE
 # Lac Courage
 LACCOURAGE = Zone("Lac Courage", 315, "dungeon/lacCourage", True, True, False)
 LACCOURAGE.setEncounterTables(encounter.LACCOURAGE)
-LACCOURAGE_CAVERNECOURAGE = Zone("Lac Courage - Caverne Courage", 316, "dungeon/grotteCre", True, False, False)
+LACCOURAGE_CAVERNECOURAGE = Zone("Lac Courage - Caverne Courage", 316, "dungeon/caverneCourage", True, False, False)
 RIVELACCOURAGE = SubZone("Rive Lac Courage", 336, (672,736), (735,799))
 RIVELACCOURAGE.setEncounterTables(encounter.RIVELACCOURAGE)
 setConnectingDoors(Door(Position(53,10,LACCOURAGE), Position(717,760,SOUTHEAST)), Door(Position(716,760,SOUTHEAST), Position(52,10,LACCOURAGE)))
@@ -1016,7 +1016,7 @@ setConnectingDoors(Door(Position(32,32,LACCOURAGE), Position(14,29,LACCOURAGE_CA
 # Lac Savoir
 LACSAVOIR = Zone("Lac Savoir", 318, "dungeon/lacSavoir", False, True, False)
 LACSAVOIR.setEncounterTables(encounter.LACSAVOIR)
-LACSAVOIR_CAVERNESAVOIR = Zone("Lac Savoir - Caverne Savoir", 319, "dungeon/grotteCre", True, False, False)
+LACSAVOIR_CAVERNESAVOIR = Zone("Lac Savoir - Caverne Savoir", 319, "dungeon/caverneSavoir", True, False, False)
 RIVELACSAVOIR = SubZone("Rive Lac Savoir", 340, (288,192), (351,255))
 RIVELACSAVOIR.setEncounterTables(encounter.RIVELACSAVOIR)
 setConnectingDoors(Door(Position(14,51,LACSAVOIR), Position(308,230,NORTH)), Door(Position(308,229,NORTH), Position(14,50,LACSAVOIR)))
