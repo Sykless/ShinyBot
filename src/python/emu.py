@@ -1,6 +1,8 @@
 
 
 import time
+import os
+import shutil
 import subprocess
 import ctypes
 import win32api
@@ -21,11 +23,32 @@ TOPBORDER_SIZE = 1
 MENU_COLOR = (240,240,240)
 
 class Emulator():
-    def __init__(self, name, executableName, partialTitle, menuColor):
+    def __init__(self, name, executableName, partialTitle, saveExtension, menuColor):
         self.name = name
         self.executableName = executableName
         self.partialTitle = partialTitle
+        self.saveExtension = saveExtension
         self.menuColor = menuColor
+
+    def importSaveFile(self, pokemonGame):
+        if (pokemonGame not in SAVENAMES):
+            print("Unknown game : " + str(pokemonGame))
+            return None
+        
+        # Retrieve SaveRAM and sav files
+        saveRamFile = SAVERAM_LOCATION + SAVENAMES[pokemonGame]
+        savFile = SAV_LOCATION + "PokemonVersion" + pokemonGame + ".sav"
+        timestamp = time.strftime('%Y%m%d-%H%M%S')
+
+        # Backup both SaveRAM and sav files
+        backupFile(saveRamFile, timestamp)
+        backupFile(savFile, timestamp)
+
+        # Replace SaveRAM by sav or vice versa
+        if (self.saveExtension == "sav"):
+            replaceFile(savFile, saveRamFile)
+        else:
+            replaceFile(saveRamFile, savFile)
 
     def __eq__(self, other):
         return isinstance(other, Emulator) and self.name == other.name
@@ -33,6 +56,16 @@ class Emulator():
 
 BIZHAWK = Emulator("BizHawk", "EmuHawk.exe", "Pokemon", "SaveRAM", [(240,240,240)])
 MELONDS = Emulator("melonDS", "melonDS.exe", "[", "sav", [(242,242,242), (255,255,255)])
+
+SAVERAM_LOCATION = "../../Programmes/BizHawk/NDS/SaveRAM/"
+SAV_LOCATION = "roms/"
+BACKUP_LOCATION = "roms/Backup/Saves/"
+
+SAVENAMES = {
+    "Diamant": "Pokemon - Version Diamant (France) (Rev 5).SaveRAM",
+    "Perle": "Pokemon - Version Perle (France) (Rev 5).SaveRAM",
+    "Platine": "Pokemon - Version Platine (France).SaveRAM"
+}
 
 def initEmulator(emulator, gameName, fullscreen = False):
 
@@ -348,3 +381,35 @@ def captureWindow(hwnd):
     saveDC.DeleteDC()
 
     return screnshot
+
+def backupFile(filePath, timestamp):
+    # Get the file name and extension
+    baseName = os.path.basename(filePath)
+
+    # Only backup existing files
+    if os.path.exists(filePath):
+
+        # Create the timestamp and the backup filename
+        backupFileName = f"Backup-{timestamp}-{baseName}"
+        
+        # Construct the full path for the backup
+        backupPath = os.path.join(BACKUP_LOCATION, backupFileName)
+        
+        # Copy the saveram file to the backup directory
+        shutil.copy2(filePath, backupPath)
+        print(f"Backup created : {backupPath}")
+    else:
+        print("Save file does not exist : " + baseName)
+
+def replaceFile(fileToReplace, fileToKeep):
+    # Remove the old save file
+    if os.path.exists(fileToReplace):
+        os.remove(fileToReplace)
+        print(f"Old save file removed : {fileToReplace}")
+    
+    # Rename old save file to new
+    if os.path.exists(fileToKeep):
+        shutil.copy2(fileToKeep, fileToReplace)
+        print(f"'{fileToKeep}' renamed to '{fileToReplace}'")
+    else:
+        print("Original save file does not exist : " + fileToKeep)
