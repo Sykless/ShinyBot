@@ -1,7 +1,7 @@
 
 
-import subprocess
 import time
+import subprocess
 import ctypes
 import win32api
 import win32gui
@@ -30,19 +30,23 @@ class Emulator():
     def __eq__(self, other):
         return isinstance(other, Emulator) and self.name == other.name
 
-BIZHAWK = Emulator("BizHawk", "EmuHawk.exe", "Pokemon", [(240,240,240)])
-MELONDS = Emulator("melonDS", "melonDS.exe", "[", [(242,242,242), (255,255,255)])
+
+BIZHAWK = Emulator("BizHawk", "EmuHawk.exe", "Pokemon", "SaveRAM", [(240,240,240)])
+MELONDS = Emulator("melonDS", "melonDS.exe", "[", "sav", [(242,242,242), (255,255,255)])
 
 def initEmulator(emulator, gameName, fullscreen = False):
 
     # Retrieve emulator window by executable
-    emulatorWindow = findWindowByExecutable(emulator.name, emulator.executableName)
+    emulatorWindowList = findWindowByExecutable(emulator.name, emulator.executableName)
+    emulatorWindow = None
 
-    # Game not launched : don't bother navigating in the menu, close the emulator and relaunch it
-    if (emulatorWindow and emulator.partialTitle not in emulatorWindow.title):
-        win32gui.PostMessage(emulatorWindow._hWnd, win32con.WM_CLOSE, 0, 0)
-        time.sleep(0.5)
-        emulatorWindow = None
+    if (emulatorWindowList):
+        emulatorWindow = emulatorWindowList[0] # Take first instance
+
+        # Game not launched : don't bother navigating in the menu, close the emulator and relaunch it
+        if (emulator.partialTitle not in emulatorWindow.title):
+            closeWindow(emulatorWindow)
+            emulatorWindow = None
 
     # Emulator not open, launch it
     if (not emulatorWindow):
@@ -56,7 +60,43 @@ def initEmulator(emulator, gameName, fullscreen = False):
     if (emulator == BIZHAWK):
         runLuaScript(emulatorWindow)
 
-def waitUntilOpen(titleWindow, executableName):
+    return emulatorWindow
+
+
+def initSecondEmulatorInstance(emulator, gameName, firstInstance, fullscreen = False):
+
+    # Retrieve emulator window by executable
+    emulatorWindowList = findWindowByExecutable(emulator.name, emulator.executableName)
+
+    # There's supposed to be an instance already running
+    if (not emulatorWindowList or firstInstance not in emulatorWindowList):
+        print("No instance running, cannot run a second instance")
+        return None
+    
+    # Only work with initialized instances
+    if (emulator.partialTitle not in firstInstance.title):
+        print("ROM not launched on first instance")
+        return None
+
+    # Only one instance running, launch the second one
+    if (len(emulatorWindowList) == 1):
+        secondInstance = launchEmu(emulator, gameName, firstInstance)
+
+    # Already two instances running
+    else:
+        secondInstance = emulatorWindowList[1 - emulatorWindowList.index(firstInstance)]
+
+        # Game not launched : don't bother navigating in the menu, close the emulator and relaunch it
+        if (emulator.partialTitle not in secondInstance.title):
+            closeWindow(secondInstance)
+            secondInstance = launchEmu(emulator, gameName, firstInstance)
+
+    # Makes the window take up the whole height and set it to the left of the screen
+    resizeWindow(emulator, secondInstance, fullscreen, firstInstance)
+    print(secondInstance)
+
+
+def waitUntilOpen(titleWindow, executableName, firstInstance = None):
 
     # Polling for the window to appear
     maxWaitTime = 10  # Max time to wait (in seconds)
@@ -65,13 +105,21 @@ def waitUntilOpen(titleWindow, executableName):
 
     # Periodically check if the window is open
     while elapsedTime < maxWaitTime:
-        window = findWindowByExecutable(titleWindow, executableName)
-        if window:
-            return window
+        windowList = findWindowByExecutable(titleWindow, executableName)
+
+        if windowList:
+            # No instance running, return the first one we find
+            if (not firstInstance):
+                return windowList[0]
+            # Instance already running, return the new one
+            elif (len(windowList) == 2):
+                return windowList[1 - windowList.index(firstInstance)]
+                
         time.sleep(pollInterval)
         elapsedTime += pollInterval
 
-def launchEmu(emulator, pokemonGameVersion):
+
+def launchEmu(emulator, pokemonGameVersion, firstInstance = None):
     print("Emulator not open, opening it...")
 
     try:
@@ -82,7 +130,7 @@ def launchEmu(emulator, pokemonGameVersion):
         exit(1)
 
     # Wait until emulator window is open
-    emuWindow = waitUntilOpen(emulator.name, emulator.executableName)
+    emuWindow = waitUntilOpen(emulator.name, emulator.executableName, firstInstance)
 
     # Wait until ROM finishes loading
     print("ROM launching...")
@@ -102,9 +150,6 @@ def retrieveBordersSize(emulator, window):
         window.restore()
         time.sleep(0.1)
 
-    # Activate window in order to accept inputs (menu toggle on/off)
-    window.activate()
-
     # Temporarly set window size to 500x100 and add borders to calculate menu size
     borderStyle = win32gui.GetWindowLong(hwnd, win32con.GWL_STYLE) | win32con.WS_OVERLAPPEDWINDOW
     win32gui.SetWindowLong(hwnd, win32con.GWL_STYLE, borderStyle)
@@ -116,13 +161,12 @@ def retrieveBordersSize(emulator, window):
 
     # Retrieve menu size from screenshot
     screenshot = captureWindow(hwnd)
-    screenshot.save("testdebug.png")
     menuHeight = getMenuHeight(screenshot, titleBarHeight, borderSize, emulator.menuColor)
 
     return titleBarHeight, borderSize, menuHeight
 
 
-def resizeWindow(emulator, window, fullscreen):
+def resizeWindow(emulator, window, fullscreen, firstInstance = None):
 
     # Retrieve titlebar, menu and borders size
     titleBarHeight, borderSize, menuHeight = retrieveBordersSize(emulator, window)
@@ -136,6 +180,7 @@ def resizeWindow(emulator, window, fullscreen):
 
         # Toggle off menu if present
         if (emulator == BIZHAWK and menuHeight > 0):
+            window.activate()
             emukeyboard.pressButton("Menu")
             menuHeight = 0
 
@@ -147,7 +192,7 @@ def resizeWindow(emulator, window, fullscreen):
                         * GAME_WIDTH / GAME_HEIGHT)) # Keep original game ratio
 
         # Move BizHawk window to the top-left of the screen, make it not stay on top
-        win32gui.SetWindowPos(hwnd, win32con.HWND_TOPMOST, 0, 0, windowWidth, windowHeight, 
+        win32gui.SetWindowPos(hwnd, win32con.HWND_TOPMOST, (firstInstance.width - 2 * borderSize if firstInstance else 0), 0, windowWidth, windowHeight, 
             win32con.SWP_FRAMECHANGED | win32con.SWP_SHOWWINDOW)
         
     # Not fullscreen : keep titlebar, menu and taskbar
@@ -158,6 +203,7 @@ def resizeWindow(emulator, window, fullscreen):
 
         # Toggle menu if absent
         if (emulator == BIZHAWK and menuHeight == 0):
+            window.activate()
             emukeyboard.pressButton("Menu")
 
             # Retrieve updated menu size
@@ -176,27 +222,29 @@ def resizeWindow(emulator, window, fullscreen):
                         + 2 * borderSize) # Add both left/right borders
         
         # Move BizHawk window to the top-left of the screen, make it not stay on top
-        win32gui.SetWindowPos(hwnd, win32con.HWND_NOTOPMOST, -borderSize, -TOPBORDER_SIZE, windowWidth, windowHeight, 
+        win32gui.SetWindowPos(hwnd, win32con.HWND_NOTOPMOST, -borderSize + (firstInstance.width - 2 * borderSize if firstInstance else 0), -TOPBORDER_SIZE, windowWidth, windowHeight, 
             win32con.SWP_FRAMECHANGED | win32con.SWP_SHOWWINDOW)
         
 
 def runLuaScript(bizhawkWindow):
     
     # Lua Console window
-    luaConsoleWindow = findWindowByExecutable("Lua Console", BIZHAWK.executableName)
+    luaConsoleWindowList = findWindowByExecutable("Lua Console", BIZHAWK.executableName)
 
     # Lua Console not open, press L to open it
-    if (not luaConsoleWindow):
+    if (not luaConsoleWindowList):
+        bizhawkWindow.activate()
         emukeyboard.pressButton("Lua Console")
         luaConsoleWindow = waitUntilOpen("Lua Console", BIZHAWK.executableName)
+    else:
+        luaConsoleWindow = luaConsoleWindowList[0] # Take first instance
 
     # Check if script is already running
     luaScriptRunning = memory.isLuaScriptRunning()
 
     # If script is not running, just restart the console to automatically start the script
     if (not luaScriptRunning):
-        win32gui.PostMessage(luaConsoleWindow._hWnd, win32con.WM_CLOSE, 0, 0)
-        time.sleep(0.5)
+        closeWindow(luaConsoleWindow)
 
         # Give BizHawk focus, then press L again to open the Lua Console
         bizhawkWindow.activate()
@@ -208,6 +256,7 @@ def runLuaScript(bizhawkWindow):
 
 
 def findWindowByExecutable(windowTitle, executableName):
+    windowList = []
     windows = gw.getWindowsWithTitle(windowTitle)
 
     # Iterate on every window containing a specific string in their title
@@ -228,10 +277,10 @@ def findWindowByExecutable(windowTitle, executableName):
                 windowExecutableName = lines[0].split(',')[0].strip('"')
                 
                 if windowExecutableName == executableName:
-                    return window
+                    windowList.append(window)
         except Exception as e:
             print(f"Error checking window: {e}")
-    return None
+    return windowList
 
 def getScreenHeightMinusTaskbar():
     monitor_info = win32api.GetMonitorInfo(win32api.MonitorFromPoint((0,0)))
@@ -260,6 +309,10 @@ def getMenuHeight(screenshot, titleBarHeight, borderSize, menuColor):
     
     # Default : menu not present
     return 0
+
+def closeWindow(window):
+    win32gui.PostMessage(window._hWnd, win32con.WM_CLOSE, 0, 0)
+    time.sleep(0.5)
 
 def captureWindow(hwnd):
     # Get window dimensions
