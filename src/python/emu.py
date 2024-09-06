@@ -1,5 +1,4 @@
 
-
 import time
 import os
 import shutil
@@ -29,6 +28,86 @@ class Emulator():
         self.partialTitle = partialTitle
         self.saveExtension = saveExtension
         self.menuColor = menuColor
+
+    def initEmulator(self, gameName, fullscreen = False):
+
+        # Retrieve emulator window by executable
+        emulatorWindowList = findWindowByExecutable(self.name, self.executableName)
+        emulatorWindow = None
+
+        if (emulatorWindowList):
+            emulatorWindow = emulatorWindowList[0] # Take first instance
+
+            # Game not launched : don't bother navigating in the menu, close the emulator and relaunch it
+            if (self.partialTitle not in emulatorWindow.title):
+                closeWindow(emulatorWindow)
+                emulatorWindow = None
+
+        # Emulator not open, launch it
+        if (not emulatorWindow):
+            emulatorWindow = self.launchEmu(gameName)
+
+        # Makes the window take up the whole height and set it to the left of the screen
+        resizeWindow(self, emulatorWindow, fullscreen)
+        print(emulatorWindow)
+
+        # Run shinybot Lua Script on BizHawk
+        if (self == BIZHAWK):
+            runLuaScript(emulatorWindow)
+
+        return emulatorWindow
+    
+    def initSecondEmulatorInstance(self, gameName, firstInstance, fullscreen = False):
+
+        # Retrieve emulator window by executable
+        emulatorWindowList = findWindowByExecutable(self.name, self.executableName)
+
+        # There's supposed to be an instance already running
+        if (not emulatorWindowList or firstInstance not in emulatorWindowList):
+            print("No instance running, cannot run a second instance")
+            return None
+        
+        # Only work with initialized instances
+        if (self.partialTitle not in firstInstance.title):
+            print("ROM not launched on first instance")
+            return None
+
+        # Only one instance running, launch the second one
+        if (len(emulatorWindowList) == 1):
+            secondInstance = self.launchEmu(gameName, firstInstance)
+
+        # Already two instances running
+        else:
+            secondInstance = emulatorWindowList[1 - emulatorWindowList.index(firstInstance)]
+
+            # Game not launched : don't bother navigating in the menu, close the emulator and relaunch it
+            if (self.partialTitle not in secondInstance.title):
+                closeWindow(secondInstance)
+                secondInstance = self.launchEmu(gameName, firstInstance)
+
+        # Makes the window take up the whole height and set it to the left of the screen
+        resizeWindow(self, secondInstance, fullscreen, firstInstance)
+        print(secondInstance)
+
+    def launchEmu(self, pokemonGameVersion, firstInstance = None):
+        print("Emulator not open, opening it...")
+
+        try:
+            process = subprocess.Popen("../../Programmes/" + self.name + "/" + self.executableName + " roms/PokemonVersion" + pokemonGameVersion + ".nds")
+        except OSError as e:
+            print(f"Error: {e}")
+            print("Please run this script as an administrator.")
+            exit(1)
+
+        # Wait until emulator window is open
+        emuWindow = waitUntilOpen(self.name, self.executableName, firstInstance)
+
+        # Wait until ROM finishes loading
+        print("ROM launching...")
+        time.sleep(2)
+        print("Emulator open !")
+
+        return emuWindow
 
     def importSaveFile(self, pokemonGame):
         if (pokemonGame not in SAVENAMES):
@@ -67,66 +146,33 @@ SAVENAMES = {
     "Platine": "Pokemon - Version Platine (France).SaveRAM"
 }
 
-def initEmulator(emulator, gameName, fullscreen = False):
 
-    # Retrieve emulator window by executable
-    emulatorWindowList = findWindowByExecutable(emulator.name, emulator.executableName)
-    emulatorWindow = None
+def findWindowByExecutable(windowTitle, executableName):
+    windowList = []
+    windows = gw.getWindowsWithTitle(windowTitle)
 
-    if (emulatorWindowList):
-        emulatorWindow = emulatorWindowList[0] # Take first instance
-
-        # Game not launched : don't bother navigating in the menu, close the emulator and relaunch it
-        if (emulator.partialTitle not in emulatorWindow.title):
-            closeWindow(emulatorWindow)
-            emulatorWindow = None
-
-    # Emulator not open, launch it
-    if (not emulatorWindow):
-        emulatorWindow = launchEmu(emulator, gameName)
-
-    # Makes the window take up the whole height and set it to the left of the screen
-    resizeWindow(emulator, emulatorWindow, fullscreen)
-    print(emulatorWindow)
-
-    # Run shinybot Lua Script on BizHawk
-    if (emulator == BIZHAWK):
-        runLuaScript(emulatorWindow)
-
-    return emulatorWindow
-
-
-def initSecondEmulatorInstance(emulator, gameName, firstInstance, fullscreen = False):
-
-    # Retrieve emulator window by executable
-    emulatorWindowList = findWindowByExecutable(emulator.name, emulator.executableName)
-
-    # There's supposed to be an instance already running
-    if (not emulatorWindowList or firstInstance not in emulatorWindowList):
-        print("No instance running, cannot run a second instance")
-        return None
-    
-    # Only work with initialized instances
-    if (emulator.partialTitle not in firstInstance.title):
-        print("ROM not launched on first instance")
-        return None
-
-    # Only one instance running, launch the second one
-    if (len(emulatorWindowList) == 1):
-        secondInstance = launchEmu(emulator, gameName, firstInstance)
-
-    # Already two instances running
-    else:
-        secondInstance = emulatorWindowList[1 - emulatorWindowList.index(firstInstance)]
-
-        # Game not launched : don't bother navigating in the menu, close the emulator and relaunch it
-        if (emulator.partialTitle not in secondInstance.title):
-            closeWindow(secondInstance)
-            secondInstance = launchEmu(emulator, gameName, firstInstance)
-
-    # Makes the window take up the whole height and set it to the left of the screen
-    resizeWindow(emulator, secondInstance, fullscreen, firstInstance)
-    print(secondInstance)
+    # Iterate on every window containing a specific string in their title
+    for window in windows:
+        try:
+            # Retrieve PID from the window HWND (unique identifier)
+            app = Application(backend = 'uia').connect(handle = window._hWnd)
+            processId = app.process
+            
+            # Use tasklist command to get the executable name from PID
+            command = f'tasklist /fi "PID eq {processId}" /fo csv /nh'
+            output = subprocess.check_output(command, shell = True).decode("latin-1")
+            
+            # Extract the executable name from the output
+            lines = output.splitlines()
+            if lines:
+                # Split the CSV line to retrieve executable name and strip any extra quotes
+                windowExecutableName = lines[0].split(',')[0].strip('"')
+                
+                if windowExecutableName == executableName:
+                    windowList.append(window)
+        except Exception as e:
+            print(f"Error checking window: {e}")
+    return windowList
 
 
 def waitUntilOpen(titleWindow, executableName, firstInstance = None):
@@ -152,57 +198,10 @@ def waitUntilOpen(titleWindow, executableName, firstInstance = None):
         elapsedTime += pollInterval
 
 
-def launchEmu(emulator, pokemonGameVersion, firstInstance = None):
-    print("Emulator not open, opening it...")
-
-    try:
-        process = subprocess.Popen("../../Programmes/" + emulator.name + "/" + emulator.executableName + " roms/PokemonVersion" + pokemonGameVersion + ".nds")
-    except OSError as e:
-        print(f"Error: {e}")
-        print("Please run this script as an administrator.")
-        exit(1)
-
-    # Wait until emulator window is open
-    emuWindow = waitUntilOpen(emulator.name, emulator.executableName, firstInstance)
-
-    # Wait until ROM finishes loading
-    print("ROM launching...")
-    time.sleep(2)
-    print("Emulator open !")
-
-    return emuWindow
-
-
-def retrieveBordersSize(emulator, window):
-
-    # Unique Windows identifier
-    hwnd = window._hWnd
-
-    # Restore window if minimized
-    if window.isMinimized:
-        window.restore()
-        time.sleep(0.1)
-
-    # Temporarly set window size to 500x100 and add borders to calculate menu size
-    borderStyle = win32gui.GetWindowLong(hwnd, win32con.GWL_STYLE) | win32con.WS_OVERLAPPEDWINDOW
-    win32gui.SetWindowLong(hwnd, win32con.GWL_STYLE, borderStyle)
-    win32gui.SetWindowPos(hwnd, win32con.HWND_NOTOPMOST, 0, 0, 500, 100, 
-            win32con.SWP_FRAMECHANGED | win32con.SWP_SHOWWINDOW)
-
-    # Get titlebar height and borders sizeS by comparing window size to app size
-    titleBarHeight, borderSize = getBordersSize(hwnd)
-
-    # Retrieve menu size from screenshot
-    screenshot = captureWindow(hwnd)
-    menuHeight = getMenuHeight(screenshot, titleBarHeight, borderSize, emulator.menuColor)
-
-    return titleBarHeight, borderSize, menuHeight
-
-
 def resizeWindow(emulator, window, fullscreen, firstInstance = None):
 
     # Retrieve titlebar, menu and borders size
-    titleBarHeight, borderSize, menuHeight = retrieveBordersSize(emulator, window)
+    titleBarHeight, borderSize, menuHeight = retrieveBordersSize(window, emulator.menuColor)
     hwnd = window._hWnd
 
     # Fullscreen : hide titlebar/menu at the top of the screen and put the app in front of Windows taskbar
@@ -257,7 +256,57 @@ def resizeWindow(emulator, window, fullscreen, firstInstance = None):
         # Move BizHawk window to the top-left of the screen, make it not stay on top
         win32gui.SetWindowPos(hwnd, win32con.HWND_NOTOPMOST, -borderSize + (firstInstance.width - 2 * borderSize if firstInstance else 0), -TOPBORDER_SIZE, windowWidth, windowHeight, 
             win32con.SWP_FRAMECHANGED | win32con.SWP_SHOWWINDOW)
-        
+
+
+def retrieveBordersSize(window, menuColor):
+
+    # Unique Windows identifier
+    hwnd = window._hWnd
+
+    # Restore window if minimized
+    if window.isMinimized:
+        window.restore()
+        time.sleep(0.1)
+
+    # Temporarly set window size to 500x100 and add borders to calculate menu size
+    borderStyle = win32gui.GetWindowLong(hwnd, win32con.GWL_STYLE) | win32con.WS_OVERLAPPEDWINDOW
+    win32gui.SetWindowLong(hwnd, win32con.GWL_STYLE, borderStyle)
+    win32gui.SetWindowPos(hwnd, win32con.HWND_NOTOPMOST, 0, 0, 500, 100, 
+            win32con.SWP_FRAMECHANGED | win32con.SWP_SHOWWINDOW)
+
+    # Get titlebar height and borders sizeS by comparing window size to app size
+    titleBarHeight, borderSize = getBordersSize(hwnd)
+
+    # Retrieve menu size from screenshot
+    screenshot = captureWindow(hwnd)
+    menuHeight = getMenuHeight(screenshot, titleBarHeight, borderSize, menuColor)
+
+    return titleBarHeight, borderSize, menuHeight
+
+
+def getBordersSize(hwnd):
+    windowRect = win32gui.GetWindowRect(hwnd) # Position of the window including borders
+    clientRect = win32gui.GetClientRect(hwnd) # Position of the window not including borders
+
+    borderSize = int(((windowRect[2] - windowRect[0]) - clientRect[2]) / 2) # Size of transparent border on each side
+    titleBarHeight = ((windowRect[3] - windowRect[1]) - clientRect[3]) - borderSize # Size of top window title bar
+
+    return titleBarHeight, borderSize
+
+
+def getMenuHeight(screenshot, titleBarHeight, borderSize, menuColor):
+    height = screenshot.size[1]
+
+    # Iterate on each first pixel until we find a pixel with a different color
+    for y in range(height - titleBarHeight):
+        firstPixel = screenshot.getpixel((borderSize, y + titleBarHeight))
+
+        # Different color : we reached the end of the menu
+        if (firstPixel not in menuColor):
+            return y
+    
+    # Default : menu not present
+    return 0
 
 def runLuaScript(bizhawkWindow):
     
@@ -288,60 +337,10 @@ def runLuaScript(bizhawkWindow):
     luaConsoleWindow.minimize()
 
 
-def findWindowByExecutable(windowTitle, executableName):
-    windowList = []
-    windows = gw.getWindowsWithTitle(windowTitle)
-
-    # Iterate on every window containing a specific string in their title
-    for window in windows:
-        try:
-            # Retrieve PID from the window HWND (unique identifier)
-            app = Application(backend = 'uia').connect(handle = window._hWnd)
-            processId = app.process
-            
-            # Use tasklist command to get the executable name from PID
-            command = f'tasklist /fi "PID eq {processId}" /fo csv /nh'
-            output = subprocess.check_output(command, shell = True).decode("latin-1")
-            
-            # Extract the executable name from the output
-            lines = output.splitlines()
-            if lines:
-                # Split the CSV line to retrieve executable name and strip any extra quotes
-                windowExecutableName = lines[0].split(',')[0].strip('"')
-                
-                if windowExecutableName == executableName:
-                    windowList.append(window)
-        except Exception as e:
-            print(f"Error checking window: {e}")
-    return windowList
-
 def getScreenHeightMinusTaskbar():
     monitor_info = win32api.GetMonitorInfo(win32api.MonitorFromPoint((0,0)))
     work_area = monitor_info.get("Work") # Retrieve screen height minus taskbar
     return work_area[3]
-
-def getBordersSize(hwnd):
-    windowRect = win32gui.GetWindowRect(hwnd) # Position of the window including borders
-    clientRect = win32gui.GetClientRect(hwnd) # Position of the window not including borders
-
-    borderSize = int(((windowRect[2] - windowRect[0]) - clientRect[2]) / 2) # Size of transparent border on each side
-    titleBarHeight = ((windowRect[3] - windowRect[1]) - clientRect[3]) - borderSize # Size of top window title bar
-
-    return titleBarHeight, borderSize
-
-def getMenuHeight(screenshot, titleBarHeight, borderSize, menuColor):
-    height = screenshot.size[1]
-
-    # Iterate on each first pixel until we find a pixel with a different color
-    for y in range(height - titleBarHeight):
-        firstPixel = screenshot.getpixel((borderSize, y + titleBarHeight))
-
-        # Different color : we reached the end of the menu
-        if (firstPixel not in menuColor):
-            return y
-    
-    # Default : menu not present
-    return 0
 
 def closeWindow(window):
     win32gui.PostMessage(window._hWnd, win32con.WM_CLOSE, 0, 0)
