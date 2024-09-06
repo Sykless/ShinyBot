@@ -28,7 +28,7 @@ def loadGame():
         waitFrames(1)
 
 
-# Press X to open menu
+# Input sequence to open menu
 def openMenu():
 
     # If not on overworld, don't even try to open menu, just mash B
@@ -87,6 +87,42 @@ def goToMenuSection(menuSection, menuPosition):
     joypad.writeInput(menuNavigationSequence + "A")
 
 
+# Input sequence to save the game
+def saveGame():
+
+    # Need to open menu first
+    menuPosition = openMenu()
+
+    # Cannot open menu, let the main loop handle it
+    if (menuPosition > 0):
+
+        # Open bag menu
+        goToMenuSection(MENU_SAVE, menuPosition)
+
+        dialogBoxOpen = False
+
+        while True:
+            # Don't check memory more than once a frame to avoid overloading the CPU
+            waitFrames(1)
+
+            # Only apply new input if no input is found in memory
+            if (len(memory.readJoypadData()) == 0):
+                screenshot = img.getScreenshot()
+
+                # Mash A as long as a dialog box is open
+                if (img.whiteBanner.isOnScreen(screenshot)):
+                    joypad.writeInput("A")
+                    dialogBoxOpen = True
+
+                # Dialog box is closed, exit the function
+                elif (dialogBoxOpen):
+                    return True
+
+    # Cannot open menu
+    return None
+
+
+# Input sequence to use repel
 def useRepel():
 
     # Check if we have repel in the bag
@@ -130,7 +166,7 @@ def useRepel():
                         elif (img.poketch.isOnScreen(screenshot)):
                             waitFrames(10) # Small lag after closing the bag
                             joypad.writeInput("B") # Exit menu
-                            return None
+                            return True
 
                     # Cursor is visible, we can move between sections or items
                     elif (bagOpened and img.bagItemSelector.isOnScreen(screenshot)):

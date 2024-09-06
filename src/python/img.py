@@ -83,6 +83,7 @@ runaway = Template("runaway", 100, 354, 56, 30, 1)
 insideBag = Template("inside-battle-bag-menu", 135, 208, 114, 58, 1)
 insideBalls = Template("inside-battle-balls-menu", 91, 348, 74, 32, 1)
 pokeballLastUsed = Template("pokeball-last-used", 8, 352, 192, 26, 1)
+whiteBanner = Template("white-banner", 177, 170, 50, 10, 1)
 
 firstPage = Template("first-page", 183, 359, 6, 10, 1)
 secondPage = Template("second-page", 183, 359, 6, 10, 1)
