@@ -74,6 +74,7 @@ griffeRasoirSelected = Template("griffe-rasoir.selected", 106, 15, 68, 113, 1)
 crocRasoirSelected = Template("croc-rasoir-selected", 106, 15, 67, 113, 1)
 closeBagMenuSelected = Template("close-bag-selected", 106, 15, 42, 113, 1)
 
+journalFooter = Template("journal-footer", 9, 176, 238, 4, 1)
 battleTouchscreen = Template("battle-touchscreen", 0, 192, 256, 192, 1, mask = True)
 poketch = Template("poketch", 224, 225, 32, 126, 1)
 pokemonMenu = Template("pokemon-menu", 0, 192, 208, 80, 1)

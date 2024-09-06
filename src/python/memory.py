@@ -8,6 +8,18 @@ from encounter import SPECIALGRASSENCOUNTERS
 from data import POKEMON_NAMES
 from utils import waitFrames
 
+MEMORYSIZE = {
+    "pokemonTeamData": 20480,
+    "bagData": 20480,
+    "joypad": 8192,
+    "gameData": 4096,
+    "wildPokemonData": 2048,
+    "playerData": 256,
+    "runSections": 256,
+    "specialPokemon": 256,
+    "titleScreen": 8,
+}
+
 # Serialize the graph to a file
 def saveGraph(graph, filename):
     with open(filename, 'wb') as f:
@@ -40,20 +52,23 @@ def readJoypadData():
 def readRunSectionsData():
     return readMemoryData("runSections")
 
+def isOnTitleScreen():
+    return readMemoryData("titleScreen") != "0"
+
 def clearJoypadInputs():
     clearMemoryData("joypad")
     clearMemoryData("runSections")
 
 def clearMemoryData(memoryfileName):
-    writeMemoryData(memoryfileName, "\x00" * 20480)
+    writeMemoryData(memoryfileName, "\x00" * MEMORYSIZE[memoryfileName])
 
 def writeMemoryData(memoryfileName, input):
-    writeMemoryMmap = mmap.mmap(-1, 20480, tagname=memoryfileName, access=mmap.ACCESS_WRITE)
+    writeMemoryMmap = mmap.mmap(-1, MEMORYSIZE[memoryfileName], tagname=memoryfileName, access=mmap.ACCESS_WRITE)
     writeMemoryMmap.write(bytes(input, encoding="utf-8"))
 
 def readMemoryData(memoryfileName):
     # Read memoryData as BytesIO object from memory file
-    mmapData = mmap.mmap(0, 20480, memoryfileName)
+    mmapData = mmap.mmap(0, MEMORYSIZE[memoryfileName], memoryfileName)
     mmapByes = io.BytesIO(mmapData).read()
 
     try:

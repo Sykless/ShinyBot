@@ -20,6 +20,15 @@ RIGHT_ROW = 1
 BIKEFAST = 4
 BIKEREGULAR = 3
 
+# Mash A to load save or B if journal is on screen
+def loadGame():
+    while (memory.isOnTitleScreen()):
+        if (not memory.readJoypadData()):
+            joypad.writeInput("A" if not img.journalFooter.isOnScreen(img.getScreenshot()) else "B")
+        waitFrames(1)
+
+
+# Press X to open menu
 def openMenu():
 
     # If not on overworld, don't even try to open menu, just mash B

@@ -27,11 +27,8 @@ PREVIOUS_PAGE_BUTTON = 1
 CANCEL_BUTTON = 2
 
 # Launch BizHawk and make sure the game is ready to be run
-bizhawkWindow = emu.BIZHAWK.initEmulator("Platine")
-
-# Don't run Python script is Lua Script is not running
-if (not memory.isLuaScriptRunning()):
-    exit()
+emu.BIZHAWK.initEmulator("Platine")
+action.loadGame()
 
 GENERATE_GRAPH = False
 startTime = time.time()

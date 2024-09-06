@@ -20,9 +20,24 @@ local runSections = {}
 local runSectionId = -1
 local processedInputs = 0
 
+-- Check if baseAddress is valid and zone > 0
+function isGameRunning()
+    return (baseAddress > 0x02000000
+            and baseAddress < 0x03000000
+            and memory.read_u16_le(baseAddress + MEMORYADDRESSES[GAMECODE]["ZONE_OFFSET"]) > 0)
+end
+
+-- Check if we're in-game or before the title screen
+function isOnTitleScreen()
+    return (memory.read_u32_le(MEMORYADDRESSES[GAMECODE]["TITLESCREEN_ADDRESS"]) == 0
+        and memory.read_u32_le(MEMORYADDRESSES[GAMECODE]["TITLESCREEN_ADDRESS"] + 4) == 0
+        and memory.read_u32_le(MEMORYADDRESSES[GAMECODE]["TITLESCREEN_ADDRESS"] + 8) == 0
+        and memory.read_u32_le(MEMORYADDRESSES[GAMECODE]["TITLESCREEN_ADDRESS"] + 12) == 0)
+end
+
 function readRunSectionsFromMemory()
     -- Read data from memory file sent by Python script
-    local mmfRunSections = comm.mmfRead("runSections", 20480)
+    local mmfRunSections = comm.mmfRead("runSections", 256)
     local runSectionsString = string.match(mmfRunSections, "[^\x00]+") -- Get everything before the first null \x00 character
     local runSectionsInt = {}
 
@@ -36,7 +51,7 @@ function readRunSectionsFromMemory()
         end
 
         -- Erase old memory values
-        comm.mmfWrite("runSections", string.rep("\x00", 20480))
+        comm.mmfWrite("runSections", string.rep("\x00", 256))
     end
 
     return runSectionsInt
@@ -44,7 +59,7 @@ end
 
 function inputFromMemory()
     -- Read data from memory file sent by Python script
-    local mmfJoypad = comm.mmfRead("joypad", 20480)
+    local mmfJoypad = comm.mmfRead("joypad", 8192)
     local joypadInput = string.match(mmfJoypad, "[^\x00]+") -- Get everything before the first null \x00 character
 
     if (joypadInput) then
@@ -101,7 +116,7 @@ end
 
 function readSpecialPokemonFromMemory()
     -- Read data from memory file sent by Python script
-    local mmfSpecialPokemon = comm.mmfRead("specialPokemon", 20480)
+    local mmfSpecialPokemon = comm.mmfRead("specialPokemon", 256)
     local specialPokemonString = string.match(mmfSpecialPokemon, "[^\x00]+") -- Get everything before the first null \x00 character
     local specialPokemonInt = {}
 
@@ -132,7 +147,7 @@ function readSpecialPokemonFromMemory()
         updateGardenPokemon(gardenPokemonToday, gardenPokemonYesterday)
 
         -- Erase old memory values
-        comm.mmfWrite("specialPokemon", string.rep("\x00", 20480))
+        comm.mmfWrite("specialPokemon", string.rep("\x00", 256))
     end
 end
 

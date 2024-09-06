@@ -39,7 +39,7 @@ class Emulator():
             emulatorWindow = emulatorWindowList[0] # Take first instance
 
             # Game not launched : don't bother navigating in the menu, close the emulator and relaunch it
-            if (self.partialTitle not in emulatorWindow.title):
+            if (self.partialTitle not in emulatorWindow.title or gameName not in emulatorWindow.title):
                 closeWindow(emulatorWindow)
                 emulatorWindow = None
 
