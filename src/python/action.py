@@ -301,8 +301,11 @@ def useHM(hmId, city = None):
                                 pokemonSelectionSequence += "u" * (moveY * -1)
 
                             # Play input sequence and press A to fly to the selected city
-                            joypad.writeInput(pokemonSelectionSequence + "A")
-        
+                            if (pokemonSelectionSequence):
+                                joypad.writeInput(pokemonSelectionSequence)
+                            else:
+                                joypad.writeInput("A")
+
         # No Pokémon with the HM, TODO go to the nearest Pokémon Center
         else:
             print("No Pokémon with Hm " + pokemon.MOVE_NAMES[hmId] + " !")
