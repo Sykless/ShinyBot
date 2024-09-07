@@ -991,21 +991,30 @@ def goToWorldLocation(location):
 def processWorldPath(worldPath, endPosition):
 
     completeNodePath = []
+    lastDoors = []
 
     # Each subpath can be either a door-to-door or a node-no-node path
     for subPath in worldPath:
 
         if (subPath):
+            pathList = []
             firstElement = subPath[0]
-
+            
             # Node-to-node path
             if (isinstance(firstElement, Node)):
-                completeNodePath += [subPath]
+                pathList = [subPath]
 
             # Door-to-door path
             elif (isinstance(firstElement, DoorKey)):
-                completeNodePath += getPathFromGraph(subPath)
+                pathList = getPathFromGraph(subPath)
 
+            # Add each door in a list to later retrieve transition time between zones
+            for path in pathList:
+                lastPosition = path[-1].position
+                lastDoors.append(lastPosition.zone.getDoorByPosition(lastPosition))
+
+            completeNodePath += pathList
+            
     # Process every subpath between each doors
     for pathId in range(len(completeNodePath)):
 
@@ -1016,14 +1025,20 @@ def processWorldPath(worldPath, endPosition):
         processPath(currentPath)
 
         # Only apply door animation between paths, or if the final position is a door destination
-        if (pathId + 1 < len(completeNodePath or endPosition)):
+        if (pathId + 1 < len(completeNodePath) or endPosition):
 
-            # Wait until we exit the old zone (stairs animation) and poketch is visible (transition screen)
-            while (not img.poketch.isOnScreen(img.getScreenshot()) or player.getPlayerData().position == currentPath[-1].position):
+            # Wait until we reach the first position of the next zone
+            nextPosition = completeNodePath[pathId + 1][0].position if pathId + 1 < len(completeNodePath) else endPosition
+            while (player.getPlayerData().position != nextPosition):
+                waitFrames(1)
+
+            # Wait poketch is visible (after transition screen)
+            while (not img.poketch.isOnScreen(img.getScreenshot())):
                 waitFrames(1)
 
             # Moving from door to actual end position, wait for walking animation to be over
-            waitFrames(25)
+            print("Wait " + str(lastDoors[pathId].transitionTime) + " frames")
+            waitFrames(lastDoors[pathId].transitionTime)
 
 
 ####################################################################
