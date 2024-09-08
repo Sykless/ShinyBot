@@ -1273,6 +1273,8 @@ def generateWorldPath(location, skipAllCityProcesses = False):
     # Populate cityPath object by calculating final door, distance to door and distance from door
     if (not skipAllCityProcesses and isinstance(location, Position)):
         getCityDistance(cityPath, destination, closestDoor, closestCity, distancesFromCity)
+    else:
+        cityPath.dijsktraPath = [cityPath.dijsktraPath]
 
     # Just fly to city if the distance is 0
     if (not skipAllCityProcesses and cityPath.dijsktraDistance + cityPath.finalDistance == 0):
@@ -1287,7 +1289,7 @@ def generateWorldPath(location, skipAllCityProcesses = False):
 
     # Ratio is in favor of flying
     if (not skipAllCityProcesses and (skipAllCurrentPositionProcesses or distanceRatio > 1.2)):
-        return closestCity, [cityPath.dijsktraPath] + ([cityPath.finalPath] if isinstance(location, Position) else [])
+        return closestCity, cityPath.dijsktraPath + ([cityPath.finalPath] if isinstance(location, Position) else [])
 
     # Ratio is neutral or in favor of direct path, and if neutral we choose the direct path
     else:
@@ -1299,17 +1301,34 @@ def generateWorldPath(location, skipAllCityProcesses = False):
 #############################################################################################################
 def getCityDistance(cityPath, destination, closestDoor, closestCity, distancesFromCity):
 
-    # We already ruled out direct path to destination, so we have to go through at least one door
-    if (closestCity.flyDoor == closestDoor):
-        cityPath.lastDoorDestination = closestCity.flyDoor.connectedDoor.destination
-        cityPath.dijsktraPath = []
-        cityPath.dijsktraDistance = 0
+    # Closest door is Pokemon Center door, there's only a direct path to calculate
+    if (closestDoor in [closestCity.flyDoor, closestCity.flyDoor.connectedDoor]):
+        cityPath.lastDoorDestination = closestDoor.connectedDoor.destination
         cityPath.finalPath = getMostEfficientPath(cityPath.lastDoorDestination, destination)
         cityPath.finalDistance = cityPath.finalPath[-1].g
+
+        # Direct path from outside door : skip dijsktraPath
+        if (closestDoor == closestCity.flyDoor):
+            cityPath.dijsktraPath = []
+            cityPath.dijsktraDistance = 0
         
+        # Direct path from inside door : just go through the door
+        else:
+            cityPath.dijsktraPath = [getMostEfficientPath(closestCity.flyDoor.connectedDoor.destination, closestCity.flyDoor.position)] # Just go up
+            cityPath.dijsktraDistance = cityPath.dijsktraPath[0][-1].g # Normally just 1
+
     # Need to go through at least one door
     else:
-        lastSubpathDoor = closestCity.flyDoor.connectedDoor
+        nextDoor = cityPath.dijsktraPath[1][0]
+        insideZone = closestCity.flyDoor.destination.zone
+        insideDoor = False
+
+        # Check if we're starting from outside or inside door
+        if (insideZone in [nextDoor.destination.zone, nextDoor.position.zone]):
+            lastSubpathDoor = closestCity.flyDoor
+            insideDoor = True
+        else:
+            lastSubpathDoor = closestCity.flyDoor.connectedDoor
 
         # Check if any of the doors before closestDoor can reach the destination
         for doorId in range(0, len(cityPath.dijsktraPath)):
@@ -1325,17 +1344,23 @@ def getCityDistance(cityPath, destination, closestDoor, closestCity, distancesFr
 
         # Update dijsktraPath with the new last door destination
         cityPath.lastDoorDestination = lastSubpathDoor.destination
-        cityPath.dijsktraPath = cityPath.dijsktraPath[:doorId + 1]
+        cityPath.dijsktraPath = [cityPath.dijsktraPath[:doorId + 1]]
         cityPath.finalDistance = cityPath.finalPath[-1].g 
 
         # Direct path between city and closestDoor
-        if (len(cityPath.dijsktraPath) == 1):
+        if (len(cityPath.dijsktraPath[0]) == 1):
             cityPath.dijsktraPath = [] # Skip dijsktraPath
             cityPath.dijsktraDistance = 0
 
         # Need to go through doors
         else:
-            cityPath.dijsktraDistance = distancesFromCity[cityPath.dijsktraPath[-1]]
+            cityPath.dijsktraDistance = distancesFromCity[cityPath.dijsktraPath[0][-1]]
+
+        # If we're starting from inside, we just need to add the path to actually enter the door
+        if (insideDoor):
+            cityPath.dijsktraPath = [getMostEfficientPath(closestCity.flyDoor.connectedDoor.destination, closestCity.flyDoor.position)] + cityPath.dijsktraPath # Just go up
+            cityPath.dijsktraDistance += cityPath.dijsktraPath[0][-1].g # Normally just 1
+
 
 
 ###############################################################################################################
