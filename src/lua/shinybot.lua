@@ -62,8 +62,8 @@ while true do
         -- Save a screenshot in memory file every frame
         comm.mmfScreenshot()
 
-        -- Save pokemon and bag data every second
-        if emu.framecount() % 60 == 0 then
+        -- Save pokemon and bag data every third of a second
+        if emu.framecount() % 20 == 0 then
             refreshPID()
             
             -- Write Pokemon team data in memory

@@ -228,7 +228,7 @@ def useHM(hmId, city = None):
 
         # For performance purpose, we only upload team data once every second
         # So we wait to make sure the team data is valid
-        waitFrames(60)
+        waitFrames(20)
 
         # Check if there is a Pokemon than can use the HM in our team
         pokemonPosition, movePosition = pokemon.isHMAvailable(hmId)
