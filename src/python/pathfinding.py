@@ -956,38 +956,50 @@ def initDoorGraph():
 ###################################################################################
 def goToWorldLocation(location):
 
-    needToDig = False
-    playerPosition = player.getPlayerData().position
-    flyCity, completePath = generateWorldPath(location)
+    # Keep searching until we're at the desired postion
+    correctPath = False
 
-    # Location is too far from current player position, so we fly to a close city before
-    if (flyCity):
+    while (not correctPath):
+        needToDig = False
+        playerPosition = player.getPlayerData().position
+        flyCity, completePath = generateWorldPath(location)
 
-        # If we need to fly, we also need to be in a zone that enables it, or at least dig our way out
-        if (not playerPosition.zone.canFly):
+        # Location is too far from current player position, so we fly to a close city before
+        if (flyCity):
 
-            # Get out of the zone before using Dig or Fly
-            if (not playerPosition.zone.canDig):
-                endPosition, pathToExit = findClosestFlyDigZone(playerPosition)
-                processWorldPath(pathToExit, endPosition)
+            # If we need to fly, we also need to be in a zone that enables it, or at least dig our way out
+            if (not playerPosition.zone.canFly):
 
-                needToDig = not endPosition.zone.canFly
+                # Get out of the zone before using Dig or Fly
+                if (not playerPosition.zone.canDig):
+                    endPosition, pathToExit = findClosestFlyDigZone(playerPosition)
+                    correctPath = processWorldPath(pathToExit, endPosition)
 
-            # We can Dig our way out to go to a zone enabling Fly
-            else:
-                needToDig = True
+                    # Failed to find the correct path : start the process again
+                    if (not correctPath):
+                        continue
 
-            # Still can't Fly but can Dig : use HM
-            if (needToDig):
-                action.useHM(pokemon.DIG_ID)
+                    needToDig = not endPosition.zone.canFly
 
-        # Use Fly to go to the closest city
-        action.useHM(pokemon.FLY_ID, flyCity)
+                # We can Dig our way out to go to a zone enabling Fly
+                else:
+                    needToDig = True
 
-    # Process generated path
-    processWorldPath(completePath, location.destination if isinstance(location, Door) else None)
+                # Still can't Fly but can Dig : use HM
+                if (needToDig):
+                    action.useHM(pokemon.DIG_ID)
+
+            # Use Fly to go to the closest city
+            action.useHM(pokemon.FLY_ID, flyCity)
+
+        # Process generated path
+        correctPath = processWorldPath(completePath, location.destination if isinstance(location, Door) else None)
 
 
+
+################################################################################
+# Convert all paths to Node paths and follow them until we reached destination #
+################################################################################
 def processWorldPath(worldPath, endPosition):
 
     completeNodePath = []
@@ -1028,9 +1040,19 @@ def processWorldPath(worldPath, endPosition):
         if (pathId + 1 < len(completeNodePath) or endPosition):
 
             # Wait until we reach the first position of the next zone
+            framesOnOverworld = 0
             nextPosition = completeNodePath[pathId + 1][0].position if pathId + 1 < len(completeNodePath) else endPosition
-            while (player.getPlayerData().position != nextPosition):
+
+            while (player.getPlayerData().position != nextPosition and framesOnOverworld < 300):
                 waitFrames(1)
+
+                # Count the number of frames while poketch is visible
+                if (img.poketch.isOnScreen(img.getScreenshot())):
+                    framesOnOverworld += 1
+
+                # Spent 2 seconds on the wrong position while on the overworld : start again
+                if (framesOnOverworld > 120):
+                    return False
 
             # Wait poketch is visible (after transition screen)
             while (not img.poketch.isOnScreen(img.getScreenshot())):
@@ -1039,6 +1061,9 @@ def processWorldPath(worldPath, endPosition):
             # Moving from door to actual end position, wait for walking animation to be over
             print("Wait " + str(lastDoors[pathId].transitionTime) + " frames")
             waitFrames(lastDoors[pathId].transitionTime)
+
+    # Reached the final position
+    return True
 
 
 ####################################################################
