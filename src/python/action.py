@@ -100,6 +100,7 @@ def saveGame():
         goToMenuSection(MENU_SAVE, menuPosition)
 
         dialogBoxOpen = False
+        saveConfirm = False
 
         while True:
             # Don't check memory more than once a frame to avoid overloading the CPU
@@ -109,6 +110,10 @@ def saveGame():
             if (len(memory.readJoypadData()) == 0):
                 screenshot = img.getScreenshot()
 
+                # Make sure we have the save confirmation before leaving the method
+                if (img.saveConfirmation.isOnScreen(screenshot)):
+                    saveConfirm = True
+
                 # Mash A as long as a dialog box is open
                 if (img.whiteBanner.isOnScreen(screenshot)):
                     joypad.writeInput("A")
@@ -116,7 +121,7 @@ def saveGame():
 
                 # Dialog box is closed, exit the function
                 elif (dialogBoxOpen):
-                    return True
+                    return saveConfirm
 
     # Cannot open menu
     return None
