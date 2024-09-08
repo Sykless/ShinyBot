@@ -1,9 +1,12 @@
 import img
 import bag
 import game
+import zone
+import player
 import joypad
 import memory
 import pokemon
+import pathfinding
 
 from utils import waitFrames
 
@@ -72,6 +75,7 @@ def openMenu():
             # Menu open, exit function
             else:
                 return menuPosition
+
 
 # Go up or down depending on current menu position, then press A to open Pokemon menu
 def goToMenuSection(menuSection, menuPosition):
@@ -315,3 +319,29 @@ def useHM(hmId, city = None):
         else:
             print("No Pokémon with Hm " + pokemon.MOVE_NAMES[hmId] + " !")
             return None
+        
+
+#########################################################################################
+# Go in front of Union Room and prepare the exact setup MelonDS emulator needs to trade #
+#########################################################################################
+def goToUnionRoom():
+    
+    # Retrieve Union Room position from Interactable object
+    unionRoom = zone.LITTORELLA_CENTREPOKEMON_ETAGE.getInteractableByType(zone.UNIONROOM)
+    unionRoomPosition = unionRoom.getInteractionPosition()
+
+    # Make sure we're in front of Union Room
+    while (player.getPlayerData().position != unionRoomPosition):
+        pathfinding.goToWorldLocation(unionRoomPosition)
+
+    # Make sure we're facing up
+    while (player.getPlayerData().orientation != "u"):
+        joypad.writeInput("u")
+    
+    # Save the game and quit the process if we couldn't
+    if (not saveGame()):
+        print("Cannot save game")
+        return False
+    
+    # All conditions matched
+    return True
