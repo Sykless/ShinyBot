@@ -321,10 +321,10 @@ def useHM(hmId, city = None):
             return None
         
 
-#########################################################################################
-# Go in front of Union Room and prepare the exact setup MelonDS emulator needs to trade #
-#########################################################################################
-def goToUnionRoom():
+###################################################################################################
+# Go in front of Union Room and prepare the exact setup MelonDS emulator needs to perform trading #
+###################################################################################################
+def setupTradePosition():
     
     # Retrieve Union Room position from Interactable object
     unionRoom = zone.LITTORELLA_CENTREPOKEMON_ETAGE.getInteractableByType(zone.UNIONROOM)
