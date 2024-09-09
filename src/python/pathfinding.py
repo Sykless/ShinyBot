@@ -736,7 +736,7 @@ def goToLocation(location: Position):
 # Generate every input needed to go through the provided node list and check if the path is followed #
 ######################################################################################################
 def processPath(nodeList):
-    print("Going from " + str(nodeList[0]) + " to " + str(nodeList[-1]))
+    print(nodeList)
 
     # Send all inputs needed to go to specified location to emulator
     joypad.writePathfindingInput(nodeList)
