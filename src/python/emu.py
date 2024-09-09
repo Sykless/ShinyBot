@@ -215,11 +215,8 @@ class Emulator():
         else:
             self.luaScriptWindow = luaConsoleWindowList[0] # Take first instance
 
-        # Check if script is already running
-        luaScriptRunning = memory.isLuaScriptRunning()
-
-        # If script is not running, just restart the console to automatically start the script
-        if (not luaScriptRunning):
+        # If Lua script is not running, just restart the console to automatically start the script
+        if (not memory.isLuaScriptRunning()):
             self.luaScriptWindow.closeWindow()
 
             # Give BizHawk focus, then press L again to open the Lua Console

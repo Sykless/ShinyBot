@@ -7,6 +7,7 @@ import cv2
 
 from PIL import Image, ImageFile
 
+from emu import BIZHAWK
 from utils import waitFrames
 
 # https://stackoverflow.com/questions/42462431/oserror-broken-data-stream-when-reading-image-file
@@ -38,6 +39,18 @@ class Template:
     def isOnScreen(self, screenshot):
         return isTemplateInImage(self.getSubScreenshot(screenshot),
             self.image, self.threshold, templatemask = self.mask)[0]
+
+class GameTemplate:
+    def __init__(self, platinumTemplate, diamondPealTemplate):
+        self.templates = {
+            "Platine": platinumTemplate,
+            "Diamant": diamondPealTemplate,
+            "Perle": diamondPealTemplate,
+        }
+
+    def isOnScreen(self, screenshot):
+        return (self.templates[BIZHAWK.mainWindow.gameName if BIZHAWK.mainWindow else "Platine"]).isOnScreen(screenshot)
+    
 
 BLACK_COLOR = [0,0,0]
 
@@ -74,17 +87,20 @@ griffeRasoirSelected = Template("griffe-rasoir.selected", 106, 15, 68, 113, 1)
 crocRasoirSelected = Template("croc-rasoir-selected", 106, 15, 67, 113, 1)
 closeBagMenuSelected = Template("close-bag-selected", 106, 15, 42, 113, 1)
 
-journalFooter = Template("journal-footer", 9, 176, 238, 4, 1)
 battleTouchscreen = Template("battle-touchscreen", 0, 192, 256, 192, 1, mask = True)
-poketch = Template("poketch", 224, 225, 32, 126, 1)
-pokemonMenu = Template("pokemon-menu", 0, 192, 208, 80, 1)
-hmAnimation = Template("hm-animation", 0, 56, 255, 80, 50000)
+hmAnimation = Template("hm-animation", 0, 56, 255, 80, 1, mask = True)
+pokemonMenu = Template("pokemon-menu", 48, 192, 160, 192, 1)
+journalFooter = Template("journal-footer", 9, 176, 238, 4, 1)
 runaway = Template("runaway", 100, 354, 56, 30, 1)
 insideBag = Template("inside-battle-bag-menu", 135, 208, 114, 58, 1)
 insideBalls = Template("inside-battle-balls-menu", 91, 348, 74, 32, 1)
 pokeballLastUsed = Template("pokeball-last-used", 8, 352, 192, 26, 1)
 saveConfirmation = Template("save-confirmation", 16, 155, 225, 12, 1)
 whiteBanner = Template("white-banner", 177, 170, 50, 10, 1)
+poketch = GameTemplate(
+    platinumTemplate = Template("poketch", 224, 225, 32, 126, 1),
+    diamondPealTemplate = Template("poketch-diamondpearl", 217, 278, 33, 92, 1)
+)
 
 firstPage = Template("first-page", 183, 359, 6, 10, 1)
 secondPage = Template("second-page", 183, 359, 6, 10, 1)
