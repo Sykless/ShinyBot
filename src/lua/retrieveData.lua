@@ -1,6 +1,4 @@
 
-DIAMOND_ADDRESS = 0x021CCEBC
-PLATINUM_ADDRESS = 0x02101F0C
 
 MEMORYADDRESSES = {
     D = {
@@ -15,7 +13,12 @@ MEMORYADDRESSES = {
         POSITIONY_OFFSET = 0x1244,
         REPELSTEPS_OFFSET = 0x73E0,
         BIKE_OFFSET = 0x12C8,
-        BIKESPEED_OFFSET = 0x12C4
+        BIKESPEED_OFFSET = 0x12C4,
+        ORIENTATION_OFFSET = 0x2484C,
+        WALKENCOUNTERTABLE_OFFSET = 0x243AC,
+        TIMEHOUR_ADDRESS = 0x021C49A8,
+        SELECTEDBAGSECTION_OFFSET = 0x29568,
+        SELECTEDBAGITEM_OFFSET = -0xCEB4
     },
     PL = {
         BASE_ADDRESS = 0x02101F0C,
@@ -29,18 +32,20 @@ MEMORYADDRESSES = {
         POSITIONY_OFFSET = 0x128C,
         REPELSTEPS_OFFSET = 0x8073,
         BIKE_OFFSET = 0x1310,
-        BIKESPEED_OFFSET = 0x130C
+        BIKESPEED_OFFSET = 0x130C,
+        ORIENTATION_OFFSET = 0x23894,
+        WALKENCOUNTERTABLE_OFFSET = 0x233D0,
+        TIMEHOUR_ADDRESS = 0x021BF7C8,
+        SELECTEDBAGSECTION_OFFSET = 0x285B4,
+        SELECTEDBAGITEM_OFFSET = -0xCC94
     }
 }
 
+-- Same memory addresses for Pokémon Diamond and Pearl
+MEMORYADDRESSES["P"] = MEMORYADDRESSES["D"]
+
 GAMECODE_ADDRESS = 0x023FFE08
 GBAGAME_ADDRESS = 0x021BF8C2
-TIMEHOUR_ADDRESS = 0x021BF7C8
-
-ORIENTATION_OFFSET = 0x23894
-
-SELECTEDBAGSECTION_OFFSET = 0x285B4
-SELECTEDBAGITEM_OFFSET = -0xCC94
 
 MARSHPOKEMON_OFFSET = 0x7F24
 SWARMPOKEMON_OFFSET = 0x7F28
@@ -48,8 +53,6 @@ GARDENPOKEMON_TODAY_OFFSET = 0x7F30
 GARDENPOKEMON_YESTERDAY_OFFSET = 0x7F32
 
 SKIP_ENCOUNTERTABLES = true
-WALKENCOUNTERTABLE_OFFSET = 0x233D0
-WATERENCOUNTERTABLE_OFFSET = WALKENCOUNTERTABLE_OFFSET + 0xCC
 
 ORIENTATION = {"u","d","l","r"}
 
@@ -128,7 +131,7 @@ function retrieveBagSection(sectionId)
 end
 
 function retrievePlayerData()
-    local orientationValue = memory.read_u16_le(baseAddress + ORIENTATION_OFFSET)
+    local orientationValue = memory.read_u16_le(baseAddress + MEMORYADDRESSES[GAMECODE]["ORIENTATION_OFFSET"])
     local orientation = "d" -- Default orientation is down
 
     -- This is the only value we actually need to be sure of, since we're using it as an array id
@@ -163,11 +166,11 @@ function retrieveGameData()
     }
 
     return {
-        hourOfDay = memory.read_u32_le(TIMEHOUR_ADDRESS),
+        hourOfDay = memory.read_u32_le(MEMORYADDRESSES[GAMECODE]["TIMEHOUR_ADDRESS"]),
         repelSteps = memory.readbyte(baseAddress + MEMORYADDRESSES[GAMECODE]["REPELSTEPS_OFFSET"]),
 
-        selectedBagSection = memory.readbyte(baseAddress + SELECTEDBAGSECTION_OFFSET),
-        selectedBagItemId = memory.readbyte(baseAddress + SELECTEDBAGITEM_OFFSET),
+        selectedBagSection = memory.readbyte(baseAddress + MEMORYADDRESSES[GAMECODE]["SELECTEDBAGSECTION_OFFSET"]),
+        selectedBagItemId = memory.readbyte(baseAddress + MEMORYADDRESSES[GAMECODE]["SELECTEDBAGITEM_OFFSET"]),
         swarmPokemon = memory.read_u32_le(baseAddress + SWARMPOKEMON_OFFSET) % 22,
         marshPokemonList = marshPokemonList,
         gardenPokemonToday = memory.read_u16_le(baseAddress + GARDENPOKEMON_TODAY_OFFSET),
@@ -182,7 +185,7 @@ end
 
 -- Only needed once to generate encounter tables for each zone in Python code
 function retrieveWalkEncounterTable()
-    local encounterTableAddress = baseAddress + WALKENCOUNTERTABLE_OFFSET
+    local encounterTableAddress = baseAddress + MEMORYADDRESSES[GAMECODE]["WALKENCOUNTERTABLE_OFFSET"]
 
     local walkEncountersTables = {}
     local walkEncountersIdentifier = memory.read_u32_le(encounterTableAddress)
@@ -249,7 +252,7 @@ end
 
 -- Only needed once to generate encounter tables for each zone in Python code
 function retrieveWaterEncounterTable()
-    local encounterTableAddress = baseAddress + WATERENCOUNTERTABLE_OFFSET
+    local encounterTableAddress = baseAddress + MEMORYADDRESSES[GAMECODE]["WALKENCOUNTERTABLE_OFFSET"] + 0xCC
 
     local waterEncountersTables = {}
     local waterEncountersIdentifier = memory.read_u32_le(encounterTableAddress)
