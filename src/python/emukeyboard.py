@@ -7,18 +7,18 @@ PUL = ctypes.POINTER(ctypes.c_ulong)
 
 # Convert Joypad inputs to Windows keycode presses
 KEYCODE_DICT = {
-    "Up": 0x26,       # Up Arrow key
-    "Left": 0x25,     # Left Arrow key
-    "Right": 0x27,    # Right Arrow key
-    "Down": 0x28,     # Down Arrow key
+    "Up": 0x48,       # Up Arrow key
+    "Left": 0x4B,     # Left Arrow key
+    "Right": 0x4D,    # Right Arrow key
+    "Down": 0x50,     # Down Arrow key
     "X": 0x1F,        # S key
-    "Y": 0x10,        # Q key
+    "Y": 0x1E,        # Q key
     "A": 0x2D,        # X key
-    "B": 0x11,        # W key
-    "Start": 0x0D,    # Enter key
-    "Select": 0xA1,   # Right Shift key
-    "L": 0x1E,        # A key
-    "R": 0x2C,        # Z key
+    "B": 0x2C,        # W key
+    "Start": 0x1C,    # Enter key
+    "Select": 0x39,   # Right Shift key
+    "L": 0x10,        # A key
+    "R": 0x11,        # Z key
     "Menu": 0x29,     # ² key
     "Lua Console": 0x26 # L key
 }
