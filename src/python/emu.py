@@ -13,6 +13,7 @@ import pygetwindow
 from PIL import Image
 from pywinauto import Application
 from pygetwindow import Win32Window
+from pygetwindow import PyGetWindowException
 
 import memory
 import emukeyboard
@@ -209,7 +210,7 @@ class Emulator():
 
         # Lua Console not open, press L to open it
         if (not luaConsoleWindowList):
-            self.mainWindow.activate()
+            self.mainWindow.giveFocus()
             emukeyboard.pressButton("Lua Console")
             self.luaScriptWindow = self.waitUntilOpen("Lua Console")
         else:
@@ -220,7 +221,7 @@ class Emulator():
             self.luaScriptWindow.closeWindow()
 
             # Give BizHawk focus, then press L again to open the Lua Console
-            self.mainWindow.activate()
+            self.mainWindow.giveFocus()
             emukeyboard.pressButton("Lua Console")
             self.luaScriptWindow = self.waitUntilOpen("Lua Console")
 
@@ -266,15 +267,27 @@ class Window(Win32Window):
         return (isinstance(other, Window) or isinstance(other, Win32Window)) and self._hWnd == other._hWnd
     
     def __str__(self):
-        return super().__str__() + " running Pokémon Version " + str(self.gameName) + " on " + self.parentEmulator.name
+        return super().__str__() + "\nRunning Pokémon Version " + str(self.gameName) + " on " + self.parentEmulator.name
     
+
+    #######################################################
+    # Give window focus, minimize/restore if not possible #
+    #######################################################
+    def giveFocus(self):
+        try:
+            self.activate()
+        except PyGetWindowException:
+            self.minimize()
+            self.restore()
+            time.sleep(0.1)
+
 
     ########################################################
     # Simulate clicking on the window X button to close it #
     ########################################################
     def closeWindow(self):
         win32gui.PostMessage(self._hWnd, win32con.WM_CLOSE, 0, 0)
-        time.sleep(0.5)
+        time.sleep(0.5) # Wait until window is closed
 
 
     ########################################################################
@@ -282,8 +295,8 @@ class Window(Win32Window):
     ########################################################################
     def resizeWindow(self, fullscreen, firstInstance = None):
 
-        # Retrieve titlebar, menu and borders size
-        titleBarHeight, borderSize, menuHeight = self.retrieveBordersSize()
+        # Calculate titlebar, menu and borders size
+        self.calculateBordersSize()
 
         # Fullscreen : hide titlebar/menu at the top of the screen and put the app in front of Windows taskbar
         if (fullscreen):
@@ -292,20 +305,20 @@ class Window(Win32Window):
             win32gui.SetWindowLong(self._hWnd, win32con.GWL_STYLE, borderlessStyle)
 
             # Toggle off menu if present
-            if (self.parentEmulator == BIZHAWK and menuHeight > 0):
-                self.activate()
+            if (self.parentEmulator == BIZHAWK and self.menuHeight > 0):
+                self.giveFocus()
                 emukeyboard.pressButton("Menu")
-                menuHeight = 0
+                self.menuHeight = 0
 
             # Get whole screen height resolution
             screenHeight = ctypes.windll.user32.GetSystemMetrics(1)
 
             windowHeight = screenHeight # Take the whole screen height
-            windowWidth = (int((screenHeight - menuHeight) # Only take game height for ratio calculation
+            windowWidth = (int((screenHeight - self.menuHeight) # Only take game height for ratio calculation
                             * GAME_WIDTH / GAME_HEIGHT)) # Keep original game ratio
 
             # Move BizHawk window to the top-left of the screen, make it not stay on top
-            win32gui.SetWindowPos(self._hWnd, win32con.HWND_TOPMOST, (firstInstance.width - 2 * borderSize if firstInstance else 0), 0, windowWidth, windowHeight, 
+            win32gui.SetWindowPos(self._hWnd, win32con.HWND_TOPMOST, (firstInstance.width - 2 * self.borderSize if firstInstance else 0), 0, windowWidth, windowHeight, 
                 win32con.SWP_FRAMECHANGED | win32con.SWP_SHOWWINDOW)
             
         # Not fullscreen : keep titlebar, menu and taskbar
@@ -315,33 +328,36 @@ class Window(Win32Window):
             win32gui.SetWindowLong(self._hWnd, win32con.GWL_STYLE, borderStyle)
 
             # Toggle menu if absent
-            if (self.parentEmulator == BIZHAWK and menuHeight == 0):
-                self.activate()
+            if (self.parentEmulator == BIZHAWK and self.menuHeight == 0):
+                self.giveFocus()
                 emukeyboard.pressButton("Menu")
 
                 # Retrieve updated menu size
-                menuHeight = self.getMenuHeight(titleBarHeight, borderSize)
+                self.retrieveMenuHeight()
 
             # Get screen height minus the task bar
             screenHeight = getScreenHeightMinusTaskbar()
 
             windowHeight = (screenHeight # Take the whole screen height minus the taskbar
-                            + borderSize # Hide transparent border behind the taskbar
+                            + self.borderSize # Hide transparent border behind the taskbar
                             + TOPBORDER_SIZE) # Hide the single half-transparent pixel border behind the taskbar
 
-            windowWidth = (int((screenHeight - titleBarHeight - menuHeight) # Only take game height for ratio calculation
+            windowWidth = (int((screenHeight - self.titleBarHeight - self.menuHeight) # Only take game height for ratio calculation
                             * GAME_WIDTH / GAME_HEIGHT) # Keep original game ratio
-                            + 2 * borderSize) # Add both left/right borders
+                            + 2 * self.borderSize) # Add both left/right borders
             
             # Move BizHawk window to the top-left of the screen, make it not stay on top
-            win32gui.SetWindowPos(self._hWnd, win32con.HWND_NOTOPMOST, -borderSize + (firstInstance.width - 2 * borderSize if firstInstance else 0), -TOPBORDER_SIZE, windowWidth, windowHeight, 
+            win32gui.SetWindowPos(self._hWnd, win32con.HWND_NOTOPMOST, -self.borderSize + (firstInstance.width - 2 * self.borderSize if firstInstance else 0), -TOPBORDER_SIZE, windowWidth, windowHeight, 
                 win32con.SWP_FRAMECHANGED | win32con.SWP_SHOWWINDOW)
+            
+        # Wait until window is resized
+        time.sleep(0.5)
 
 
     ######################################################################################
     # Temporarly update the window's size to make borders/titlebar/menu size retrievable #
     ######################################################################################
-    def retrieveBordersSize(self):
+    def calculateBordersSize(self):
 
         # Restore window if minimized
         if self.isMinimized:
@@ -354,52 +370,46 @@ class Window(Win32Window):
         win32gui.SetWindowPos(self._hWnd, win32con.HWND_NOTOPMOST, 0, 0, 500, 100, 
                 win32con.SWP_FRAMECHANGED | win32con.SWP_SHOWWINDOW)
 
-        # Get titlebar height and borders sizeS by comparing window size to app size
-        titleBarHeight, borderSize = self.getBordersSize()
-
-        # Retrieve menu size from screenshot
-        menuHeight = self.getMenuHeight(titleBarHeight, borderSize)
-
-        return titleBarHeight, borderSize, menuHeight
-    
-
-    ###########################################################
-    # Get window's side/top/bottom borders and title bar size #
-    ###########################################################
-    def getBordersSize(self):
+        # Get titlebar height and borders sizes by comparing window size to app size
         windowRect = win32gui.GetWindowRect(self._hWnd) # Position of the window including borders
         clientRect = win32gui.GetClientRect(self._hWnd) # Position of the window not including borders
 
-        borderSize = int(((windowRect[2] - windowRect[0]) - clientRect[2]) / 2) # Size of transparent border on each side
-        titleBarHeight = ((windowRect[3] - windowRect[1]) - clientRect[3]) - borderSize # Size of top window title bar
-
-        return titleBarHeight, borderSize
-
+        # Set window parameters
+        self.borderSize = int(((windowRect[2] - windowRect[0]) - clientRect[2]) / 2) # Size of transparent border on each side
+        self.titleBarHeight = ((windowRect[3] - windowRect[1]) - clientRect[3]) - self.borderSize # Size of top window title bar
+        self.retrieveMenuHeight() # Retrieve menu size from screenshot
+    
 
     ##########################################################################################
     # Get window's menu heigth by counting the number of pixels with its specific menu color #
     ##########################################################################################
-    def getMenuHeight(self, titleBarHeight, borderSize):
+    def retrieveMenuHeight(self):
         
+        # Find menu in screenshot
         screenshot = self.captureWindow()
         height = screenshot.size[1]
 
+        # Default : menu not present
+        self.menuHeight = 0
+
         # Iterate on each first pixel until we find a pixel with a different color
-        for y in range(height - titleBarHeight):
-            firstPixel = screenshot.getpixel((borderSize, y + titleBarHeight))
+        for y in range(height - self.titleBarHeight):
+            firstPixel = screenshot.getpixel((self.borderSize, y + self.titleBarHeight))
 
             # Different color : we reached the end of the menu
             if (firstPixel not in self.parentEmulator.menuColor):
-                return y
-        
-        # Default : menu not present
-        return 0
+                self.menuHeight = y
+                break
 
 
     #####################################################################
     # Capture the content of the window and return it as a PILLOW Image #
     #####################################################################
     def captureWindow(self):
+        
+        # Give window focus
+        self.giveFocus()
+
         # Get window dimensions
         left, top, right, bot = win32gui.GetWindowRect(self._hWnd)
         width = right - left
@@ -433,6 +443,19 @@ class Window(Win32Window):
         saveDC.DeleteDC()
 
         return screnshot
+    
+
+    #####################################################################################
+    # Capture the content of the window without borders and return it as a PILLOW Image #
+    #####################################################################################
+    def captureWindowContent(self):
+        screenshot = self.captureWindow()
+
+        # Return window content without borders
+        return screenshot.crop(
+            (self.borderSize, self.titleBarHeight + self.menuHeight,
+             screenshot.size[0] - self.borderSize, screenshot.size[1] - self.borderSize - TOPBORDER_SIZE)
+        )
 
 
 # Two possible emulators
