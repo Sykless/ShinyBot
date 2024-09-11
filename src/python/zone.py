@@ -230,7 +230,7 @@ class Interactable():
         zoneMap = self.position.zone.map
 
         # Find a free cell to interact with the PC/NPC/etc
-        for closePosition in [(0,1),(1,0),(-1,0),(0,-1)]:
+        for closePosition in [(1,0),(0,1),(0,-1),(-1,0)]:
             if (zoneMap[self.position.Y + closePosition[0]][self.position.X + closePosition[1]] == "O"):
                 return Position(self.position.X + closePosition[1], self.position.Y + closePosition[0], self.position.zone)
 
