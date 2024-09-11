@@ -31,10 +31,14 @@ SAVERAM_LOCATION = "../../Programmes/BizHawk/NDS/SaveRAM/"
 SAV_LOCATION = "roms/"
 BACKUP_LOCATION = "roms/Backup/Saves/"
 
+DIAMANT = "Diamant"
+PERLE = "Perle"
+PLATINE = "Platine"
+
 SAVENAMES = {
-    "Diamant": "Pokemon - Version Diamant (France) (Rev 5).SaveRAM",
-    "Perle": "Pokemon - Version Perle (France) (Rev 5).SaveRAM",
-    "Platine": "Pokemon - Version Platine (France).SaveRAM"
+    DIAMANT: "Pokemon - Version Diamant (France) (Rev 5).SaveRAM",
+    PERLE: "Pokemon - Version Perle (France) (Rev 5).SaveRAM",
+    PLATINE: "Pokemon - Version Platine (France).SaveRAM"
 }
 
 
@@ -251,11 +255,10 @@ class Window(Win32Window):
 # Main Emulator class used to setup the emulator to be run with the Python script #
 ###################################################################################
 class Emulator():
-    def __init__(self, name, executableName, partialTitle, saveExtension, menuColor):
+    def __init__(self, name, executableName, partialTitle, menuColor):
         self.name = name
         self.executableName = executableName
         self.partialTitle = partialTitle
-        self.saveExtension = saveExtension
         self.menuColor = menuColor
 
         self.mainWindow: Optional[Window] = None
@@ -329,7 +332,7 @@ class Emulator():
                 self.secondaryWindow = self.launchEmu(gameName, self.mainWindow)
 
         # Makes the window take up the whole height and set it to the left of the screen
-        self.secondaryWindow.resizeWindow(self, fullscreen, self.mainWindow)
+        self.secondaryWindow.resizeWindow(fullscreen, self.mainWindow)
         self.secondaryWindow.gameName = gameName
         print(self.secondaryWindow)
 
@@ -447,14 +450,14 @@ class Emulator():
     #######################################################################################
     # Import save file of the other Emulator and make it readable by the current Emulator #
     #######################################################################################
-    def importSaveFile(self, pokemonGame):
+    def importSaveFile(self, pokemonGame, secondaryExtension = False):
         if (pokemonGame not in SAVENAMES):
             print("Unknown game : " + str(pokemonGame))
             return None
         
         # Retrieve SaveRAM and sav files
         saveRamFile = SAVERAM_LOCATION + SAVENAMES[pokemonGame]
-        savFile = SAV_LOCATION + "PokemonVersion" + pokemonGame + ".sav"
+        savFile = SAV_LOCATION + "PokemonVersion" + pokemonGame + ".sav" + (".2" if secondaryExtension else "") # Secondary melonDS instances have ".sav.2" extensions
         timestamp = time.strftime('%Y%m%d-%H%M%S')
 
         # Backup both SaveRAM and sav files
@@ -462,15 +465,15 @@ class Emulator():
         backupFile(savFile, timestamp)
 
         # Replace SaveRAM by sav or vice versa
-        if (self.saveExtension == "sav"):
-            replaceFile(savFile, saveRamFile)
-        else:
+        if (self == BIZHAWK):
             replaceFile(saveRamFile, savFile)
+        else:
+            replaceFile(savFile, saveRamFile)
 
 
 # Two possible emulators
-BIZHAWK = Emulator("BizHawk", "EmuHawk.exe", "Pokemon", "SaveRAM", menuColor = [(240,240,240)])
-MELONDS = Emulator("melonDS", "melonDS.exe", "[", "sav", menuColor = [(242,242,242), (255,255,255)])
+BIZHAWK = Emulator("BizHawk", "EmuHawk.exe", "Pokemon", menuColor = [(240,240,240)])
+MELONDS = Emulator("melonDS", "melonDS.exe", "[", menuColor = [(242,242,242), (255,255,255)])
 
 ########################################
 # Retrieve screen height minus taskbar #
