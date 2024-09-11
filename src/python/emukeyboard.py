@@ -60,10 +60,15 @@ def pressKey(hexKeyCode):
     if (isinstance(hexKeyCode, str)):
         hexKeyCode = KEYCODE_DICT[hexKeyCode]
 
+    # Check if it's an extended key (E0 prefix) and set the flag
+    flags = 0x0008  # KEYEVENTF_SCANCODE
+    if hexKeyCode in (0x4D, 0x48, 0x50, 0x4B):  # Extended keys like Page Down, Arrows, etc.
+        flags |= 0x0001  # KEYEVENTF_EXTENDEDKEY
+
     # Call Windows API to simulate a press
     extra = ctypes.c_ulong(0)
     ii_ = Input_I()
-    ii_.ki = KeyBdInput(0, hexKeyCode, 0x0008, 0, ctypes.pointer(extra))
+    ii_.ki = KeyBdInput(0, hexKeyCode, flags, 0, ctypes.pointer(extra))
     x = Input(ctypes.c_ulong(1), ii_)
     ctypes.windll.user32.SendInput(1, ctypes.pointer(x), ctypes.sizeof(x))
 
@@ -74,15 +79,21 @@ def releaseKey(hexKeyCode):
     if (isinstance(hexKeyCode, str)):
         hexKeyCode = KEYCODE_DICT[hexKeyCode]
 
+    # Check if it's an extended key (E0 prefix) and set the flag
+    flags = 0x0008 | 0x0002  # KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP
+    if hexKeyCode in (0x4D, 0x48, 0x50, 0x4B):  # Extended keys like Page Down, Arrows, etc.
+        flags |= 0x0001  # KEYEVENTF_EXTENDEDKEY
+
     # Call Windows API to simulate a release
     extra = ctypes.c_ulong(0)
     ii_ = Input_I()
-    ii_.ki = KeyBdInput(0, hexKeyCode, 0x0008 | 0x0002, 0, ctypes.pointer(extra))
+    ii_.ki = KeyBdInput(0, hexKeyCode, flags, 0, ctypes.pointer(extra))
     x = Input(ctypes.c_ulong(1), ii_)
     ctypes.windll.user32.SendInput(1, ctypes.pointer(x), ctypes.sizeof(x))
 
 def pressButton(button):
-    
+    print(button)
+
     # Press the button for 5 frames
     pressKey(button)
     waitFrames(5)
@@ -91,3 +102,13 @@ def pressButton(button):
     releaseKey(button)
     waitFrames(5)
 
+# Press every button in order
+def pressButtons(*buttons):
+    for button in buttons:
+        pressButton(button)
+
+# Press the button for the provided number of frames
+def holdButton(button, numberOfFrames):
+    pressKey(button)
+    waitFrames(numberOfFrames)
+    releaseKey(button)

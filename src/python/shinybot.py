@@ -2,6 +2,7 @@
 from pokemon import Pokemon
 from data import POKEMON_NAMES
 from utils import waitFrames
+from emu import BIZHAWK, MELONDS, PLATINE, DIAMANT, PERLE
 
 import time
 

@@ -2,6 +2,7 @@ import player
 import memory
 
 FRAMES_RELEASE_TIME = 5
+TURNAROUND_ANIMATION = 6
 
 ROCKSMASH = {"dialogue": 80, "useDialogue": 40, "animation": 100}
 CUT = {"dialogue": 80, "useDialogue": 40, "animation": 100}
@@ -368,7 +369,7 @@ def getStrengthInputs(inputButton):
 def getInputsToProgressCell(isOnBike, cellType, stopped, inputButton, playerDirection):
     return inputButton * (
         getInputTime(isOnBike, cellType) # Number of frames depend on the type of cell you're on
-        + 6 * (stopped and inputButton != playerDirection)) # If you're stopped, there's a 6-frame animation to turn around
+        + TURNAROUND_ANIMATION * (stopped and inputButton != playerDirection)) # If you're stopped, there's a 6-frame animation to turn around
 
 def getInputTime(isOnBike, cellType):
     # Low-speed bike
