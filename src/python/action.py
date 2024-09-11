@@ -10,6 +10,8 @@ import pathfinding
 
 from utils import waitFrames
 
+import time
+
 MENU_POKEDEX = 1
 MENU_POKEMON = 2
 MENU_BAG = 3
@@ -25,10 +27,19 @@ BIKEREGULAR = 3
 
 # Mash A to load save or B if journal is on screen
 def loadGame():
-    while (memory.isOnTitleScreen()):
-        if (not memory.readJoypadData()):
-            joypad.writeInput("A" if not img.journalFooter.isOnScreen(img.getScreenshot()) else "B")
-        waitFrames(1)
+
+    # If game is already loaded, don't do anything
+    if (memory.isOnTitleScreen()):
+
+        # Wait until game is loaded
+        while (memory.isOnTitleScreen()):
+            if (not memory.readJoypadData()):
+                joypad.writeInput("A" if not img.journalFooter.isOnScreen(img.getScreenshot()) else "B")
+            waitFrames(1)
+
+        # Wait until Poketch is visible
+        while (not img.poketch.isOnScreen(img.getScreenshot())):
+            waitFrames(1)
 
 
 # Input sequence to open menu
