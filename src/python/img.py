@@ -7,7 +7,7 @@ import cv2
 
 from PIL import Image, ImageFile
 
-from emu import BIZHAWK
+from emu import BIZHAWK, MELONDS
 from utils import waitFrames
 
 # https://stackoverflow.com/questions/42462431/oserror-broken-data-stream-when-reading-image-file
@@ -51,6 +51,41 @@ class GameTemplate:
     def isOnScreen(self, screenshot):
         return (self.templates[BIZHAWK.mainWindow.gameName if BIZHAWK.mainWindow else "Platine"]).isOnScreen(screenshot)
     
+class BackgroundTemplate:
+    def __init__(self, name, xFractionStart, xFractionEnd, yFractionStart, yFractionEnd):
+        self.image = cv2.imread("src/python/data/img/background/" + name + ".png")
+
+        # We don't know the MelonDS screenshot size so we're working with coordinate fractions
+        self.xFractionStart = xFractionStart
+        self.xFractionEnd = xFractionEnd
+        self.yFractionStart = yFractionStart
+        self.yFractionEnd = yFractionEnd
+
+    def getSubScreenshot(self, screenshot, imageLocation):
+        screenshotHeight = len(screenshot)
+        screenshotWidth = len(screenshot[0])
+
+        # If a specific image location is provided, crop the screenshot around this location
+        if (imageLocation):
+            subScreenshot = screenshot[
+                    int(imageLocation[2] * screenshotHeight) : int(imageLocation[3] * screenshotHeight),
+                    int(imageLocation[0] * screenshotWidth) : int(imageLocation[1] * screenshotWidth)]
+            
+        # Default : use object default image location
+        else:
+            subScreenshot = screenshot[
+                    int(self.yFractionStart * screenshotHeight) : int(self.yFractionEnd * screenshotHeight),
+                    int(self.xFractionStart * screenshotWidth) : int(self.xFractionEnd * screenshotWidth)]
+        
+        arrayScreenshot = numpy.array(subScreenshot, dtype=numpy.uint8)
+        image = Image.fromarray(arrayScreenshot)
+        image.save("sub.png")
+
+        return subScreenshot
+    
+    def isOnScreen(self, windowContent, imageLocation = None):
+        return isTemplateInImage(self.getSubScreenshot(windowContent, imageLocation), self.image)[0]
+
 
 BLACK_COLOR = [0,0,0]
 
@@ -108,6 +143,18 @@ thirdPage = Template("third-page", 183, 359, 6, 10, 1)
 useItem = Template("use-item", 8, 351, 192, 27, 1)
 newPokedexEntry = Template("new-pokedex-entry", 0, 0, 241, 15, 1)
 
+whiteBackground = BackgroundTemplate("white", 0, 0.5, 0, 0.5)
+blackBackground = BackgroundTemplate("black", 0, 1, 0.5, 1)
+dialogboxBackground = BackgroundTemplate("dialogbox", 0, 1, 0.25, 0.43)
+journalBackground = BackgroundTemplate("journal", 0, 1, 0.25, 0.5)
+selectionboxBackground = BackgroundTemplate("selectionbox", 0.5, 1, 0, 0.4)
+confirmationboxBackground = BackgroundTemplate("confirmationbox", 0.75, 1, 0.25, 0.4)
+tradeBackground = BackgroundTemplate("trade", 0.5, 1, 0.5, 1)
+evolutionBackground = BackgroundTemplate("evolution", 0, 1, 0.5, 1)
+learnmoveBackground = BackgroundTemplate("learnmove", 0, 1, 0.5, 1)
+TOPSCREEN = (0, 1, 0, 0.5)
+BOTTOMSCREEN = (0, 1, 0.5, 1)
+
 def waitUntilNotVisible(template):
     framesNotVisible = 0
 
@@ -128,7 +175,7 @@ def waitUntilNotVisible(template):
         waitFrames(1)
 
 
-def isTemplateInImage(image, templateImage, threshold, templatemask = None):
+def isTemplateInImage(image, templateImage, threshold = 1, templatemask = None):
     min_val, min_loc = getTemplatePosition(image, templateImage, cv2.TM_SQDIFF, templatemask)
     return min_val <= threshold, min_loc
 
@@ -298,7 +345,7 @@ def getCurrentItemSelectedPosition(screenshot):
 
 # Returns cursor position in bag menu in battle
 def getCursorPosition(screenshot, sectionSize):
-    selectorInImage, location = isTemplateInImage(screenshot[198:198+152 , 0:0+256], ITEM_CURRENT_LOCATION_SELECTOR, 1)
+    selectorInImage, location = isTemplateInImage(screenshot[198:198+152 , 0:0+256], ITEM_CURRENT_LOCATION_SELECTOR)
 
     if (selectorInImage):
         y = round((location[1] + sectionSize["height"]) / sectionSize["height"]) - 1
@@ -328,7 +375,7 @@ def getMapCursorPosition(screenshot):
 
 # Returns X menu cursor position
 def getMenuPosition(screenshot):
-    selectorInImage, location = isTemplateInImage(screenshot[8:8+168 , 158:158+3], MENU_CURRENT_LOCATION_SELECTOR, 1)
+    selectorInImage, location = isTemplateInImage(screenshot[8:8+168 , 158:158+3], MENU_CURRENT_LOCATION_SELECTOR)
 
     if (selectorInImage):
         return round(location[1] / 24) + 1
@@ -350,7 +397,7 @@ def getScreenshot():
         
         try:
             screenshotImage = Image.open(screenshotBytes)
-            screenshotImage.save("test.png")
+            screenshotImage.save("bizhawk.png")
 
             # Convert RGB screenshot to BGR in order to be cv2-readable
             return cv2.cvtColor(numpy.array(screenshotImage), cv2.COLOR_RGB2BGR)
