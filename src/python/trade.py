@@ -1,10 +1,93 @@
+
+import cv2
+import time
+import types
+
 import img
 import action
 import joypad
 import emukeyboard
 
 from utils import waitFrames
+from img import BOTTOMSCREEN, TOPSCREEN, BackgroundTemplate
 from emu import BIZHAWK, MELONDS, Window
+
+SPECIFIC = types.SimpleNamespace()
+SPECIFIC.LOAD_GAME = 1
+SPECIFIC.OPEN_MENU = 2
+SPECIFIC.TRADE_EVOLUTION = 3
+SPECIFIC.LEAVE_TRADE_MENU = 4
+
+FRAMES_TO_WAIT = 5
+
+def waitUntil(window: Window, background: BackgroundTemplate, visible, mashButton = None, imagePosition = None, specificProcess = None):
+    framesWaited = 0
+
+    # Wait until the image is visible (or not visible anymore)
+    while (True):
+        screenshot = window.captureWindowContent()
+
+        print("Checking " + background.name + (" is visible" if visible else " is not visible"))
+
+        # Condition is met : exit loop
+        if (background.isOnScreen(screenshot, imagePosition) is visible):
+            return True
+        
+        # If we spent more than one minute waiting, we are most likely stuck, stop the process
+        elif (framesWaited > 3600):
+            img.saveScreenshot(screenshot, background.name)
+            raise Exception(background.name + (" cannot be found in the image" if visible else " still visible in the image"))
+        
+        # Process that needs a specific condition
+        elif (specificProcess):
+            match specificProcess:
+
+                # Mash A to load game, and press B if on Journal
+                case SPECIFIC.LOAD_GAME:
+                    if (img.journalBackground.isOnScreen(screenshot)):
+                        emukeyboard.pressButton("B")
+                    else:
+                        emukeyboard.pressButton("A")
+                    framesWaited += 2 * FRAMES_TO_WAIT
+
+                # Try to open menu every half of a second
+                case SPECIFIC.OPEN_MENU:
+                    emukeyboard.pressButton("X") 
+                    framesWaited += 30
+                    waitFrames(30)
+
+                # Trade evolution : mash A to skip dialog
+                case SPECIFIC.TRADE_EVOLUTION:
+                    mainWindowContent = MELONDS.mainWindow.captureWindowContent()
+                    if (img.evolutionBackground.isOnScreen(mainWindowContent) or img.learnmoveBackground.isOnScreen(mainWindowContent)):
+                        emukeyboard.pressButton("A")
+
+                    secondaryWindowContent = MELONDS.secondaryWindow.captureWindowContent()
+                    if (img.evolutionBackground.isOnScreen(secondaryWindowContent) or img.learnmoveBackground.isOnScreen(secondaryWindowContent)):
+                        emukeyboard.pressButton("A")
+
+                    framesWaited += FRAMES_TO_WAIT
+                    waitFrames(FRAMES_TO_WAIT)
+
+                # Mash B on both instances to skip Pal Pad dialogue and leave Trade Menu
+                case SPECIFIC.LEAVE_TRADE_MENU:
+                    MELONDS.mainWindow.giveFocus()
+                    emukeyboard.pressButton("B")
+
+                    MELONDS.secondaryWindow.giveFocus()
+                    emukeyboard.pressButton("B")
+                    framesWaited += 4 * FRAMES_TO_WAIT
+        
+        # If a button is provided : mash it until the above condition is met
+        elif (mashButton):
+            emukeyboard.pressButton(mashButton)
+            framesWaited += 2 * FRAMES_TO_WAIT
+        
+        # Default : just wait
+        else:
+            waitFrames(FRAMES_TO_WAIT)
+            framesWaited += FRAMES_TO_WAIT
+
 
 def initTrade(mainGame, secondaryGame):
 
@@ -29,27 +112,14 @@ def initTrade(mainGame, secondaryGame):
     # Both games ready to trade
     return True
 
+
 def enterUnionRoom(melonWindow: Window):
 
     # Wait until the game starts
-    while (img.whiteBackground.isOnScreen(melonWindow.captureWindowContent())):
-        waitFrames(5)
-
-    windowContent = melonWindow.captureWindowContent()
+    waitUntil(melonWindow, img.whiteBackground, visible = False)
 
     # Mash A until we're in Union Room
-    while (not img.dialogboxBackground.isOnScreen(windowContent, img.BOTTOMSCREEN)):
-
-        # Journal is on screen : press B to skip
-        if (img.journalBackground.isOnScreen(windowContent)):
-            emukeyboard.pressButton("B")
-
-        # Default : mash A
-        else:
-            emukeyboard.pressButton("A")
-
-        # Check the screen 5 frames later
-        windowContent = melonWindow.captureWindowContent()
+    waitUntil(melonWindow, img.dialogboxBackground, visible = True, imagePosition = BOTTOMSCREEN, specificProcess = SPECIFIC.LOAD_GAME)
 
 
 def performTrade(mainGame, mainGamePokemon, secondaryGame, secondaryGamePokemon):
@@ -72,27 +142,22 @@ def performTrade(mainGame, mainGamePokemon, secondaryGame, secondaryGamePokemon)
     enterUnionRoom(MELONDS.secondaryWindow)
 
     # Mash A on first instance until we start dialog with the other
-    while (not img.dialogboxBackground.isOnScreen(MELONDS.mainWindow.captureWindowContent())):
-        emukeyboard.pressButton("A")
+    waitUntil(MELONDS.mainWindow, img.dialogboxBackground, visible = True, mashButton = "A")
 
     # Wait until selection box is open
-    while (not img.selectionboxBackground.isOnScreen(MELONDS.mainWindow.captureWindowContent())):
-        waitFrames(5)
+    waitUntil(MELONDS.mainWindow, img.selectionboxBackground, visible = True)
 
     # Navigate to "Trade" and press A to confirm
     emukeyboard.pressButtons("Down", "Down", "Down", "A")
 
     # Mash A to confirm trade on secondary instance until we're in the transition screen
-    while (not img.blackBackground.isOnScreen(MELONDS.secondaryWindow.captureWindowContent())):
-        emukeyboard.pressButton("A")
+    waitUntil(MELONDS.secondaryWindow, img.blackBackground, visible = True, mashButton = "A")
 
     # Wait until trade menu is open
-    while (not img.tradeBackground.isOnScreen(MELONDS.mainWindow.captureWindowContent())):
-        waitFrames(5)
+    waitUntil(MELONDS.mainWindow, img.tradeBackground, visible = True)
 
     # Wait until communication dialog box closes
-    while (img.dialogboxBackground.isOnScreen(MELONDS.mainWindow.captureWindowContent())):
-        waitFrames(5)
+    waitUntil(MELONDS.mainWindow, img.dialogboxBackground, visible = False)
     waitFrames(5) # Small lag after box closes
 
     # Trade each Pokémon in the list
@@ -102,21 +167,14 @@ def performTrade(mainGame, mainGamePokemon, secondaryGame, secondaryGamePokemon)
     quitTradeMenu(MELONDS.mainWindow)
     quitTradeMenu(MELONDS.secondaryWindow)
 
-    # Mash B on both instances until we left trade menu
-    while (not img.blackBackground.isOnScreen(MELONDS.mainWindow.captureWindowContent())):
-        MELONDS.mainWindow.giveFocus()
-        emukeyboard.pressButton("B")
-
-        MELONDS.secondaryWindow.giveFocus()
-        emukeyboard.pressButton("B")
-
+    # Mash B on both instances until we leave trade menu
+    waitUntil(MELONDS.mainWindow, img.blackBackground, visible = True, specificProcess = SPECIFIC.LEAVE_TRADE_MENU)
+    
     # Wait until we're back on selection menu
-    while (not img.selectionboxBackground.isOnScreen(MELONDS.mainWindow.captureWindowContent())):
-        waitFrames(5)
+    waitUntil(MELONDS.mainWindow, img.selectionboxBackground, visible = True)
 
     # Mash B to close selection box until no dialog box is left open
-    while (img.dialogboxBackground.isOnScreen(MELONDS.mainWindow.captureWindowContent())):
-        emukeyboard.pressButton("B")
+    waitUntil(MELONDS.mainWindow, img.dialogboxBackground, visible = False, mashButton = "B")
 
     # Quit Union Room, save the game and close window on both instances
     saveAndQuit(MELONDS.mainWindow, ("Right", 4))
@@ -139,23 +197,20 @@ def saveAndQuit(melonWindow: Window, inputs):
     emukeyboard.releaseKey("B") # Stop running
 
     # Wait until we left Union Room and menu opening is available
-    while (not img.selectionboxBackground.isOnScreen(melonWindow.captureWindowContent())):
-        emukeyboard.pressButton("X") # Try to open menu every half of a second
-        waitFrames(30)
+    waitUntil(melonWindow, img.selectionboxBackground, visible = True, specificProcess = SPECIFIC.OPEN_MENU)
 
     # Go to save button
     emukeyboard.pressButtons("Down", "Down", "Down", "Down", "A")
 
     # Wait until confirmation box appears
-    while (not img.confirmationboxBackground.isOnScreen(melonWindow.captureWindowContent())):
-        waitFrames(5)
+    waitUntil(melonWindow, img.confirmationboxBackground, visible = True)
 
     # Mash A until save menu closes
-    while (img.dialogboxBackground.isOnScreen(melonWindow.captureWindowContent(), img.TOPSCREEN)):
-        emukeyboard.pressButton("A")
+    waitUntil(melonWindow, img.dialogboxBackground, visible = False, mashButton = "A", imagePosition = TOPSCREEN)
 
     # Close the game
     melonWindow.closeWindow()
+
 
 def selectPokemon(mainGamePokemon, secondaryGamePokemon):
 
@@ -167,8 +222,7 @@ def selectPokemon(mainGamePokemon, secondaryGamePokemon):
         selectPokemonToTrade(MELONDS.secondaryWindow, secondaryGamePokemon[i])
 
         # Wait until confirmation box appears
-        while (not img.confirmationboxBackground.isOnScreen(MELONDS.mainWindow.captureWindowContent())):
-            waitFrames(5)
+        waitUntil(MELONDS.mainWindow, img.confirmationboxBackground, visible = True)
 
         # Confirm trade on both instances
         emukeyboard.pressButton("A")
@@ -176,27 +230,14 @@ def selectPokemon(mainGamePokemon, secondaryGamePokemon):
         emukeyboard.pressButton("A")
 
         # Wait until trade animation starts
-        while (not img.blackBackground.isOnScreen(MELONDS.mainWindow.captureWindowContent())):
-            waitFrames(5)
+        waitUntil(MELONDS.mainWindow, img.blackBackground, visible = True)
 
         # Wait until trade screen is visible again
-        while (not img.tradeBackground.isOnScreen(MELONDS.mainWindow.captureWindowContent())):
-
-            # Particular case : trade evolution : mash A to skip dialog
-            mainWindowContent = MELONDS.mainWindow.captureWindowContent()
-            if (img.evolutionBackground.isOnScreen(mainWindowContent) or img.learnmoveBackground.isOnScreen(mainWindowContent)):
-                emukeyboard.pressButton("A")
-
-            secondaryWindowContent = MELONDS.secondaryWindow.captureWindowContent()
-            if (img.evolutionBackground.isOnScreen(secondaryWindowContent) or img.learnmoveBackground.isOnScreen(secondaryWindowContent)):
-                emukeyboard.pressButton("A")
-
-            waitFrames(5)
+        waitUntil(MELONDS.mainWindow, img.tradeBackground, visible = True, specificProcess = SPECIFIC.TRADE_EVOLUTION)
 
         # Wait until communication dialog box closes
-        while (img.dialogboxBackground.isOnScreen(MELONDS.mainWindow.captureWindowContent())):
-            waitFrames(5)
-        waitFrames(5)
+        waitUntil(MELONDS.mainWindow, img.dialogboxBackground, visible = False)
+        waitFrames(5) # Small lag after box closes
 
     
 
@@ -217,8 +258,7 @@ def selectPokemonToTrade(melonWindow: Window, position):
     emukeyboard.pressButton("A")
 
     # Wait until the confirmation dialog box opens
-    while (not img.confirmationboxBackground.isOnScreen(melonWindow.captureWindowContent())):
-        waitFrames(5)
+    waitUntil(melonWindow, img.confirmationboxBackground, visible = True)
 
     # Select "Trade"
     emukeyboard.pressButtons("Down", "A")
@@ -233,8 +273,7 @@ def quitTradeMenu(melonWindow: Window):
     emukeyboard.pressButtons("Left", "Up", "A")
 
     # Wait until the confirmation dialog box opens
-    while (not img.confirmationboxBackground.isOnScreen(melonWindow.captureWindowContent())):
-        waitFrames(5)
+    waitUntil(melonWindow, img.confirmationboxBackground, visible = True)
 
     # Confirm Quit Trade
     emukeyboard.pressButton("A")

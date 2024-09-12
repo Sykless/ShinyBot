@@ -1,9 +1,11 @@
 
 
-import mmap
 import io
-import numpy
+import os
 import cv2
+import mmap
+import time
+import numpy
 
 from PIL import Image, ImageFile
 
@@ -53,6 +55,7 @@ class GameTemplate:
     
 class BackgroundTemplate:
     def __init__(self, name, xFractionStart, xFractionEnd, yFractionStart, yFractionEnd):
+        self.name = name
         self.image = cv2.imread("src/python/data/img/background/" + name + ".png")
 
         # We don't know the MelonDS screenshot size so we're working with coordinate fractions
@@ -403,3 +406,6 @@ def getScreenshot():
             return cv2.cvtColor(numpy.array(screenshotImage), cv2.COLOR_RGB2BGR)
         except Exception as e:
             waitFrames(1) # Check one frame later after memory has been updated
+
+def saveScreenshot(screenshot, filename):
+    cv2.imwrite(os.path.join("backup/screenshots", time.strftime('%Y%m%d-%H%M%S') + "-" + filename + ".png"), screenshot)
