@@ -74,8 +74,21 @@ class Window(Win32Window):
     # Simulate clicking on the window X button to close it #
     ########################################################
     def closeWindow(self):
+
+        # Close window
         win32gui.PostMessage(self._hWnd, win32con.WM_CLOSE, 0, 0)
-        time.sleep(0.5) # Wait until window is closed
+
+        # Set window to None
+        if (self == self.parentEmulator.mainWindow):
+            self.parentEmulator.mainWindow = None
+            self.parentEmulator.luaScriptWindow = None
+        elif (self == self.parentEmulator.secondaryWindow):
+            self.parentEmulator.secondaryWindow = None
+        elif (self == self.parentEmulator.luaScriptWindow):
+            self.parentEmulator.luaScriptWindow = None
+
+        # Wait until window is closed
+        time.sleep(0.5)
 
 
     ########################################################################
@@ -417,6 +430,13 @@ class Emulator():
 
         return emuWindow
     
+    #####################################
+    # Close all instances if they exist #
+    #####################################
+    def closeAllWindows(self):
+        for window in (self.mainWindow, self.secondaryWindow, self.luaScriptWindow):
+            window.closeWindow() if window else None
+
 
     ###########################################################
     # Make sure the Lua Script is running on Bizhawk instance #
