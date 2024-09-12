@@ -29,7 +29,7 @@ TOPBORDER_SIZE = 1
 
 SAVERAM_LOCATION = "../../Programmes/BizHawk/NDS/SaveRAM/"
 SAV_LOCATION = "roms/"
-BACKUP_LOCATION = "roms/Backup/Saves/"
+BACKUP_LOCATION = "backup/saves/"
 
 DIAMANT = "Diamant"
 PERLE = "Perle"
@@ -460,14 +460,12 @@ class Emulator():
         savFile = SAV_LOCATION + "PokemonVersion" + pokemonGame + ".sav" + (".2" if secondaryExtension else "") # Secondary melonDS instances have ".sav.2" extensions
         timestamp = time.strftime('%Y%m%d-%H%M%S')
 
-        # Backup both SaveRAM and sav files
-        backupFile(saveRamFile, timestamp)
-        backupFile(savFile, timestamp)
-
-        # Replace SaveRAM by sav or vice versa
+        # Backup then replace SaveRAM by sav or vice versa
         if (self == BIZHAWK):
+            backupFile(saveRamFile, timestamp)
             replaceFile(saveRamFile, savFile)
         else:
+            backupFile(savFile, timestamp)
             replaceFile(savFile, saveRamFile)
 
 
