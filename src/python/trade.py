@@ -20,6 +20,265 @@ SPECIFIC.LEAVE_TRADE_MENU = 4
 
 FRAMES_TO_WAIT = 5
 
+class Trade():
+    def __init__(self, mainGame, mainGamePokemon, secondaryGame, secondaryGamePokemon):
+        self. mainGame = mainGame
+        self.secondaryGame = secondaryGame
+        self.pokemonPositions = {self.mainGame : mainGamePokemon, self.secondaryGame: secondaryGamePokemon}
+        self.originalPokemonPositions = copy.deepcopy(self.pokemonPositions)
+
+        self.pokemonToTrade = {self.mainGame: {}, self.secondaryGame: {}}
+        self.originalSave = {self.mainGame: None, self.secondaryGame: None}
+
+
+    ######################################################################################
+    # Execute every action needed to trade Pokémon from the main instance to a secondary #
+    ######################################################################################
+    def tradeProcess(self):
+
+        # Make sure we're on the right position on both instances
+        self.initTrade()
+
+        # Launch first MelonDS instance, load game and enter Union Room
+        MELONDS.initEmulator(self.mainGame)
+        self.enterUnionRoom(MELONDS.mainWindow)
+
+        # Go to the trade position on first instance
+        emukeyboard.pressKey("B") # Start running
+        emukeyboard.holdButton("Up", joypad.TURNAROUND_ANIMATION + int(1.5 * joypad.INPUTTIME["run"])) # Turn around and run 2 cells up
+        emukeyboard.holdButton("Left", 4 * joypad.INPUTTIME["run"]) # Run 4 cells left
+        emukeyboard.releaseKey("B") # Stop running
+
+        # Launch second MelonDS instance, load game and enter Union Room
+        MELONDS.initSecondEmulatorInstance(self.secondaryGame)
+        self.enterUnionRoom(MELONDS.secondaryWindow)
+
+        # Mash A on first instance until we start dialog with the other
+        waitUntil(MELONDS.mainWindow, img.dialogboxBackground, visible = True, mashButton = "A")
+
+        # Wait until selection box is open
+        waitUntil(MELONDS.mainWindow, img.selectionboxBackground, visible = True)
+
+        # Navigate to "Trade" and press A to confirm
+        emukeyboard.pressButtons("Down", "Down", "Down", "A")
+
+        # Mash A to confirm trade on secondary instance until we're in the transition screen
+        waitUntil(MELONDS.secondaryWindow, img.blackBackground, visible = True, mashButton = "A")
+
+        # Wait until trade menu is open
+        waitUntil(MELONDS.mainWindow, img.tradeBackground, visible = True)
+
+        # Wait until communication dialog box closes
+        waitUntil(MELONDS.mainWindow, img.dialogboxBackground, visible = False)
+        waitFrames(5) # Small lag after box closes
+
+        # Trade each Pokémon in the list
+        self.selectPokemon()
+
+        # Quit trade menu on both instances
+        self.quitTradeMenu(MELONDS.mainWindow)
+        self.quitTradeMenu(MELONDS.secondaryWindow)
+
+        # Mash B on both instances until we leave trade menu
+        waitUntil(MELONDS.mainWindow, img.blackBackground, visible = True, specificProcess = SPECIFIC.LEAVE_TRADE_MENU)
+        
+        # Wait until we're back on selection menu
+        waitUntil(MELONDS.mainWindow, img.selectionboxBackground, visible = True)
+
+        # Mash B to close selection box until no dialog box is left open
+        waitUntil(MELONDS.mainWindow, img.dialogboxBackground, visible = False, mashButton = "B")
+
+        # Quit Union Room, save the game and close window on both instances
+        self.saveAndQuit(MELONDS.mainWindow, ("Right", 4))
+        self.saveAndQuit(MELONDS.secondaryWindow, ("Up", 1))
+
+        # Import MelonDS save file in BizHawk
+        BIZHAWK.importSaveFile(self.mainGame) 
+        BIZHAWK.importSaveFile(self.secondaryGame, secondaryExtension = True)
+
+        # No error detected
+        return True
+
+
+    #####################################################################################################
+    # Setup the correct position and orientation with BizHawk so MelonDS always start on the same setup #
+    #####################################################################################################
+    def initTrade(self):
+
+        # Perform the same init setup on both games
+        for game in [self.mainGame, self.secondaryGame]:
+        
+            # Make sure current instance is loaded
+            BIZHAWK.initEmulator(game)
+            action.loadGame()
+
+            # Go to a specific cell in front of Union Room
+            action.setupTradePosition()
+
+            # Open menu and retrieve Pokémon we want to trade
+            if (action.openMenu()):
+                waitFrames(20)
+                pokemonTeam = pokemon.getPokemonTeam()
+                print(pokemonTeam)
+
+                for pokemonId in self.pokemonToTrade[self.mainGame] if game == self.mainGame else self.pokemonToTrade[self.secondaryGame]:
+                    self.pokemonToTrade[game][pokemonId] = pokemonTeam[pokemonId]
+            else:
+                print("Couldn't open menu on version " + game + ", traded canceled")
+                return None
+            
+            # Save the game and quit the process if we couldn't
+            if (not action.saveGame()):
+                print("Couldn't save on version " + game + ", traded canceled")
+                return None
+
+            # Close current instance
+            BIZHAWK.mainWindow.closeWindow()
+
+            # Import BizHawk save file in MelonDS
+            MELONDS.importSaveFile(game, secondaryExtension = (game == self.secondaryGame))
+
+
+    ###################################################
+    # Go from loading the game to entering Union Room #
+    ###################################################
+    def enterUnionRoom(self, melonWindow: Window):
+
+        # Wait until the game starts
+        waitUntil(melonWindow, img.whiteBackground, visible = False)
+
+        # Mash A until we're in Union Room
+        waitUntil(melonWindow, img.dialogboxBackground, visible = True, imagePosition = BOTTOMSCREEN, specificProcess = SPECIFIC.LOAD_GAME)
+
+
+    #############################################################################################
+    # Select all tradeable Pokémon, trade them with each other and wait until animation is over #
+    #############################################################################################
+    def selectPokemon(self):
+
+        # Repeat the process for each trade
+        for i in range(len(self.pokemonToTrade[self.mainGame])):
+
+            # Select Pokémon to trade on both instances
+            self.selectPokemonToTrade(MELONDS.mainWindow, self.pokemonToTrade[self.mainGame][i])
+            self.selectPokemonToTrade(MELONDS.secondaryWindow, self.pokemonToTrade[self.secondaryGame][i])
+
+            # Wait until confirmation box appears
+            waitUntil(MELONDS.mainWindow, img.confirmationboxBackground, visible = True)
+
+            # Confirm trade on both instances
+            emukeyboard.pressButton("A")
+            MELONDS.secondaryWindow.giveFocus()
+            emukeyboard.pressButton("A")
+
+            # Wait until trade animation starts
+            waitUntil(MELONDS.mainWindow, img.blackBackground, visible = True)
+
+            # Wait until trade screen is visible again
+            waitUntil(MELONDS.mainWindow, img.tradeBackground, visible = True, specificProcess = SPECIFIC.TRADE_EVOLUTION)
+
+            # Wait until communication dialog box closes
+            waitUntil(MELONDS.mainWindow, img.dialogboxBackground, visible = False)
+            waitFrames(5) # Small lag after box closes
+
+        
+    #####################################################################################
+    # Input sequence to selected the Pokémon at the provided position and confirm trade #
+    #####################################################################################
+    def selectPokemonToTrade(self, melonWindow: Window, position):
+
+        # Give focus on the window so it can accept inputs
+        melonWindow.giveFocus()
+        position = 0
+
+        # Press Right once for odd positions
+        if (position % 2 == 1):
+            emukeyboard.pressButton("Right")
+
+        # Press Down until we reach provided position
+        for _ in range(position // 2):
+            emukeyboard.pressButton("Down")
+
+        # Select Pokémon
+        emukeyboard.pressButton("A")
+
+        # Wait until the confirmation dialog box opens
+        waitUntil(melonWindow, img.confirmationboxBackground, visible = True)
+
+        # Select "Trade"
+        emukeyboard.pressButtons("Down", "A")
+
+
+    ###################################################
+    # Input sequence to go to Quit button and confirm #
+    ###################################################
+    def quitTradeMenu(self, melonWindow: Window):
+
+        # Give focus on the window so it can accept inputs
+        melonWindow.giveFocus()
+
+        # Navigate to "Quit" and press A to confirm
+        emukeyboard.pressButtons("Left", "Up", "A")
+
+        # Wait until the confirmation dialog box opens
+        waitUntil(melonWindow, img.confirmationboxBackground, visible = True)
+
+        # Confirm Quit Trade
+        emukeyboard.pressButton("A")
+
+
+    ###############################################
+    # Exit Union Room, save the game and close it #
+    ###############################################
+    def saveAndQuit(self, melonWindow: Window, inputs):
+
+        # Give focus on the window so it can accept inputs
+        melonWindow.giveFocus()
+
+        # Exit Union Room
+        emukeyboard.pressKey("B") # Start running
+        emukeyboard.holdButton(inputs[0], joypad.TURNAROUND_ANIMATION + inputs[1] * joypad.INPUTTIME["run"]) # Turn around and run so we're above exit
+        emukeyboard.holdButton("Down", 2 * joypad.INPUTTIME["run"]) # Run 2 cells down to exit Union Room
+        emukeyboard.releaseKey("B") # Stop running
+
+        # Wait until we left Union Room and menu opening is available
+        waitUntil(melonWindow, img.selectionboxBackground, visible = True, specificProcess = SPECIFIC.OPEN_MENU)
+
+        # Go to save button
+        emukeyboard.pressButtons("Down", "Down", "Down", "Down", "A")
+
+        # Wait until confirmation box appears
+        waitUntil(melonWindow, img.confirmationboxBackground, visible = True)
+
+        # Mash A until save menu closes
+        waitUntil(melonWindow, img.dialogboxBackground, visible = False, mashButton = "A", imagePosition = TOPSCREEN)
+
+        # Close the game
+        melonWindow.closeWindow()
+
+
+    ##############################################################################
+    # Store backup saves in a variable if the variable was not already populated #
+    #############################################################################
+    def storeBackupSaves(self, backupMainSave, backupSecondarySave):
+        if (not self.originalSave[self.mainGame] and backupMainSave):
+            self.originalSave[self.mainGame] = backupMainSave
+        if (not self.originalSave[self.secondaryGame] and backupSecondarySave):
+            self.originalSave[self.secondaryGame] = backupSecondarySave
+        
+
+        
+##########################################################################################
+# Create Trade object and perform the whole trade process between the two provided games #
+##########################################################################################
+def performTrade(mainGame, mainGamePokemon, secondaryGame, secondaryGamePokemon):
+    trade = Trade(mainGame, mainGamePokemon, secondaryGame, secondaryGamePokemon)
+    trade.tradeProcess()
+
+
+###################################################################################################################
+# Wait until the image is visible or not visible, with a fail-safe that stops the process if running for too long #
+###################################################################################################################
 def waitUntil(window: Window, background: BackgroundTemplate, visible, mashButton = None, imagePosition = None, specificProcess = None):
     framesWaited = 0
 
@@ -87,193 +346,3 @@ def waitUntil(window: Window, background: BackgroundTemplate, visible, mashButto
         else:
             waitFrames(FRAMES_TO_WAIT)
             framesWaited += FRAMES_TO_WAIT
-
-
-def initTrade(mainGame, secondaryGame):
-
-    # Perform the same init setup on both games
-    for game in [mainGame, secondaryGame]:
-    
-        # Make sure current instance is loaded
-        BIZHAWK.initEmulator(game)
-        action.loadGame()
-
-        # Go to a specific cell in front of Union Room and save the game
-        if (not action.setupTradePosition()):
-            print("Couldn't save on version " + game + ", traded canceled")
-            return False
-
-        # Close current instance
-        BIZHAWK.mainWindow.closeWindow()
-
-        # Import BizHawk save file in MelonDS
-        MELONDS.importSaveFile(game, secondaryExtension = (game == secondaryGame))
-
-    # Both games ready to trade
-    return True
-
-
-def enterUnionRoom(melonWindow: Window):
-
-    # Wait until the game starts
-    waitUntil(melonWindow, img.whiteBackground, visible = False)
-
-    # Mash A until we're in Union Room
-    waitUntil(melonWindow, img.dialogboxBackground, visible = True, imagePosition = BOTTOMSCREEN, specificProcess = SPECIFIC.LOAD_GAME)
-
-
-def performTrade(mainGame, mainGamePokemon, secondaryGame, secondaryGamePokemon):
-
-    # Make sure we're on the right position on both instances
-    initTrade(mainGame, secondaryGame)
-
-    # Launch first MelonDS instance, load game and enter Union Room
-    MELONDS.initEmulator(mainGame)
-    enterUnionRoom(MELONDS.mainWindow)
-
-    # Go to the trade position on first instance
-    emukeyboard.pressKey("B") # Start running
-    emukeyboard.holdButton("Up", joypad.TURNAROUND_ANIMATION + int(1.5 * joypad.INPUTTIME["run"])) # Turn around and run 2 cells up
-    emukeyboard.holdButton("Left", 4 * joypad.INPUTTIME["run"]) # Run 4 cells left
-    emukeyboard.releaseKey("B") # Stop running
-
-    # Launch second MelonDS instance, load game and enter Union Room
-    MELONDS.initSecondEmulatorInstance(secondaryGame)
-    enterUnionRoom(MELONDS.secondaryWindow)
-
-    # Mash A on first instance until we start dialog with the other
-    waitUntil(MELONDS.mainWindow, img.dialogboxBackground, visible = True, mashButton = "A")
-
-    # Wait until selection box is open
-    waitUntil(MELONDS.mainWindow, img.selectionboxBackground, visible = True)
-
-    # Navigate to "Trade" and press A to confirm
-    emukeyboard.pressButtons("Down", "Down", "Down", "A")
-
-    # Mash A to confirm trade on secondary instance until we're in the transition screen
-    waitUntil(MELONDS.secondaryWindow, img.blackBackground, visible = True, mashButton = "A")
-
-    # Wait until trade menu is open
-    waitUntil(MELONDS.mainWindow, img.tradeBackground, visible = True)
-
-    # Wait until communication dialog box closes
-    waitUntil(MELONDS.mainWindow, img.dialogboxBackground, visible = False)
-    waitFrames(5) # Small lag after box closes
-
-    # Trade each Pokémon in the list
-    selectPokemon(mainGamePokemon, secondaryGamePokemon)
-
-    # Quit trade menu on both instances
-    quitTradeMenu(MELONDS.mainWindow)
-    quitTradeMenu(MELONDS.secondaryWindow)
-
-    # Mash B on both instances until we leave trade menu
-    waitUntil(MELONDS.mainWindow, img.blackBackground, visible = True, specificProcess = SPECIFIC.LEAVE_TRADE_MENU)
-    
-    # Wait until we're back on selection menu
-    waitUntil(MELONDS.mainWindow, img.selectionboxBackground, visible = True)
-
-    # Mash B to close selection box until no dialog box is left open
-    waitUntil(MELONDS.mainWindow, img.dialogboxBackground, visible = False, mashButton = "B")
-
-    # Quit Union Room, save the game and close window on both instances
-    saveAndQuit(MELONDS.mainWindow, ("Right", 4))
-    saveAndQuit(MELONDS.secondaryWindow, ("Up", 1))
-
-    # Import MelonDS save file in BizHawk
-    BIZHAWK.importSaveFile(mainGame)
-    BIZHAWK.importSaveFile(secondaryGame, secondaryExtension = True)
-
-    
-def saveAndQuit(melonWindow: Window, inputs):
-
-    # Give focus on the window so it can accept inputs
-    melonWindow.giveFocus()
-
-    # Exit Union Room
-    emukeyboard.pressKey("B") # Start running
-    emukeyboard.holdButton(inputs[0], joypad.TURNAROUND_ANIMATION + inputs[1] * joypad.INPUTTIME["run"]) # Turn around and run so we're above exit
-    emukeyboard.holdButton("Down", 2 * joypad.INPUTTIME["run"]) # Run 2 cells down to exit Union Room
-    emukeyboard.releaseKey("B") # Stop running
-
-    # Wait until we left Union Room and menu opening is available
-    waitUntil(melonWindow, img.selectionboxBackground, visible = True, specificProcess = SPECIFIC.OPEN_MENU)
-
-    # Go to save button
-    emukeyboard.pressButtons("Down", "Down", "Down", "Down", "A")
-
-    # Wait until confirmation box appears
-    waitUntil(melonWindow, img.confirmationboxBackground, visible = True)
-
-    # Mash A until save menu closes
-    waitUntil(melonWindow, img.dialogboxBackground, visible = False, mashButton = "A", imagePosition = TOPSCREEN)
-
-    # Close the game
-    melonWindow.closeWindow()
-
-
-def selectPokemon(mainGamePokemon, secondaryGamePokemon):
-
-    # Repeat the process for each trade
-    for i in range(len(mainGamePokemon)):
-
-        # Select Pokémon to trade on both instances
-        selectPokemonToTrade(MELONDS.mainWindow, mainGamePokemon[i])
-        selectPokemonToTrade(MELONDS.secondaryWindow, secondaryGamePokemon[i])
-
-        # Wait until confirmation box appears
-        waitUntil(MELONDS.mainWindow, img.confirmationboxBackground, visible = True)
-
-        # Confirm trade on both instances
-        emukeyboard.pressButton("A")
-        MELONDS.secondaryWindow.giveFocus()
-        emukeyboard.pressButton("A")
-
-        # Wait until trade animation starts
-        waitUntil(MELONDS.mainWindow, img.blackBackground, visible = True)
-
-        # Wait until trade screen is visible again
-        waitUntil(MELONDS.mainWindow, img.tradeBackground, visible = True, specificProcess = SPECIFIC.TRADE_EVOLUTION)
-
-        # Wait until communication dialog box closes
-        waitUntil(MELONDS.mainWindow, img.dialogboxBackground, visible = False)
-        waitFrames(5) # Small lag after box closes
-
-    
-
-def selectPokemonToTrade(melonWindow: Window, position):
-
-    # Give focus on the window so it can accept inputs
-    melonWindow.giveFocus()
-
-    # Press Right once for even positions
-    if (position % 2 == 0):
-        emukeyboard.pressButton("Right")
-
-    # Press Down until we reach provided position
-    for _ in range((position - 1) // 2):
-        emukeyboard.pressButton("Down")
-
-    # Select Pokémon
-    emukeyboard.pressButton("A")
-
-    # Wait until the confirmation dialog box opens
-    waitUntil(melonWindow, img.confirmationboxBackground, visible = True)
-
-    # Select "Trade"
-    emukeyboard.pressButtons("Down", "A")
-
-
-def quitTradeMenu(melonWindow: Window):
-
-    # Give focus on the window so it can accept inputs
-    melonWindow.giveFocus()
-
-    # Navigate to "Quit" and press A to confirm
-    emukeyboard.pressButtons("Left", "Up", "A")
-
-    # Wait until the confirmation dialog box opens
-    waitUntil(melonWindow, img.confirmationboxBackground, visible = True)
-
-    # Confirm Quit Trade
-    emukeyboard.pressButton("A")
