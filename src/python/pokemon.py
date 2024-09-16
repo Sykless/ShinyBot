@@ -139,6 +139,9 @@ class Pokemon:
         # We might receive invalid data since team memory address is shared with other parameters when you're not in battle/menu
         except IndexError:
             self.isValid = False
+
+    def __eq__(self, other):
+        return isinstance(other, Pokemon) and self.isValid and other.isValid and self.pid == other.pid
         
     def __str__(self):
         return (str(self.name) + " " + ("♀" if self.female else "♂")
@@ -158,6 +161,19 @@ class Pokemon:
                 + " = EV    = " + formatNumber(self.EV.HP) + " = " + formatNumber(self.EV.attack) + " = " + formatNumber(self.EV.defense) + " = " + formatNumber(self.EV.specialAttack) + " = " + formatNumber(self.EV.specialDefense) + " = " + formatNumber(self.EV.speed) + " =\n"
                 + " =============================================\n") if hasattr(self, 'name') else ("Unknown Pokémon : " + str(self.pokedexId))
     
+    def __repr__(self):
+        return str(self.nickname + " - " + self.name + " level " + str(self.level) + " (" + str(hex(self.pid)).upper().replace("X","x") + ")\n")
+
+def getPokemonTeam():
+    pokemonTeam = []
+    jsonTeamData = memory.readPokemonTeamData()
+
+    for jsonPokemon in jsonTeamData:
+        pokemonTeam.append(Pokemon(**jsonPokemon))
+
+    return pokemonTeam
+
+
 def isHMAvailable(hmId):
     jsonTeamData = memory.readPokemonTeamData()
 

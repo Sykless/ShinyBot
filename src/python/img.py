@@ -63,7 +63,10 @@ class BackgroundTemplate:
         self.xFractionEnd = xFractionEnd
         self.yFractionStart = yFractionStart
         self.yFractionEnd = yFractionEnd
-
+    
+    def __eq__(self, other):
+        return isinstance(other, BackgroundTemplate) and self.name == other.name
+    
     def getSubScreenshot(self, screenshot, imageLocation):
         screenshotHeight = len(screenshot)
         screenshotWidth = len(screenshot[0])

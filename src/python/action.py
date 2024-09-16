@@ -348,11 +348,3 @@ def setupTradePosition():
     # Make sure we're facing up
     while (player.getPlayerData().orientation != "u"):
         joypad.writeInput("u")
-    
-    # Save the game and quit the process if we couldn't
-    if (not saveGame()):
-        print("Cannot save game")
-        return False
-    
-    # All conditions matched
-    return True

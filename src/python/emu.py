@@ -411,8 +411,6 @@ class Emulator():
     # Execute Emulator executable with the provided Pokemon game version #
     ######################################################################
     def launchEmu(self, pokemonGameVersion, firstInstance = None):
-        print("Emulator not open, opening it...")
-
         try:
             process = subprocess.Popen("../../Programmes/" + self.name + "/" + self.executableName + " roms/PokemonVersion" + pokemonGameVersion + ".nds")
         except OSError as e:
@@ -424,9 +422,7 @@ class Emulator():
         emuWindow = self.waitUntilOpen(self.name, firstInstance)
 
         # Wait until ROM finishes loading
-        print("ROM launching...")
         time.sleep(2)
-        print("Emulator open !")
 
         return emuWindow
     
@@ -435,7 +431,10 @@ class Emulator():
     #####################################
     def closeAllWindows(self):
         for window in (self.mainWindow, self.secondaryWindow, self.luaScriptWindow):
-            window.closeWindow() if window else None
+            try:
+                window.closeWindow() if window else None
+            except:
+                pass
 
 
     ###########################################################
@@ -476,17 +475,36 @@ class Emulator():
             return None
         
         # Retrieve SaveRAM and sav files
-        saveRamFile = SAVERAM_LOCATION + SAVENAMES[pokemonGame]
-        savFile = SAV_LOCATION + "PokemonVersion" + pokemonGame + ".sav" + (".2" if secondaryExtension else "") # Secondary melonDS instances have ".sav.2" extensions
-        timestamp = time.strftime('%Y%m%d-%H%M%S')
+        saveRamFilename = SAVENAMES[pokemonGame]
+        savFilename = "PokemonVersion" + pokemonGame + ".sav" + (".2" if secondaryExtension else "") # Secondary melonDS instances have ".sav.2" extensions
+        saveRamFile = SAVERAM_LOCATION + saveRamFilename
+        savFile = SAV_LOCATION + savFilename
+        backupPrefix = "Backup-" + str(time.strftime('%Y%m%d-%H%M%S')) + "-"
 
         # Backup then replace SaveRAM by sav or vice versa
         if (self == BIZHAWK):
-            backupFile(saveRamFile, timestamp)
+            backupFile(saveRamFile, backupPrefix)
             replaceFile(saveRamFile, savFile)
+            return backupPrefix + saveRamFilename
         else:
-            backupFile(savFile, timestamp)
+            backupFile(savFile, backupPrefix)
             replaceFile(savFile, saveRamFile)
+            return backupPrefix + savFilename
+
+
+    ####################################################################
+    # Replace old save file by a new save file from the other emulator #
+    ####################################################################
+    def restoreBackupFile(self, pokemonGame, backupFilename):
+
+        # Retrieve SaveRAM file and replace it by the backup file
+        if (self == BIZHAWK):
+            saveRamFile = SAVERAM_LOCATION + SAVENAMES[pokemonGame]
+            backupFile = BACKUP_LOCATION + backupFilename
+
+            replaceFile(saveRamFile, backupFile)
+        else:
+            print("Only restore BizHawk save files")
 
 
 # Two possible emulators
@@ -504,7 +522,7 @@ def getScreenHeightMinusTaskbar():
 ######################################################
 # Save both SaveRAM and sav files in a backup folder #
 ######################################################
-def backupFile(filePath, timestamp):
+def backupFile(filePath, backupPrefix):
 
     # Get the file name and extension
     baseName = os.path.basename(filePath)
@@ -513,7 +531,7 @@ def backupFile(filePath, timestamp):
     if os.path.exists(filePath):
 
         # Create the timestamp and the backup filename
-        backupFileName = f"Backup-{timestamp}-{baseName}"
+        backupFileName = backupPrefix + baseName
         
         # Construct the full path for the backup
         backupPath = os.path.join(BACKUP_LOCATION, backupFileName)
@@ -524,6 +542,7 @@ def backupFile(filePath, timestamp):
     else:
         print("Save file does not exist : " + baseName)
 
+
 ####################################################################
 # Replace old save file by a new save file from the other emulator #
 ####################################################################
@@ -532,7 +551,6 @@ def replaceFile(fileToReplace, fileToKeep):
     # Remove the old save file
     if os.path.exists(fileToReplace):
         os.remove(fileToReplace)
-        print(f"Old save file removed : {fileToReplace}")
     
     # Rename old save file to new
     if os.path.exists(fileToKeep):
