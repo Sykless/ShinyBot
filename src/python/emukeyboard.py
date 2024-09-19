@@ -1,6 +1,5 @@
 import ctypes
 from utils import waitFrames
-from joypad import FRAMES_RELEASE_TIME
 
 # Define necessary structures and functions from the Windows API
 PUL = ctypes.POINTER(ctypes.c_ulong)
