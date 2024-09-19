@@ -26,13 +26,8 @@ class Dashboard():
 
     # Run the dashboard GUI in a separate thread
     def runDashboard(self):
-        dashboardThread = Thread(target = self.dashboardThread, daemon = True)
+        dashboardThread = Thread(target = self.initDashboard, daemon = True)
         dashboardThread.start()
-
-    # Start the GUI event loop
-    def dashboardThread(self):
-        self.initDashboard()
-        self.root.mainloop()
 
     # Init window and add empty placeholders
     def initDashboard(self):
@@ -49,7 +44,7 @@ class Dashboard():
         screenWidth = self.root.winfo_screenwidth()
         screenHeight = self.root.winfo_screenheight()
         windowWidth = int(screenWidth / 2)
-        self.root.geometry(f'{windowWidth} x {screenHeight} + {screenWidth - windowWidth} + 0')
+        self.root.geometry(f'{windowWidth}x{screenHeight}+{screenWidth - windowWidth}+0')
         self.root.attributes('-topmost', True)
 
         # Create frames for Pokémon encounters and bottom generic data
@@ -89,6 +84,9 @@ class Dashboard():
         # Start the update loop
         self.updateThread = Thread(target = self.updateLoop, daemon = True)
         self.updateThread.start()
+
+        # Launch dashboarf
+        self.root.mainloop()
 
     # Secondary loop needed to update the dashboard
     def updateLoop(self):
