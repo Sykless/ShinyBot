@@ -6,6 +6,7 @@ HIGH_BIKESPEED = 4
 
 class Player:
     def __init__(self, positionX, positionY, zone, orientation, isOnBike, bikeSpeed):
+        self.zoneId = zone
         self.position = Position(positionX, positionY, zone)
         self.orientation = orientation
         self.bikeSpeed = bikeSpeed

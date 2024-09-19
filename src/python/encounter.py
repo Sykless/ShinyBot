@@ -190,19 +190,19 @@ class EncounterTables():
                 encounterTables["walkEncounters"]["baseEncounters"][3].pokedexId = self.nightEncounters[1]
 
             # During a swarm : replace encounters 1 and 2 (20% encounters) by Swarm encounters 
-            if (gameData.swarmPokemon == self.swarmEncounters[0]):
+            if (SPECIALGRASSENCOUNTERS["swarm"][gameData.swarmPokemon] == self.swarmEncounters[0]):
                 encounterTables["walkEncounters"]["baseEncounters"][0].pokedexId = self.swarmEncounters[0]
                 encounterTables["walkEncounters"]["baseEncounters"][1].pokedexId = self.swarmEncounters[1]
 
             # In Jardin Trophée : replace encounters 7 and 8 (5% encounters) by Garden encounters
             if (zoneId == JARDINTROPHEE_ID):
-                encounterTables["walkEncounters"]["baseEncounters"][6].pokedexId = gameData.gardenPokemonToday
-                encounterTables["walkEncounters"]["baseEncounters"][7].pokedexId = gameData.gardenPokemonYesterday if gameData.gardenPokemonYesterday else gameData.gardenPokemonToday
+                encounterTables["walkEncounters"]["baseEncounters"][6].pokedexId = SPECIALGRASSENCOUNTERS["garden"][gameData.gardenPokemonToday]
+                encounterTables["walkEncounters"]["baseEncounters"][7].pokedexId = SPECIALGRASSENCOUNTERS["garden"][gameData.gardenPokemonYesterday if gameData.gardenPokemonYesterday else gameData.gardenPokemonToday]
 
             # In Grand Marais : replace encounters 7 and 8 (5% encounters) by Marsh encounters
             if (GRANDMARAIS_PARC1_ID <= zoneId <= GRANDMARAIS_PARC6_ID):
-                encounterTables["walkEncounters"]["baseEncounters"][6].pokedexId = gameData.marshPokemonList[zoneId - GRANDMARAIS_PARC1_ID]
-                encounterTables["walkEncounters"]["baseEncounters"][7].pokedexId = gameData.marshPokemonList[zoneId - GRANDMARAIS_PARC1_ID]
+                encounterTables["walkEncounters"]["baseEncounters"][6].pokedexId = SPECIALGRASSENCOUNTERS["marsh"][gameData.marshPokemonList[zoneId - GRANDMARAIS_PARC1_ID]]
+                encounterTables["walkEncounters"]["baseEncounters"][7].pokedexId = SPECIALGRASSENCOUNTERS["marsh"][gameData.marshPokemonList[zoneId - GRANDMARAIS_PARC1_ID]]
 
             # GBA game inserted : replace encounters 9 and 10 (4% encounters) by GBA game encounters
             if (gameData.gbaGame > 0):

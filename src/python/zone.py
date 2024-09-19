@@ -73,6 +73,12 @@ class Zone():
     def setEncounterTables(self, encounterTables):
         self.encounterTables = encounterTables
 
+    def getEncounterTables(self, zoneId):
+        if (self.subzoneList and zoneId in self.subzoneList):
+            return self.subzoneList[zoneId].encounterTables
+        else:
+            return self.encounterTables
+
     def getDoorByPosition(self, position):
         for door in self.doorList:
             if (door.position == position):
@@ -1169,8 +1175,8 @@ SOUTH.setSubZones(VERCHAMPS, ROUTE212_NORD, ROUTE212_SUD)
 SOUTHCENTER.setSubZones(CHARBOURG, ROUTE206, ROUTE207)
 SOUTHEAST.setSubZones(ROUTE213_OUEST, ROUTE214, ROUTE222, RIVELACCOURAGE, CHEMINSOURCE)
 SOUTHWEST.setSubZones(BONAUGURE, LITTORELLA, FELICITE, ROUTE201, ROUTE202, ROUTE203, ROUTE204_SUD, ROUTE219, ROUTE220, ROUTE221, RIVELACVERITE)
-SECTEURCOMBAT_NORTHWEST.setSubZones(AIREDESURVIE, ROUTE228, ROUTE229, ROUTE230, MONTABRUPT_EXTERIEUR)
-SECTEURCOMBAT_SOUTHEAST.setSubZones(AIREDECOMBAT, AIREDEDETENTE, ROUTE225, ROUTE226, ROUTE227)
+SECTEURCOMBAT_NORTHWEST.setSubZones(AIREDESURVIE, ROUTE225, ROUTE226, ROUTE227, MONTABRUPT_EXTERIEUR)
+SECTEURCOMBAT_SOUTHEAST.setSubZones(AIREDECOMBAT, AIREDEDETENTE, ROUTE228, ROUTE229, ROUTE230, )
 
 # Cities (used for Fly)
 BONAUGURE_CITY = City("Bonaugure", 411,[[2,21]], BONAUGURE_MAISON_DOOR)
