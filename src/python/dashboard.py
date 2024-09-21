@@ -1,4 +1,4 @@
-import tkinter as tk
+import tkinter
 import pyglet
 import time
 import os
@@ -6,6 +6,7 @@ import os
 from PIL import Image, ImageTk
 from threading import Thread
 
+from emu import BIZHAWK, MELONDS
 from data import POKEMON_NAMES
 
 # Allow code to use custom font
@@ -22,7 +23,6 @@ class Dashboard():
         self.nameLabels = []
         self.chanceLabels = []
         self.updatesPending = False
-        self.running = True
 
     # Run the dashboard GUI in a separate thread
     def runDashboard(self):
@@ -31,66 +31,74 @@ class Dashboard():
 
     # Init window and add empty placeholders
     def initDashboard(self):
+        EMULATOR = BIZHAWK if BIZHAWK.mainWindow else MELONDS
+        dashboardTitle = "ShinyBot Dashboard - Pokémon Version " + EMULATOR.mainWindow.gameName
 
         # Initialize the main window
-        self.root = tk.Tk()
-        self.root.title("Pokémon Encounter Dashboard")
+        self.root = tkinter.Tk()
+        self.root.title(dashboardTitle)
         self.root.configure(bg = DARK_BACKGROUND)
 
-        # Hide title bar
-        # root.overrideredirect(True)
-
-        # Set the window to full height but smaller width
         screenWidth = self.root.winfo_screenwidth()
         screenHeight = self.root.winfo_screenheight()
-        windowWidth = int(screenWidth / 2)
-        self.root.geometry(f'{windowWidth}x{screenHeight}+{screenWidth - windowWidth}+0')
-        self.root.attributes('-topmost', True)
+
+        # Fullscreen mode : hide title bar and stay on top
+        if (EMULATOR.fullscreen):
+            self.root.overrideredirect(True) # Hide title bar
+            self.root.attributes('-topmost', True) # Keep on top
+            windowWidth = screenWidth - EMULATOR.mainWindow.width
+            windowHeight = EMULATOR.mainWindow.height
+        else:
+            windowWidth = screenWidth - EMULATOR.mainWindow.width + 2 * EMULATOR.mainWindow.borderSize
+            windowHeight = EMULATOR.mainWindow.height - EMULATOR.mainWindow.titleBarHeight - EMULATOR.mainWindow.borderSize + EMULATOR.mainWindow.top
+
+        # Set the window to full height with width depending on emulator window
+        self.root.geometry(f'{windowWidth}x{windowHeight}+{screenWidth - windowWidth + EMULATOR.mainWindow.left}+{EMULATOR.mainWindow.top}')
 
         # Create frames for Pokémon encounters and bottom generic data
-        encounterFrame = tk.Frame(self.root)
-        encounterFrame.pack(fill=tk.BOTH, expand = True)
+        encounterFrame = tkinter.Frame(self.root)
+        encounterFrame.pack(fill = tkinter.BOTH, expand = True)
         encounterFrame.configure(bg = DARK_BACKGROUND)
 
-        bottomFrame = tk.Frame(self.root, height = int(screenHeight * 0.2))
-        bottomFrame.pack(fill=tk.BOTH, side=tk.BOTTOM)
+        bottomFrame = tkinter.Frame(self.root, height = int(screenHeight * 0.2))
+        bottomFrame.pack(fill = tkinter.BOTH, side = tkinter.BOTTOM)
         bottomFrame.configure(bg = DARK_BACKGROUND)
 
         # Create the encounter list layout with 12 empty rows
         for i in range(12):
 
             # Empty sprite placeholders
-            spriteLabel = tk.Label(encounterFrame, image = None, bg = DARK_BACKGROUND)
-            spriteLabel.grid(row=i, column=0, padx=10, pady=0)
+            spriteLabel = tkinter.Label(encounterFrame, image = None, bg = DARK_BACKGROUND)
+            spriteLabel.grid(row=i, column = 0, padx = 10, pady = 0)
             self.spriteLabels.append(spriteLabel)
 
             # Empty name placeholders
-            nameLabel = tk.Label(encounterFrame, text = "", font = (POKEMON_FONT, 12), fg = "white", bg = DARK_BACKGROUND)
-            nameLabel.grid(row=i, column=1, padx=10, pady=0)
+            nameLabel = tkinter.Label(encounterFrame, text = "", font = (POKEMON_FONT, 12), fg = "white", bg = DARK_BACKGROUND)
+            nameLabel.grid(row = i, column = 1, padx = 10, pady = 0)
             self.nameLabels.append(nameLabel)
 
             # Empty chance placeholders
-            chanceLabel = tk.Label(encounterFrame, text = "", font=(POKEMON_FONT, 12), fg = "white", bg = DARK_BACKGROUND)
-            chanceLabel.grid(row=i, column=2, padx=10, pady=0)
+            chanceLabel = tkinter.Label(encounterFrame, text = "", font = (POKEMON_FONT, 12), fg = "white", bg = DARK_BACKGROUND)
+            chanceLabel.grid(row = i, column = 2, padx = 10, pady = 0)
             self.chanceLabels.append(chanceLabel)
 
         # Add a sample bottom section for generic game data
-        genericLabel = tk.Label(bottomFrame, text="Generic Game Data: HP, Levels, etc.", font = (POKEMON_FONT, 12), fg = "white", bg = DARK_BACKGROUND)
+        genericLabel = tkinter.Label(bottomFrame, text="Generic Game Data: HP, Levels, etc.", font = (POKEMON_FONT, 12), fg = "white", bg = DARK_BACKGROUND)
         genericLabel.pack(pady = 0)
 
-        # Bind the Escape key to exit full-screen
-        self.root.bind('<Escape>', self.exitFullscreen)
+        # Associate Dashboard with current emulator and give dashboard focus once dashboard is open
+        self.root.after(500, EMULATOR.setDashboardWindow)
 
-        # Start the update loop
+        # Start the update loop on a dedicated thread
         self.updateThread = Thread(target = self.updateLoop, daemon = True)
         self.updateThread.start()
 
-        # Launch dashboarf
+        # Launch dashboard
         self.root.mainloop()
 
     # Secondary loop needed to update the dashboard
     def updateLoop(self):
-        while self.running:
+        while True:
             if self.updatesPending:
                 self.root.after(0, self.processUpdates) # Process and apply updates in the main thread
             time.sleep(0.1)  # Avoid excessive CPU usage

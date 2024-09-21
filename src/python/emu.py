@@ -50,6 +50,9 @@ class Window(Win32Window):
         super().__init__(window._hWnd)
         self.parentEmulator = emulator
         self.gameName = None
+        self.menuHeight = 0
+        self.borderSize = 0
+        self.titleBarHeight = 0
 
     def __eq__(self, other):
         return (isinstance(other, Window) or isinstance(other, Win32Window)) and self._hWnd == other._hWnd
@@ -94,13 +97,13 @@ class Window(Win32Window):
     ########################################################################
     # Make the window take the whole screen heigth or put it in fullscreen #
     ########################################################################
-    def resizeWindow(self, fullscreen, firstInstance = None):
+    def resizeWindow(self, firstInstance = None):
 
         # Calculate titlebar, menu and borders size
         self.calculateBordersSize()
 
         # Fullscreen : hide titlebar/menu at the top of the screen and put the app in front of Windows taskbar
-        if (fullscreen):
+        if (self.parentEmulator.fullscreen):
             # Apply a new style to remove the borders and titlebar
             borderlessStyle = win32gui.GetWindowLong(self._hWnd, win32con.GWL_STYLE) & ~win32con.WS_OVERLAPPEDWINDOW
             win32gui.SetWindowLong(self._hWnd, win32con.GWL_STYLE, borderlessStyle)
@@ -261,7 +264,7 @@ class Window(Win32Window):
     
         # Convert RGB screenshot to BGR in order to be cv2-readable
         return cv2.cvtColor(numpy.array(subScreenshot), cv2.COLOR_RGB2BGR)
-
+    
 
 
 ###################################################################################
@@ -276,6 +279,7 @@ class Emulator():
 
         self.mainWindow: Optional[Window] = None
         self.secondaryWindow: Optional[Window] = None
+        self.dashboardWindow: Optional[Window] = None
         self.luaScriptWindow: Optional[Window] = None
 
     def __eq__(self, other):
@@ -289,6 +293,7 @@ class Emulator():
 
         # Retrieve emulator window by executable
         emulatorWindowList = self.findEmuWindowByTitle(self.name)
+        self.fullscreen = fullscreen
         self.mainWindow = None
 
         if (emulatorWindowList):
@@ -304,7 +309,7 @@ class Emulator():
             self.mainWindow = self.launchEmu(gameName)
 
         # Makes the window take up the whole height and set it to the left of the screen
-        self.mainWindow.resizeWindow(fullscreen)
+        self.mainWindow.resizeWindow()
         self.mainWindow.gameName = gameName
         print(self.mainWindow)
 
@@ -316,7 +321,7 @@ class Emulator():
     ####################################################################
     # Launch Emulator secondary instance window and resize/position it #
     ####################################################################
-    def initSecondEmulatorInstance(self, gameName, fullscreen = False):
+    def initSecondEmulatorInstance(self, gameName):
 
         # Retrieve emulator window by executable
         emulatorWindowList = self.findEmuWindowByTitle(self.name)
@@ -345,7 +350,7 @@ class Emulator():
                 self.secondaryWindow = self.launchEmu(gameName, self.mainWindow)
 
         # Makes the window take up the whole height and set it to the left of the screen
-        self.secondaryWindow.resizeWindow(fullscreen, self.mainWindow)
+        self.secondaryWindow.resizeWindow(self.mainWindow)
         self.secondaryWindow.gameName = gameName
         print(self.secondaryWindow)
 
@@ -464,6 +469,16 @@ class Emulator():
 
         # Minimize the window after we're done with it
         self.luaScriptWindow.minimize()
+
+
+    ###################################################################################
+    # Find dashboard window from its title and associate it with the current emulator #
+    ###################################################################################
+    def setDashboardWindow(self):
+        self.dashboardWindow = Window(self, pygetwindow.getWindowsWithTitle("ShinyBot Dashboard - Pokémon Version ")[0])
+        self.dashboardWindow.parentEmulator = self
+        self.dashboardWindow.giveFocus()
+        self.mainWindow.giveFocus()
 
 
     #######################################################################################
