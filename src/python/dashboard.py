@@ -69,17 +69,17 @@ class Dashboard():
 
             # Empty sprite placeholders
             spriteLabel = tkinter.Label(encounterFrame, image = None, bg = DARK_BACKGROUND)
-            spriteLabel.grid(row=i, column = 0, padx = 10, pady = 0)
+            spriteLabel.grid(row=i, column = 0, padx = 10, pady = 10)
             self.spriteLabels.append(spriteLabel)
 
             # Empty name placeholders
             nameLabel = tkinter.Label(encounterFrame, text = "", font = (POKEMON_FONT, 12), fg = "white", bg = DARK_BACKGROUND)
-            nameLabel.grid(row = i, column = 1, padx = 10, pady = 0)
+            nameLabel.grid(row = i, column = 1, padx = 10, pady = 10)
             self.nameLabels.append(nameLabel)
 
             # Empty chance placeholders
             chanceLabel = tkinter.Label(encounterFrame, text = "", font = (POKEMON_FONT, 12), fg = "white", bg = DARK_BACKGROUND)
-            chanceLabel.grid(row = i, column = 2, padx = 10, pady = 0)
+            chanceLabel.grid(row = i, column = 2, padx = 10, pady = 10)
             self.chanceLabels.append(chanceLabel)
 
         # Add a sample bottom section for generic game data
@@ -110,29 +110,55 @@ class Dashboard():
 
     # Clear dashboard and display encounter list with sprites, names and encounter chance
     def processUpdates(self):
-        self.clearAllLines()
         self.updatesPending = False
+        averageHeigth = 0
+        spriteList = []
+        
+        # Clear all lines by resetting content
+        for i in range(len(self.spriteLabels)):
+            self.spriteLabels[i].image = None
+            self.spriteLabels[i].config(image = None)
+            self.nameLabels[i].config(text = "")
+            self.chanceLabels[i].config(text = "")
 
-        # If in a zone with encounters, display them
-        if (self.encounterList):
+        # If in a zone with encounters, display Pokémon sprites, names and encounter chance
+        if self.encounterList:
+
+            # First loop to retrieve every Pokémon sprite and calculate average sprite heigth
             for i, (pokedexId, encounter) in enumerate(self.encounterList.items()):
-                spriteImage = Image.open(os.path.join("sprites/nonshiny", str(pokedexId) + ".png"))
-                spritePhoto = ImageTk.PhotoImage(spriteImage)
 
+                # Load sprite
+                originalSprite = Image.open(os.path.join("sprites/nonshiny", str(pokedexId) + ".png")).convert("RGBA")
+
+                # Crop top/bottom transparent pixels
+                croppedCoordinates = originalSprite.getbbox()
+                spriteImage = originalSprite.crop((0, croppedCoordinates[1], originalSprite.width - 1, croppedCoordinates[3]))
+                spriteList.append(spriteImage)
+
+                # Sum sprite heights
+                averageHeigth += spriteImage.height
+
+            # Calculate average sprite heigth
+            averageHeigth //= len(self.encounterList)
+
+            # Second loop to display each encounter data
+            for i, (pokedexId, encounter) in enumerate(self.encounterList.items()):
+
+                # Convert sprite to Tkinter photo
+                spritePhoto = ImageTk.PhotoImage(spriteList[i])
+
+                # Display Pokémon sprite and set row heigth to sprite heigth (or average heigth if too low)
                 self.spriteLabels[i].image = spritePhoto
-                self.spriteLabels[i].config(image = spritePhoto)
-                self.nameLabels[i].config(text = POKEMON_NAMES[pokedexId])
-                self.chanceLabels[i].config(text = str(encounter.rate) + " %")
+                self.spriteLabels[i].config(image = spritePhoto, height = max(averageHeigth, spriteList[i].height))
 
-    # Reset dashboard
-    def clearAllLines(self):
-        for label in self.spriteLabels:
-            label.image = None # Reset image references
-            label.config(image = None)  # Clear image
-        for label in self.nameLabels:
-            label.config(text = "")  # Clear text
-        for label in self.chanceLabels:
-            label.config(text = "")  # Clear text
+                # Display Pokémon name and encounter chance
+                self.nameLabels[i].config(text = POKEMON_NAMES[pokedexId])
+                self.chanceLabels[i].config(text = f"{encounter.rate} %")
+
+                # Place in grid if not already (ensures visibility)
+                self.spriteLabels[i].grid(row = i, column = 0, padx = 10, pady = (10 if i else 20, 10))
+                self.nameLabels[i].grid(row = i, column = 1, padx = 10, pady = (10 if i else 20, 10), sticky = 'w')
+                self.chanceLabels[i].grid(row = i, column = 2, padx = 10, pady = (10 if i else 20, 10), sticky = 'w')
 
     # Exit the application
     def exitFullscreen(self, event):
