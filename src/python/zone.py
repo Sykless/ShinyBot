@@ -1,6 +1,5 @@
 import img
 import encounter
-from encounter import EncounterTables
 
 ZONEDICTIONARY = {}
 
@@ -51,12 +50,6 @@ class Zone():
             print("Door already exists in " + str(self.name) + " : " + str(door))
         else:
             self.doorList.append(door)
-
-    def setZoneId(self, zoneId):
-        if (self.subzoneList):
-            self.zoneId = zoneId
-        else:
-            print("Zones without subzones can't have their id updated")
 
     def setSubZones(self, *subzoneList):
         self.subzoneList = {}
@@ -137,14 +130,10 @@ class Position:
             # Check exceptions before going in ZONEDICTIONARY
             if (zone == LIGUEPOKEMON_ID):
                 self.zone = checkLiguePokemon(positionY)
-
             elif (zone == ROUTE213_ID):
                 self.zone = checkRoute213(positionX, positionY)
-
-            elif (zone == PISTECYCLABLE_ID):
-                self.zone = checkPisteCyclable(positionX, positionY)
             else:
-                self.zone = getZoneById(zone)
+                self.zone = ZONEDICTIONARY[zone]
 
         # Not Zone object nor known ZoneID
         else:
@@ -286,69 +275,13 @@ def setConnectingDoors(door1, door2):
     door1.setConnectedDoor(door2)
     door2.setConnectedDoor(door1)
 
-# Find the zone or subzone corresponding to the zoneId
-def getZoneById(zoneId):
-    zone = ZONEDICTIONARY[zoneId]
-
-    # If the zone has subzones, set the zoneId of the corresponding subzone
-    # CAUSES ISSUES WITH THE HASH, KEEP COMMENTATED
-    # if (zone.subzoneList):
-    #     zone.setZoneId(zoneId)
-
-    return zone
-
 # Separation between Pokemon League and Overword is purely based on Y position
 def checkLiguePokemon(positionY):
-    if (positionY < 592):
-        return LIGUEPOKEMON
-    else:
-        EAST.setZoneId(LIGUEPOKEMON_ID)
-        return EAST
+    return LIGUEPOKEMON if (positionY < 592) else EAST
 
 # Directly check on Route 213 map if we're on it
 def checkRoute213(positionX, positionY):
-    if ROUTE213_EST.map[positionY][positionX] == " ":
-        SOUTHEAST.setZoneId(ROUTE213_ID)
-        return SOUTHEAST 
-    else:
-        return ROUTE213_EST
-
-# Cycling Road shares positions with Route 206 so differentiate them is more complex
-def checkPisteCyclable(positionX, positionY):
-
-    # Too high for Route 206 or too low for Cycling Road
-    if (positionY < 606):
-        return PISTECYCLABLE
-    elif (positionY > 681):
-        SOUTHCENTER.setZoneId(PISTECYCLABLE_ID)
-        return SOUTHCENTER
-    
-    # Overlap between Cycling Road and Route 206
-    elif (299 <= positionX <= 306):
-        if (PISTECYCLABLE.map[positionY][positionX] in ["X","N"]):
-            SOUTHCENTER.setZoneId(PISTECYCLABLE_ID)
-            return SOUTHCENTER
-        elif (SOUTHCENTER.map[positionY][positionX] in ["X","N"]):
-            return PISTECYCLABLE
-        # Blind spot : no real reason to be here on route 206, so most likely on Cycling Road
-        elif (648 <= positionY <= 654):
-            return PISTECYCLABLE
-        # Can be under or on the bridge, check if trainer is visible
-        else:
-            screenshot = img.getScreenshot()
-            spritePosition = img.getPlayerOrientation(screenshot)[1]
-
-            # Player not visible, we're under the bridge
-            if (spritePosition is None):
-                SOUTHCENTER.setZoneId(PISTECYCLABLE_ID)
-                return SOUTHCENTER
-            else:
-                return PISTECYCLABLE
-            
-    # Every Cycling Road position has been checked, we're on Overworld
-    else:
-        SOUTHCENTER.setZoneId(PISTECYCLABLE_ID)
-        return SOUTHCENTER
+    return SOUTHEAST if ROUTE213_EST.map[positionY][positionX] == " " else ROUTE213_EST
 
 # Check if a door is a City Fly location
 def isFlyDoor(door):
@@ -802,6 +735,7 @@ setConnectingDoors(Door(DEFAULT, Position(34,2,VIEUXCHATEAU_COULOIR), Position(1
 
 # Piste Cyclable
 PISTECYCLABLE = Zone("Piste Cyclable", 350, "route/pisteCyclable", True, True, False)
+PISTECYCLABLE.setEncounterTables(encounter.ROUTE206)
 setConnectingDoors(Door(DEFAULT, Position(304,576,PISTECYCLABLE), Position(7,12,ROUTE206_PASSAGEVESTIGION)), Door(WALK, Position(7,13,ROUTE206_PASSAGEVESTIGION), Position(304,577,PISTECYCLABLE)))
 setConnectingDoors(Door(WALK, Position(302,682,PISTECYCLABLE), Position(7,3,ROUTE206_PASSAGECHARBOURG)), Door(WALK, Position(7,2,ROUTE206_PASSAGECHARBOURG), Position(302,681,PISTECYCLABLE)))
 
@@ -1280,6 +1214,7 @@ ZONEIDLIST = {
     507: "Grand Marais - Parc 4",
     508: "Grand Marais - Parc 5",
     509: "Grand Marais - Parc 6",
+    1350: "Piste Cyclable"
 }
 
 ZONELIST = [
@@ -1482,7 +1417,7 @@ ZONEDICTIONARY = {
     346: NORTHWEST, # Route 204 - Nord
     347: NORTHWEST, # Route 205 - Sud
     349: NORTHWEST, # Route 205 - Nord
-    350: [SOUTHCENTER, PISTECYCLABLE], # Route 206 / Piste Cyclable
+    350: SOUTHCENTER, # Route 206 / Piste Cyclable
     351: ROUTE206_PASSAGECHARBOURG,
     353: SOUTHCENTER, # Route 207
     354: ROUTE208, # Route 208
@@ -1591,7 +1526,8 @@ ZONEDICTIONARY = {
     584: COLONNESLANCES,
     587: ILEDEFER_GROTTEREGISTEEL,
     589: MONTCOURONNE_GROTTEREGICE,
-    591: ROUTE228_GROTTEREGIROCK
+    591: ROUTE228_GROTTEREGIROCK,
+    1350: PISTECYCLABLE # Route 206 / Piste Cyclable
 }
 
 # Obsolete doors (prefer using left-most, up-most or center door)

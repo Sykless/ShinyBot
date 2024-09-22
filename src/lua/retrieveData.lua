@@ -11,6 +11,7 @@ MEMORYADDRESSES = {
         ZONE_OFFSET = 0x1238,
         POSITIONX_OFFSET = 0x1240,
         POSITIONY_OFFSET = 0x1244,
+        CYCLINGROAD_OFFSET = 0xFDC,
         REPELSTEPS_OFFSET = 0x73E0,
         BIKE_OFFSET = 0x12C8,
         BIKESPEED_OFFSET = 0x12C4,
@@ -30,6 +31,7 @@ MEMORYADDRESSES = {
         ZONE_OFFSET = 0x1280,
         POSITIONX_OFFSET = 0x1288,
         POSITIONY_OFFSET = 0x128C,
+        CYCLINGROAD_OFFSET = 0xFEC,
         REPELSTEPS_OFFSET = 0x8073,
         BIKE_OFFSET = 0x1310,
         BIKESPEED_OFFSET = 0x130C,
@@ -54,6 +56,7 @@ GARDENPOKEMON_YESTERDAY_OFFSET = 0x7F32
 
 SKIP_ENCOUNTERTABLES = true
 
+CYCLINGROAD_ZONEID = 350
 ORIENTATION = {"u","d","l","r"}
 
 local BAG = {
@@ -139,8 +142,21 @@ function retrievePlayerData()
         orientation = ORIENTATION[orientationValue + 1]
     end
 
+    zoneId = memory.read_u16_le(baseAddress + MEMORYADDRESSES[GAMECODE]["ZONE_OFFSET"])
+
+    -- Particular case on Cycling Road sharing the same ZoneId as Route 206
+    if (zoneId == CYCLINGROAD_ZONEID) then
+
+        -- I am not exactly sure what this value actually refers to, I only noticed that it was equal to 8 on Cycling Road and 0 anywhere else
+        cyclingRoad = memory.read_u16_le(baseAddress + MEMORYADDRESSES[GAMECODE]["CYCLINGROAD_OFFSET"])
+
+        if (cyclingRoad > 0) then
+            zoneId = zoneId + 1000
+        end
+    end
+
     return {
-        zone = memory.read_u16_le(baseAddress + MEMORYADDRESSES[GAMECODE]["ZONE_OFFSET"]),
+        zone = zoneId,
         positionX = memory.read_u16_le(baseAddress + MEMORYADDRESSES[GAMECODE]["POSITIONX_OFFSET"]),
         positionY = memory.read_u16_le(baseAddress + MEMORYADDRESSES[GAMECODE]["POSITIONY_OFFSET"]),
         orientation = orientation,
