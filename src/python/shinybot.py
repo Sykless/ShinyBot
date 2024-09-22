@@ -1,22 +1,26 @@
 
-from pokemon import Pokemon
-from data import POKEMON_NAMES
 from utils import waitFrames
 from emu import BIZHAWK, MELONDS, PLATINE, DIAMANT, PERLE
+from pokemon import Pokemon
+from dashboard import Dashboard
 
 import time
+from threading import Thread
 
-import emu
 import bag
 import img
 import zone
 import game
+import trade
 import player
 import action
 import joypad
 import memory
 import pokemon
+import encounter
+import dashboard
 import pathfinding
+import emukeyboard
 
 LEFT_ROW = 0
 RIGHT_ROW = 1
@@ -28,9 +32,10 @@ PREVIOUS_PAGE_BUTTON = 1
 CANCEL_BUTTON = 2
 
 # Launch BizHawk and make sure the game is ready to be run
-emu.BIZHAWK.initEmulator("Platine")
+BIZHAWK.initEmulator(PLATINE, fullscreen = False)
 action.loadGame()
 
+# Generate Door Graph that contains every door-to-door path in the map
 GENERATE_GRAPH = False
 startTime = time.time()
 
@@ -40,6 +45,10 @@ if (GENERATE_GRAPH):
 else:
     pathfinding.DOOR_GRAPH = memory.loadGraph('src/python/data/pkl/graph.pkl')
     print("Graph loaded in " + str(round(time.time() - startTime,2)) + " seconds")
+
+# Open Dashboard
+encounterDashboard = Dashboard()
+encounterDashboard.runDashboard()
 
 freeMode = True
 shinyBot = True
@@ -53,6 +62,9 @@ jsonPokemonData = memory.readWildPokemonData()
 jsonTeamData = memory.readPokemonTeamData()
 playerData = player.getPlayerData()
 gameData = game.getGameData()
+
+currentZone = None
+currentHour = None
 
 if (shinyBot and freeMode):
     print("Free mode")
@@ -76,17 +88,30 @@ while shinyBot:
         print("New wild Pokemon !")
         print(pokemon)
 
-    # Check input previously saved
-    joypadInput = memory.readJoypadData()
-
     # Debug screenshot mode : only save the screenshot
     if (freeMode):
         screenshot = img.getScreenshot()
         playerData = player.getPlayerData()
         gameData = game.getGameData()
 
+        if (gameData.hourOfDay != currentHour or playerData.zoneId != currentZone):
+            currentZone = playerData.zoneId
+            currentHour = gameData.hourOfDay
+
+            print(playerData.position.zone)
+            print(currentZone)
+
+            if (playerData.position.zone):
+                encounterTable = playerData.position.zone.getEncounterTables(currentZone)
+
+                if (encounterTable):
+                    currentTable = encounterTable.generateCurrentTables(gameData, currentZone)[0]
+                    encounterDashboard.updateEncounters(currentTable)
+                else:
+                    encounterDashboard.updateEncounters(None)
+
     # Only apply new input if no input is found in memory
-    elif (len(joypadInput) == 0):
+    elif (not memory.readJoypadData()):
         screenshot = img.getScreenshot()
         playerData = player.getPlayerData()
 
