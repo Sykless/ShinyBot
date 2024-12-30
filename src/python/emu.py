@@ -1,5 +1,4 @@
 
-
 import os
 import shutil
 import subprocess
@@ -8,6 +7,7 @@ import win32api
 import win32gui
 import win32ui
 import win32con
+import win32process
 import pygetwindow
 
 import numpy
@@ -16,7 +16,6 @@ import cv2
 
 from PIL import Image
 from typing import Optional
-from pywinauto import Application
 from pygetwindow import Win32Window
 from pygetwindow import PyGetWindowException
 
@@ -81,7 +80,7 @@ class Window(Win32Window):
         # Close window
         win32gui.PostMessage(self._hWnd, win32con.WM_CLOSE, 0, 0)
 
-        # Set window to None
+        # Set window object to None
         if (self == self.parentEmulator.mainWindow):
             self.parentEmulator.mainWindow = None
             self.parentEmulator.luaScriptWindow = None
@@ -366,8 +365,7 @@ class Emulator():
         for window in windows:
             try:
                 # Retrieve PID from the window HWND (unique identifier)
-                app = Application(backend = 'uia').connect(handle = window._hWnd)
-                processId = app.process
+                _, processId = win32process.GetWindowThreadProcessId(window._hWnd)
                 
                 # Use tasklist command to get the executable name from PID
                 command = f'tasklist /fi "PID eq {processId}" /fo csv /nh'
@@ -420,7 +418,6 @@ class Emulator():
             process = subprocess.Popen("../../Programmes/" + self.name + "/" + self.executableName + " roms/PokemonVersion" + pokemonGameVersion + ".nds")
         except OSError as e:
             print(f"Error: {e}")
-            print("Please run this script as an administrator.")
             exit(1)
 
         # Wait until emulator window is open
