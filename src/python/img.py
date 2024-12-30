@@ -8,6 +8,7 @@ import time
 import numpy
 
 from PIL import Image, ImageFile
+from PyQt5.QtGui import QImage
 
 from emu import BIZHAWK, MELONDS
 from utils import waitFrames
@@ -259,3 +260,35 @@ def getScreenshot():
 
 def saveScreenshot(screenshot, filename):
     cv2.imwrite(os.path.join("backup/screenshots", time.strftime('%Y%m%d-%H%M%S') + "-" + filename + ".png"), screenshot)
+
+# Crops top/bottom transparent pixels
+def cropSprite(imagePath):
+    image = QImage(imagePath)
+
+    if image.isNull():
+        return QImage()
+
+    topPosition = 0
+    bottomPosition = image.height() - 1
+
+    # Find first non-transparent row from the top
+    for y in range(image.height()):
+        for x in range(image.width()):
+            if image.pixelColor(x, y).alpha() > 0:
+                topPosition = y
+                break
+        else:
+            continue
+        break
+
+    # Find first non-transparent row from the bottom
+    for y in range(image.height() - 1, -1, -1):
+        for x in range(image.width()):
+            if image.pixelColor(x, y).alpha() > 0:
+                bottomPosition = y
+                break
+        else:
+            continue
+        break
+
+    return image.copy(0, topPosition, image.width(), bottomPosition - topPosition + 1)
