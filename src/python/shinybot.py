@@ -1,6 +1,7 @@
 
 from utils import waitFrames
 from pokemon import Pokemon
+from dashboard import DASHBOARD
 
 import time
 

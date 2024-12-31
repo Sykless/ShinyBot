@@ -1,166 +1,163 @@
-import tkinter
-import pyglet
-import time
-import os
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QLabel, QGridLayout, QSizePolicy
+from PyQt5.QtGui import QPixmap, QFontDatabase, QFont
+from PyQt5.QtCore import Qt, pyqtSignal
+import sys
 
-from PIL import Image, ImageTk
-from threading import Thread
-
+import img
 from emu import BIZHAWK, MELONDS
 from data import POKEMON_NAMES
 
-# Allow code to use custom font
-pyglet.options['win32_gdi_font'] = True
-pyglet.font.add_file('pokemon-gen-4-regular.ttf')
+class Dashboard(QWidget):
+    encounterSignal = pyqtSignal(dict)
 
-DARK_BACKGROUND = "#232223"
-POKEMON_FONT = "Pokemon\nGen 4 Regular"
-
-class Dashboard():
     def __init__(self):
-        self.root = None
-        self.spriteLabels = []
-        self.nameLabels = []
-        self.chanceLabels = []
-        self.updatesPending = False
+        super().__init__()
+        self.encounterSignal.connect(self.updateEncounters)
 
-    # Run the dashboard GUI in a separate thread
-    def runDashboard(self):
-        dashboardThread = Thread(target = self.initDashboard, daemon = True)
-        dashboardThread.start()
-
-    # Init window and add empty placeholders
     def initDashboard(self):
+        # Retrieve emulator currently running
         EMULATOR = BIZHAWK if BIZHAWK.mainWindow else MELONDS
-        dashboardTitle = "ShinyBot Dashboard - Pokémon Version " + EMULATOR.mainWindow.gameName
 
-        # Initialize the main window
-        self.root = tkinter.Tk()
-        self.root.title(dashboardTitle)
-        self.root.configure(bg = DARK_BACKGROUND)
-
-        screenWidth = self.root.winfo_screenwidth()
-        screenHeight = self.root.winfo_screenheight()
+        # Retrieve screen size
+        app = QApplication.instance()
+        screenWidth = app.primaryScreen().size().width()
 
         # Fullscreen mode : hide title bar and stay on top
         if (EMULATOR.fullscreen):
-            self.root.overrideredirect(True) # Hide title bar
-            self.root.attributes('-topmost', True) # Keep on top
+            self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.Tool)
             windowWidth = screenWidth - EMULATOR.mainWindow.width
             windowHeight = EMULATOR.mainWindow.height
+            windowPositionY = 0
+        
+        # Windowed mode : take borders and title bar into account
         else:
             windowWidth = screenWidth - EMULATOR.mainWindow.width + 2 * EMULATOR.mainWindow.borderSize
-            windowHeight = EMULATOR.mainWindow.height - EMULATOR.mainWindow.titleBarHeight - EMULATOR.mainWindow.borderSize + EMULATOR.mainWindow.top
+            windowHeight = EMULATOR.mainWindow.height - EMULATOR.mainWindow.titleBarHeight - EMULATOR.mainWindow.borderSize
+            windowPositionY = EMULATOR.mainWindow.titleBarHeight + EMULATOR.mainWindow.top
 
-        # Set the window to full height with width depending on emulator window
-        self.root.geometry(f'{windowWidth}x{windowHeight}+{screenWidth - windowWidth + EMULATOR.mainWindow.left}+{EMULATOR.mainWindow.top}')
+        # Set up the main window title, size and position
+        self.setWindowTitle("ShinyBot Dashboard - Pokémon Version " + EMULATOR.mainWindow.gameName)
+        self.setGeometry(screenWidth - windowWidth, windowPositionY, windowWidth, windowHeight - 200)
 
-        # Create frames for Pokémon encounters and bottom generic data
-        encounterFrame = tkinter.Frame(self.root)
-        encounterFrame.pack(fill = tkinter.BOTH, expand = True)
-        encounterFrame.configure(bg = DARK_BACKGROUND)
+        # Set dark background color and white text for the whole widget
+        self.setStyleSheet("background-color: #333333; color: white;")
+        
+        # Load custom Pokémon font
+        fontId = QFontDatabase.addApplicationFont("pokemon-gen-4-regular.ttf")
+        fontFamily = QFontDatabase.applicationFontFamilies(fontId)[0]
+        customFont = QFont(fontFamily, 12)
 
-        bottomFrame = tkinter.Frame(self.root, height = int(screenHeight * 0.2))
-        bottomFrame.pack(fill = tkinter.BOTH, side = tkinter.BOTTOM)
-        bottomFrame.configure(bg = DARK_BACKGROUND)
+        # Create main layout
+        mainLayout = QVBoxLayout()
+        mainLayout.setAlignment(Qt.AlignTop)
+        mainLayout.setContentsMargins(0, 0, 0, 0)
 
-        # Create the encounter list layout with 12 empty rows
+        # Main QWidget, make sure it doesn't stretch with window size
+        self.mainSection = QWidget()
+        self.mainSection.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+
+        # Dashboard layout : Array with 12 lines
+        self.encountersLayout = QGridLayout()
+        self.encountersLayout.setContentsMargins(0, 0, 0, 0)
+        self.encountersLayout.setHorizontalSpacing(20)
+        self.encountersLayout.setVerticalSpacing(10)
+        self.encountersLayout.setContentsMargins(10, 10, 0, 0) # Add left/top margin
+
+        # Create 12 empty slots for each possible encounter
         for i in range(12):
 
-            # Empty sprite placeholders
-            spriteLabel = tkinter.Label(encounterFrame, image = None, bg = DARK_BACKGROUND)
-            spriteLabel.grid(row=i, column = 0, padx = 10, pady = 10)
-            self.spriteLabels.append(spriteLabel)
+            # Sprite column
+            spriteLabel = QLabel()
+            spriteLabel.setAlignment(Qt.AlignVCenter)
+            self.encountersLayout.addWidget(spriteLabel, i, 0)
 
-            # Empty name placeholders
-            nameLabel = tkinter.Label(encounterFrame, text = "", font = (POKEMON_FONT, 12), fg = "white", bg = DARK_BACKGROUND)
-            nameLabel.grid(row = i, column = 1, padx = 10, pady = 10)
-            self.nameLabels.append(nameLabel)
+            # Pokémon name column
+            nameLabel = QLabel()
+            nameLabel.setFont(customFont)
+            nameLabel.setAlignment(Qt.AlignVCenter)
+            self.encountersLayout.addWidget(nameLabel, i, 1)
 
-            # Empty chance placeholders
-            chanceLabel = tkinter.Label(encounterFrame, text = "", font = (POKEMON_FONT, 12), fg = "white", bg = DARK_BACKGROUND)
-            chanceLabel.grid(row = i, column = 2, padx = 10, pady = 10)
-            self.chanceLabels.append(chanceLabel)
+            # Encounter rate column
+            rateLabel = QLabel()
+            rateLabel.setFont(customFont)
+            rateLabel.setAlignment(Qt.AlignVCenter)
+            self.encountersLayout.addWidget(rateLabel, i, 2)
 
-        # Add a sample bottom section for generic game data
-        genericLabel = tkinter.Label(bottomFrame, text="Generic Game Data: HP, Levels, etc.", font = (POKEMON_FONT, 12), fg = "white", bg = DARK_BACKGROUND)
-        genericLabel.pack(pady = 0)
+        self.mainSection.setLayout(self.encountersLayout)
+        mainLayout.addWidget(self.mainSection)
 
-        # Associate Dashboard with current emulator and give dashboard focus once dashboard is open
-        self.root.after(500, EMULATOR.setDashboardWindow)
+        # Add empty layout stretching to max available size so bottom section is actually at the very bottom
+        mainLayout.addStretch()
 
-        # Start the update loop on a dedicated thread
-        self.updateThread = Thread(target = self.updateLoop, daemon = True)
-        self.updateThread.start()
+        # Placeholder for bottom section
+        self.bottomSection = QLabel("Bottom Section Placeholder")
+        self.bottomSection.setFixedHeight(100)  # Adjustable height
+        self.bottomSection.setAlignment(Qt.AlignCenter)
+        self.bottomSection.setStyleSheet("background-color: rgba(255, 255, 255, 0.5);")
+        mainLayout.addWidget(self.bottomSection)
 
-        # Launch dashboard
-        self.root.mainloop()
+        # Set the main layout
+        self.setLayout(mainLayout)
 
-    # Secondary loop needed to update the dashboard
-    def updateLoop(self):
-        while True:
-            if self.updatesPending:
-                self.root.after(0, self.processUpdates) # Process and apply updates in the main thread
-            time.sleep(0.1)  # Avoid excessive CPU usage
+    def sendEncountersData(self, encounterList):
+        self.updateSignal.emit(encounterList)
 
-    # Update the encounter list so the secondary thread can update the dashboard
+    def setEncounterSprite(self, lineNumber, pokemonSprite):
+        spriteLabel = self.encountersLayout.itemAtPosition(lineNumber, 0).widget()
+
+        if (pokemonSprite):
+            spriteLabel.setPixmap(pokemonSprite)
+        else:
+            spriteLabel.clear()
+
+    def setEncounterName(self, lineNumber, pokemonName):
+        nameLabel = self.encountersLayout.itemAtPosition(lineNumber, 1).widget()
+        nameLabel.setText(pokemonName)
+
+    def setEncounterRate(self, lineNumber, pokemonRate):
+        rateLabel = self.encountersLayout.itemAtPosition(lineNumber, 2).widget()
+        rateLabel.setText(pokemonRate)
+
     def updateEncounters(self, encounterList):
-        self.encounterList = encounterList
-        self.updatesPending = True
-
-    # Clear dashboard and display encounter list with sprites, names and encounter chance
-    def processUpdates(self):
-        self.updatesPending = False
         averageHeigth = 0
         spriteList = []
-        
-        # Clear all lines by resetting content
-        for i in range(len(self.spriteLabels)):
-            self.spriteLabels[i].image = None
-            self.spriteLabels[i].config(image = None)
-            self.nameLabels[i].config(text = "")
-            self.chanceLabels[i].config(text = "")
 
-        # If in a zone with encounters, display Pokémon sprites, names and encounter chance
-        if self.encounterList:
+        print(encounterList)
 
-            # First loop to retrieve every Pokémon sprite and calculate average sprite heigth
-            for i, (pokedexId, encounter) in enumerate(self.encounterList.items()):
+        # First loop to retrieve every Pokémon sprite and calculate average sprite heigth
+        for i, (pokedexId, encounter) in enumerate(encounterList.items()):
 
-                # Load sprite
-                originalSprite = Image.open(os.path.join("sprites/nonshiny", str(pokedexId) + ".png")).convert("RGBA")
+            # Retrieve sprite and remove top/bottom transparent pixels
+            croppedImage = img.cropSprite(f"sprites/nonshiny/{pokedexId}.png")
+            spritePixmap = QPixmap.fromImage(croppedImage)
 
-                # Crop top/bottom transparent pixels
-                croppedCoordinates = originalSprite.getbbox()
-                spriteImage = originalSprite.crop((0, croppedCoordinates[1], originalSprite.width - 1, croppedCoordinates[3]))
-                spriteList.append(spriteImage)
+            spriteList.append(spritePixmap)
 
-                # Sum sprite heights
-                averageHeigth += spriteImage.height
+            # Sum sprite heights
+            averageHeigth += spritePixmap.height()
 
-            # Calculate average sprite heigth
-            averageHeigth //= len(self.encounterList)
+        # Calculate average sprite height
+        averageHeigth = averageHeigth // len(encounterList) if len(encounterList) else 0
 
-            # Second loop to display each encounter data
-            for i, (pokedexId, encounter) in enumerate(self.encounterList.items()):
+        # Second loop to display each encounter data
+        for i, (pokedexId, encounter) in enumerate(encounterList.items()):
 
-                # Convert sprite to Tkinter photo
-                spritePhoto = ImageTk.PhotoImage(spriteList[i])
+            # Update Encounter sprite, name
+            self.setEncounterSprite(i, spriteList[i])
+            self.setEncounterName(i, POKEMON_NAMES[pokedexId])
+            self.setEncounterRate(i, f"{encounter.rate} %")
 
-                # Display Pokémon sprite and set row heigth to sprite heigth (or average heigth if too low)
-                self.spriteLabels[i].image = spritePhoto
-                self.spriteLabels[i].config(image = spritePhoto, height = max(averageHeigth, spriteList[i].height))
+            # Update line height based on average cropped sprite height
+            self.encountersLayout.setRowMinimumHeight(i, averageHeigth)
 
-                # Display Pokémon name and encounter chance
-                self.nameLabels[i].config(text = POKEMON_NAMES[pokedexId])
-                self.chanceLabels[i].config(text = f"{encounter.rate} %")
+        # Final loop to clear the remaining lines
+        for i in range(len(encounterList), 12):
 
-                # Place in grid if not already (ensures visibility)
-                self.spriteLabels[i].grid(row = i, column = 0, padx = 10, pady = (10 if i else 20, 10))
-                self.nameLabels[i].grid(row = i, column = 1, padx = 10, pady = (10 if i else 20, 10), sticky = 'w')
-                self.chanceLabels[i].grid(row = i, column = 2, padx = 10, pady = (10 if i else 20, 10), sticky = 'w')
+            # Update Encounter sprite, name
+            self.setEncounterSprite(i, None)
+            self.setEncounterName(i, None)
+            self.setEncounterRate(i, None)
 
-    # Exit the application
-    def exitFullscreen(self, event):
-        self.stopEvent.set()
-        self.root.quit()
+
+Q_APP = QApplication(sys.argv)
+DASHBOARD = Dashboard()

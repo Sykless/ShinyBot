@@ -1,5 +1,5 @@
 from emu import BIZHAWK, MELONDS, PLATINE, DIAMANT, PERLE
-from pokeboard import Q_APP, DASHBOARD
+from dashboard import Q_APP, DASHBOARD
 
 from threading import Thread, Event
 
