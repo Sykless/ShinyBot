@@ -83,17 +83,14 @@ def startShinybot():
                 currentZone = playerData.zoneId
                 currentHour = gameData.hourOfDay
 
-                print(playerData.position.zone)
-                print(currentZone)
-
                 if (playerData.position.zone):
                     encounterTable = playerData.position.zone.getEncounterTables(currentZone)
 
-                    # if (encounterTable):
-                    #     currentTable = encounterTable.generateCurrentTables(gameData, currentZone)[0]
-                    #     encounterDashboard.updateEncounters(currentTable)
-                    # else:
-                    #     encounterDashboard.updateEncounters(None)
+                    if (encounterTable):
+                        currentTable = encounterTable.generateCurrentTables(gameData, currentZone)[0]
+                        DASHBOARD.updateEncounters(currentTable)
+                    else:
+                        DASHBOARD.updateEncounters({})
 
         # Only apply new input if no input is found in memory
         elif (not memory.readJoypadData()):

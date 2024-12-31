@@ -1,8 +1,7 @@
 from emu import BIZHAWK, MELONDS, PLATINE, DIAMANT, PERLE
-from pokeboard import PokemonDashboard
+from pokeboard import Q_APP, DASHBOARD
 
 from threading import Thread, Event
-from PyQt5.QtWidgets import QApplication
 
 import sys
 
@@ -20,13 +19,12 @@ class Main:
         action.loadGame()
 
         # Init and display Dashboard
-        app = QApplication(sys.argv)
-        dashboard = PokemonDashboard()
-        dashboard.show()
+        DASHBOARD.initDashboard()
+        DASHBOARD.show()
 
         # Give Dashboard focus so it appears on top
-        dashboard.showMinimized()
-        dashboard.showNormal()
+        DASHBOARD.showMinimized()
+        DASHBOARD.showNormal()
 
         # Give back focus to emulator so it can receive keyboard instructions
         (BIZHAWK if BIZHAWK.mainWindow else MELONDS).mainWindow.giveFocus()
@@ -35,7 +33,7 @@ class Main:
         self.main()
 
         # Make sure the script stops when dashboard is closed
-        sys.exit(app.exec_())
+        sys.exit(Q_APP.exec_())
 
     # Shinybot main app
     def main(self):
