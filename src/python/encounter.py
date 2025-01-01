@@ -235,11 +235,11 @@ class EncounterTables():
                         encounterTable["table"][encounter.pokedexId].maxLevel = encounter.maxLevel
 
         # Return all tables sorted by encounter rate
-        return (dict(sorted(encounterTables["walkEncounters"]["table"].items(), key = lambda encounter: encounter[1].rate, reverse = True)),
-                dict(sorted(encounterTables["surfEncounters"]["table"].items(), key = lambda encounter: encounter[1].rate, reverse = True)),
-                dict(sorted(encounterTables["oldRodEncounter"]["table"].items(), key = lambda encounter: encounter[1].rate, reverse = True)),
-                dict(sorted(encounterTables["goodRodEncounter"]["table"].items(), key = lambda encounter: encounter[1].rate, reverse = True)),
-                dict(sorted(encounterTables["superRodEncounter"]["table"].items(), key = lambda encounter: encounter[1].rate, reverse = True)))
+        return {"walkTable": dict(sorted(encounterTables["walkEncounters"]["table"].items(), key = lambda encounter: encounter[1].rate, reverse = True)),
+                "surfTable": dict(sorted(encounterTables["surfEncounters"]["table"].items(), key = lambda encounter: encounter[1].rate, reverse = True)),
+                "oldRodTable": dict(sorted(encounterTables["oldRodEncounter"]["table"].items(), key = lambda encounter: encounter[1].rate, reverse = True)),
+                "goodRodTable": dict(sorted(encounterTables["goodRodEncounter"]["table"].items(), key = lambda encounter: encounter[1].rate, reverse = True)),
+                "superRodTable": dict(sorted(encounterTables["superRodEncounter"]["table"].items(), key = lambda encounter: encounter[1].rate, reverse = True))}
 
 BONAUGURE = EncounterTables("Bonaugure")
 BONAUGURE.setSurfEncounters(Encounter(54,60,20,30), Encounter(54,30,20,30), Encounter(55,5,20,40), Encounter(55,4,20,40), Encounter(55,1,20,40))

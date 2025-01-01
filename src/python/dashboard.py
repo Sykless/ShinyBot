@@ -1,11 +1,17 @@
 from PyQt5.QtWidgets import QApplication, QWidget, QHBoxLayout, QVBoxLayout, QLabel, QGridLayout, QSizePolicy, QSpacerItem
 from PyQt5.QtGui import QPixmap, QPainter, QFontDatabase, QFont, QBrush, QPalette, QColor
 from PyQt5.QtCore import Qt, pyqtSignal
+from itertools import chain
 import sys
 
 import img
 from emu import BIZHAWK, MELONDS
 from data import POKEMON_NAMES
+
+SPRITE_COLUMN = 0
+NAME_COLUMN = 1
+RATE_COLUMN = 2
+ITEM_COLUMN = 3
 
 class FilteredBackgroundWidget(QWidget):
     def __init__(self, parent=None):
@@ -138,69 +144,87 @@ class Dashboard(QWidget):
             rateLabel.setAlignment(Qt.AlignVCenter)
             encountersLayout.addWidget(rateLabel, i, 2)
 
+            # Item column
+            itemLabel = QLabel()
+            itemLabel.setAlignment(Qt.AlignVCenter)
+            encountersLayout.addWidget(itemLabel, i, 3)
+
         # Add a spacer in the last row to fill the rest with empty space
         spacer = QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Expanding)
         encountersLayout.addItem(spacer, encountersLayout.rowCount(), encountersLayout.columnCount())
 
         return encountersLayout
-
-
+    
     def sendEncountersData(self, encounterList):
         self.updateSignal.emit(encounterList)
 
-    def setEncounterSprite(self, lineNumber, pokemonSprite):
-        spriteLabel = self.walkEncountersLayout.itemAtPosition(lineNumber, 0).widget()
+    def setWidgetText(self, encounterLayout, columnNumber, lineNumber, textValue):
+        textWidget = encounterLayout.itemAtPosition(lineNumber, columnNumber).widget()
+        textWidget.setText(textValue)
 
-        if (pokemonSprite):
-            spriteLabel.setPixmap(pokemonSprite)
+    def setWidgetImage(self, encounterLayout, columnNumber, lineNumber, image):
+        imageWidget = encounterLayout.itemAtPosition(lineNumber, columnNumber).widget()
+
+        if (image):
+            imageWidget.setPixmap(image)
         else:
-            spriteLabel.clear()
+            imageWidget.clear()
 
-    def setEncounterName(self, lineNumber, pokemonName):
-        nameLabel = self.walkEncountersLayout.itemAtPosition(lineNumber, 1).widget()
-        nameLabel.setText(pokemonName)
+    def updateEncounters(self, encounterTables):
 
-    def setEncounterRate(self, lineNumber, pokemonRate):
-        rateLabel = self.walkEncountersLayout.itemAtPosition(lineNumber, 2).widget()
-        rateLabel.setText(pokemonRate)
+        # Concatenate all water encounters in one list
+        if (encounterTables):
+            encounterLists = [(("walk", f"walk_{pokedexId}", encounter) for pokedexId, encounter in encounterTables["walkTable"].items()),
+                            chain(
+                                (("surf", f"surf_{pokedexId}", encounter) for pokedexId, encounter in encounterTables["surfTable"].items()),
+                                (("old-rod", f"oldRod_{pokedexId}", encounter) for pokedexId, encounter in encounterTables["oldRodTable"].items()),
+                                (("good-rod", f"goodRod_{pokedexId}", encounter) for pokedexId, encounter in encounterTables["goodRodTable"].items()),
+                                (("super-rod", f"superRod_{pokedexId}", encounter) for pokedexId, encounter in encounterTables["superRodTable"].items()))]
+        else:
+            encounterLists = [{},{}]
 
-    def updateEncounters(self, encounterList):
-        averageHeigth = 0
-        spriteList = []
+        # One loop for walk encounters, one loop for water encounters
+        for isWater in range(2):
+            encounterList = list(encounterLists[isWater])
+            encounterLayout = self.waterEncountersLayout if isWater else self.walkEncountersLayout
+            averageHeigth = 0
+            spriteList = []
 
-        # First loop to retrieve every Pokémon sprite and calculate average sprite heigth
-        for i, (pokedexId, encounter) in enumerate(encounterList.items()):
+            # First loop to retrieve every Pokémon sprite and calculate average sprite heigth
+            for i, (source, uniqueId, encounter) in enumerate(encounterList):
 
-            # Retrieve sprite and remove top/bottom transparent pixels
-            croppedImage = img.cropSprite(f"sprites/nonshiny/{pokedexId}.png")
-            spritePixmap = QPixmap.fromImage(croppedImage)
+                # Retrieve sprite and remove top/bottom transparent pixels
+                croppedImage = img.cropSprite(f"sprites/nonshiny/{encounter.pokedexId}.png")
+                spritePixmap = QPixmap.fromImage(croppedImage)
 
-            spriteList.append(spritePixmap)
+                spriteList.append(spritePixmap)
 
-            # Sum sprite heights
-            averageHeigth += spritePixmap.height()
+                # Sum sprite heights
+                averageHeigth += spritePixmap.height()
 
-        # Calculate average sprite height
-        averageHeigth = averageHeigth // len(encounterList) if len(encounterList) else 0
+            # Calculate average sprite height
+            averageHeigth = averageHeigth // len(encounterList) if len(encounterList) else 0
 
-        # Second loop to display each encounter data
-        for i, (pokedexId, encounter) in enumerate(encounterList.items()):
+            # Second loop to display each encounter data
+            for i, (source, uniqueId, encounter) in enumerate(encounterList):
 
-            # Update Encounter sprite, name
-            self.setEncounterSprite(i, spriteList[i])
-            self.setEncounterName(i, POKEMON_NAMES[pokedexId])
-            self.setEncounterRate(i, f"{encounter.rate} %")
+                # Update Encounter sprite, name
+                self.setWidgetImage(encounterLayout, SPRITE_COLUMN, i, spriteList[i])
+                self.setWidgetText(encounterLayout, NAME_COLUMN, i, POKEMON_NAMES[encounter.pokedexId])
+                self.setWidgetText(encounterLayout, RATE_COLUMN, i, f"{encounter.rate} %")
+                self.setWidgetImage(encounterLayout, ITEM_COLUMN, i, QPixmap(f"sprites/items/{source}.png"))
 
-            # Update line height based on average cropped sprite height
-            self.walkEncountersLayout.setRowMinimumHeight(i, averageHeigth)
+                # Update line height based on average cropped sprite height
+                self.walkEncountersLayout.setRowMinimumHeight(i, averageHeigth)
 
-        # Final loop to clear the remaining lines
-        for i in range(len(encounterList), 12):
+            # Final loop to clear the remaining lines
+            for i in range(len(encounterList), 12):
 
-            # Update Encounter sprite, name
-            self.setEncounterSprite(i, None)
-            self.setEncounterName(i, None)
-            self.setEncounterRate(i, None)
+                # Update Encounter sprite, name
+                self.setWidgetImage(encounterLayout, SPRITE_COLUMN, i, None)
+                self.setWidgetText(encounterLayout, NAME_COLUMN, i, None)
+                self.setWidgetText(encounterLayout, RATE_COLUMN, i, None)
+                self.setWidgetImage(encounterLayout, ITEM_COLUMN, i, None)
             
     def createTiledBackground(self, tilePath):
         # Load the tile sprite
