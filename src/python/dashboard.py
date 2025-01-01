@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QLabel, QGridLayout, QSizePolicy
+from PyQt5.QtWidgets import QApplication, QWidget, QHBoxLayout, QVBoxLayout, QLabel, QGridLayout, QSizePolicy, QSpacerItem
 from PyQt5.QtGui import QPixmap, QPainter, QFontDatabase, QFont, QBrush, QPalette, QColor
 from PyQt5.QtCore import Qt, pyqtSignal
 import sys
@@ -57,29 +57,66 @@ class Dashboard(QWidget):
         self.setWindowTitle("ShinyBot Dashboard - Pokémon Version " + EMULATOR.mainWindow.gameName)
         self.setGeometry(screenWidth - self.windowWidth, windowPositionY, self.windowWidth, self.windowHeight - 200)
 
-        # Set dark background color and white text for the whole widget
-        self.setStyleSheet("color: white") # ;background-color: #333333; 
+        # Set white text for the whole widget
+        self.setStyleSheet("color: white")
         
         # Load custom Pokémon font
         fontId = QFontDatabase.addApplicationFont("pokemon-gen-4-regular.ttf")
         fontFamily = QFontDatabase.applicationFontFamilies(fontId)[0]
-        customFont = QFont(fontFamily, 12)
+        self.pokemonFont = QFont(fontFamily, 15)
 
         # Create main layout
         mainLayout = QVBoxLayout()
-        mainLayout.setAlignment(Qt.AlignTop)
         mainLayout.setContentsMargins(0, 0, 0, 0)
 
-        # Main QWidget, make sure it doesn't stretch with window size
-        self.grassEncountersContainer = FilteredBackgroundWidget(self)
-        self.grassEncountersContainer.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        # Create encounters (walk + water) layout
+        encountersLayout = QHBoxLayout()
+        encountersLayout.setContentsMargins(0, 0, 0, 0)
+        encountersLayout.setSpacing(0)
 
-        # Dashboard layout : Array with 12 lines
-        self.grassEncountersLayout = QGridLayout()
-        self.grassEncountersLayout.setContentsMargins(0, 0, 0, 0)
-        self.grassEncountersLayout.setHorizontalSpacing(20)
-        self.grassEncountersLayout.setVerticalSpacing(10)
-        self.grassEncountersLayout.setContentsMargins(10, 0, 10, 0) # Default : no top/bottom margin
+        # Init encounters containers that fills all space and sets a custom backgroup
+        self.walkEncountersContainer = self.initEncounterContainer("grass")
+        self.waterEncountersContainer = self.initEncounterContainer("water")
+
+        # Init encounters layouts that setup 12 rows for potential encounters
+        self.walkEncountersLayout = self.initEncounterLayout()
+        self.waterEncountersLayout = self.initEncounterLayout()
+
+        # Add walk/water encounters layouts to the main dashboard
+        self.walkEncountersContainer.setLayout(self.walkEncountersLayout)
+        self.waterEncountersContainer.setLayout(self.waterEncountersLayout)
+        encountersLayout.addWidget(self.walkEncountersContainer)
+        encountersLayout.addWidget(self.waterEncountersContainer)
+        mainLayout.addLayout(encountersLayout)
+
+        # Placeholder for bottom section
+        self.bottomSection = QLabel("Bottom Section Placeholder")
+        self.bottomSection.setFixedHeight(100)  # Adjustable height
+        self.bottomSection.setAlignment(Qt.AlignCenter)
+        self.bottomSection.setStyleSheet("background-color: rgba(255, 255, 255, 0.5);")
+        self.bottomSection.hide()
+        mainLayout.addWidget(self.bottomSection)
+
+        # Set the main layout
+        self.setLayout(mainLayout)
+
+    def initEncounterContainer(self, tileType):
+        encountersContainer = FilteredBackgroundWidget(self)
+
+        # Take all available size
+        encountersContainer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+
+        # Apply grass/water background
+        grassBackground = self.getPaletteBackground(encountersContainer, tileType)
+        encountersContainer.setPalette(grassBackground)
+
+        return encountersContainer
+
+    def initEncounterLayout(self):
+        encountersLayout = QGridLayout()
+        encountersLayout.setContentsMargins(10, 10, 10, 0) # Default : no top/bottom margin
+        encountersLayout.setHorizontalSpacing(20)
+        encountersLayout.setVerticalSpacing(10)
 
         # Create 12 empty slots for each possible encounter
         for i in range(12):
@@ -87,41 +124,32 @@ class Dashboard(QWidget):
             # Sprite column
             spriteLabel = QLabel()
             spriteLabel.setAlignment(Qt.AlignVCenter)
-            self.grassEncountersLayout.addWidget(spriteLabel, i, 0)
+            encountersLayout.addWidget(spriteLabel, i, 0)
 
             # Pokémon name column
             nameLabel = QLabel()
-            nameLabel.setFont(customFont)
+            nameLabel.setFont(self.pokemonFont)
             nameLabel.setAlignment(Qt.AlignVCenter)
-            self.grassEncountersLayout.addWidget(nameLabel, i, 1)
+            encountersLayout.addWidget(nameLabel, i, 1)
 
             # Encounter rate column
             rateLabel = QLabel()
-            rateLabel.setFont(customFont)
+            rateLabel.setFont(self.pokemonFont)
             rateLabel.setAlignment(Qt.AlignVCenter)
-            self.grassEncountersLayout.addWidget(rateLabel, i, 2)
+            encountersLayout.addWidget(rateLabel, i, 2)
 
-        self.grassEncountersContainer.setLayout(self.grassEncountersLayout)
-        mainLayout.addWidget(self.grassEncountersContainer)
+        # Add a spacer in the last row to fill the rest with empty space
+        spacer = QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Expanding)
+        encountersLayout.addItem(spacer, encountersLayout.rowCount(), encountersLayout.columnCount())
 
-        # Add empty layout stretching to max available size so bottom section is actually at the very bottom
-        mainLayout.addStretch()
+        return encountersLayout
 
-        # Placeholder for bottom section
-        self.bottomSection = QLabel("Bottom Section Placeholder")
-        self.bottomSection.setFixedHeight(100)  # Adjustable height
-        self.bottomSection.setAlignment(Qt.AlignCenter)
-        self.bottomSection.setStyleSheet("background-color: rgba(255, 255, 255, 0.5);")
-        mainLayout.addWidget(self.bottomSection)
-
-        # Set the main layout
-        self.setLayout(mainLayout)
 
     def sendEncountersData(self, encounterList):
         self.updateSignal.emit(encounterList)
 
     def setEncounterSprite(self, lineNumber, pokemonSprite):
-        spriteLabel = self.grassEncountersLayout.itemAtPosition(lineNumber, 0).widget()
+        spriteLabel = self.walkEncountersLayout.itemAtPosition(lineNumber, 0).widget()
 
         if (pokemonSprite):
             spriteLabel.setPixmap(pokemonSprite)
@@ -129,11 +157,11 @@ class Dashboard(QWidget):
             spriteLabel.clear()
 
     def setEncounterName(self, lineNumber, pokemonName):
-        nameLabel = self.grassEncountersLayout.itemAtPosition(lineNumber, 1).widget()
+        nameLabel = self.walkEncountersLayout.itemAtPosition(lineNumber, 1).widget()
         nameLabel.setText(pokemonName)
 
     def setEncounterRate(self, lineNumber, pokemonRate):
-        rateLabel = self.grassEncountersLayout.itemAtPosition(lineNumber, 2).widget()
+        rateLabel = self.walkEncountersLayout.itemAtPosition(lineNumber, 2).widget()
         rateLabel.setText(pokemonRate)
 
     def updateEncounters(self, encounterList):
@@ -164,7 +192,7 @@ class Dashboard(QWidget):
             self.setEncounterRate(i, f"{encounter.rate} %")
 
             # Update line height based on average cropped sprite height
-            self.grassEncountersLayout.setRowMinimumHeight(i, averageHeigth)
+            self.walkEncountersLayout.setRowMinimumHeight(i, averageHeigth)
 
         # Final loop to clear the remaining lines
         for i in range(len(encounterList), 12):
@@ -173,9 +201,6 @@ class Dashboard(QWidget):
             self.setEncounterSprite(i, None)
             self.setEncounterName(i, None)
             self.setEncounterRate(i, None)
-
-        # Only add background if encounters are present
-        self.grassEncountersContainer.setAutoFillBackground(len(encounterList) > 0)
             
     def createTiledBackground(self, tilePath):
         # Load the tile sprite
