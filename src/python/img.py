@@ -9,6 +9,7 @@ import numpy
 
 from PIL import Image, ImageFile
 from PyQt5.QtGui import QImage
+from PyQt5.QtCore import Qt
 
 from emu import BIZHAWK, MELONDS
 from utils import waitFrames
@@ -261,20 +262,22 @@ def getScreenshot():
 def saveScreenshot(screenshot, filename):
     cv2.imwrite(os.path.join("backup/screenshots", time.strftime('%Y%m%d-%H%M%S') + "-" + filename + ".png"), screenshot)
 
-# Crops top/bottom transparent pixels
-def cropSprite(imagePath):
+# Crops top/bottom transparent pixels and scale the sprite to the dashboard height
+def resizeSprite(imagePath, scale):
     image = QImage(imagePath)
 
     if image.isNull():
         return QImage()
-
+    
+    # Scale image to dashboard height
+    scaledImage = image.scaled(scale, scale, aspectRatioMode = Qt.IgnoreAspectRatio, transformMode = Qt.SmoothTransformation)
     topPosition = 0
-    bottomPosition = image.height() - 1
+    bottomPosition = scaledImage.height() - 1
 
     # Find first non-transparent row from the top
-    for y in range(image.height()):
-        for x in range(image.width()):
-            if image.pixelColor(x, y).alpha() > 0:
+    for y in range(scaledImage.height()):
+        for x in range(scaledImage.width()):
+            if scaledImage.pixelColor(x, y).alpha() > 0:
                 topPosition = y
                 break
         else:
@@ -282,13 +285,14 @@ def cropSprite(imagePath):
         break
 
     # Find first non-transparent row from the bottom
-    for y in range(image.height() - 1, -1, -1):
-        for x in range(image.width()):
-            if image.pixelColor(x, y).alpha() > 0:
+    for y in range(scaledImage.height() - 1, -1, -1):
+        for x in range(scaledImage.width()):
+            if scaledImage.pixelColor(x, y).alpha() > 0:
                 bottomPosition = y
                 break
         else:
             continue
         break
 
-    return image.copy(0, topPosition, image.width(), bottomPosition - topPosition + 1)
+    # Crop image to remove transparent pixels
+    return scaledImage.copy(0, topPosition, scaledImage.width(), bottomPosition - topPosition + 1)

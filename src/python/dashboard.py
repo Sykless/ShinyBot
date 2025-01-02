@@ -69,7 +69,7 @@ class Dashboard(QWidget):
         # Load custom Pokémon font
         fontId = QFontDatabase.addApplicationFont("pokemon-gen-4-regular.ttf")
         fontFamily = QFontDatabase.applicationFontFamilies(fontId)[0]
-        self.pokemonFont = QFont(fontFamily, 15)
+        self.pokemonFont = QFont(fontFamily, self.windowHeight // 67)
 
         # Create main layout
         mainLayout = QVBoxLayout()
@@ -194,7 +194,7 @@ class Dashboard(QWidget):
             for i, (source, uniqueId, encounter) in enumerate(encounterList):
 
                 # Retrieve sprite and remove top/bottom transparent pixels
-                croppedImage = img.cropSprite(f"sprites/nonshiny/{encounter.pokedexId}.png")
+                croppedImage = img.resizeSprite(f"sprites/nonshiny/{encounter.pokedexId}.png", self.windowHeight // 11)
                 spritePixmap = QPixmap.fromImage(croppedImage)
 
                 spriteList.append(spritePixmap)
