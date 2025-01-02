@@ -14,7 +14,7 @@ class Game:
         self.repelSteps = repelSteps
         self.selectedBagSection = None
         self.swarmPokemon = swarmPokemon
-        self.marshPokemonList = [None] + marshPokemonList
+        self.marshPokemonList = marshPokemonList
         self.gardenPokemonToday = gardenPokemonToday
         self.gardenPokemonYesterday = gardenPokemonYesterday if gardenPokemonYesterday != 0xFFFF else None
         self.gbaGame = gbaGame
@@ -55,7 +55,7 @@ class Game:
         return (str(self.repelSteps) + " repel steps remaining\n"
                 + "Swarm Pokémon : " + POKEMON_NAMES[SPECIALGRASSENCOUNTERS["swarm"][self.swarmPokemon]] + "\n"
                 + "Garden Pokémon : Today : " + POKEMON_NAMES[SPECIALGRASSENCOUNTERS["garden"][self.gardenPokemonToday]] + (" - Yesterday : " + POKEMON_NAMES[SPECIALGRASSENCOUNTERS["garden"][self.gardenPokemonYesterday]] if self.gardenPokemonYesterday else "") + "\n"
-                + "Marsh Pokémon : " + " - ".join("Zone " + str(zoneId) + " : " + POKEMON_NAMES[SPECIALGRASSENCOUNTERS["marsh"][self.marshPokemonList[zoneId]]] for zoneId in range(1,7)) + "\n"
+                + "Marsh Pokémon : " + " - ".join("Zone " + str(zoneId) + " : " + POKEMON_NAMES[SPECIALGRASSENCOUNTERS["marsh"][self.marshPokemonList[zoneId]]] for zoneId in range(6)) + "\n"
                 + "GBA Game : " + GBAGAME_NAMES[self.gbaGame])
 
 def getGameData():
