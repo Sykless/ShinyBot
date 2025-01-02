@@ -215,7 +215,7 @@ class Dashboard(QWidget):
                 self.setWidgetImage(encounterLayout, ITEM_COLUMN, i, QPixmap(f"sprites/items/{source}.png"))
 
                 # Update line height based on average cropped sprite height
-                self.walkEncountersLayout.setRowMinimumHeight(i, averageHeigth)
+                encounterLayout.setRowMinimumHeight(i, averageHeigth)
 
             # Final loop to clear the remaining lines
             for i in range(len(encounterList), 12):
