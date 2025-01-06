@@ -707,7 +707,7 @@ TOURPERDUE_ETAGE2.setBaseEncounters(Encounter(92,20,19,19), Encounter(41,20,18,1
 TOURPERDUE_ETAGE2.setDayEncounters(92,92)
 TOURPERDUE_ETAGE2.setNightEncounters(355,355)
 TOURPERDUE_ETAGE2.setSwarmEncounters(92,41)
-TOURPERDUE_ETAGE2.setPokeradarEncounters(41,92,92,92)
+TOURPERDUE_ETAGE2.setPokeradarEncounters(41,92,92,42) # Inconsistent in-game data : (41,92,92,92)
 TOURPERDUE_ETAGE2.setGbaEncounters([None], [92,92], [92,92], [92,92], [92,92], [92,92])
 
 TOURPERDUE_ETAGE3 = EncounterTables("Tour Perdue - Étage 3")
@@ -715,7 +715,7 @@ TOURPERDUE_ETAGE3.setBaseEncounters(Encounter(92,20,19,19), Encounter(41,20,18,1
 TOURPERDUE_ETAGE3.setDayEncounters(92,92)
 TOURPERDUE_ETAGE3.setNightEncounters(355,355)
 TOURPERDUE_ETAGE3.setSwarmEncounters(92,41)
-TOURPERDUE_ETAGE3.setPokeradarEncounters(41,92,92,92)
+TOURPERDUE_ETAGE3.setPokeradarEncounters(41,92,92,42) # Inconsistent in-game data : (41,92,92,92)
 TOURPERDUE_ETAGE3.setGbaEncounters([None], [92,92], [92,92], [92,92], [92,92], [92,92])
 
 TOURPERDUE_ETAGE4 = EncounterTables("Tour Perdue - Étage 4")
@@ -723,7 +723,7 @@ TOURPERDUE_ETAGE4.setBaseEncounters(Encounter(92,20,20,20), Encounter(41,20,19,1
 TOURPERDUE_ETAGE4.setDayEncounters(92,92)
 TOURPERDUE_ETAGE4.setNightEncounters(355,355)
 TOURPERDUE_ETAGE4.setSwarmEncounters(92,41)
-TOURPERDUE_ETAGE4.setPokeradarEncounters(41,92,92,92)
+TOURPERDUE_ETAGE4.setPokeradarEncounters(41,92,92,42) # Inconsistent in-game data : (41,92,92,92)
 TOURPERDUE_ETAGE4.setGbaEncounters([None], [92,92], [92,92], [92,92], [92,92], [92,92])
 
 RUINESBONVILLE = EncounterTables("Ruines Bonville")
@@ -858,7 +858,7 @@ MINECHARBOURG_ENTREE.setBaseEncounters(Encounter(74,20,5,5), Encounter(74,20,6,6
 MINECHARBOURG_ENTREE.setDayEncounters(41,41)
 MINECHARBOURG_ENTREE.setNightEncounters(41,41)
 MINECHARBOURG_ENTREE.setSwarmEncounters(74,74)
-MINECHARBOURG_ENTREE.setPokeradarEncounters(74,74,74,74)
+MINECHARBOURG_ENTREE.setPokeradarEncounters(74,74,74,41) # Inconsistent in-game data : (74,74,74,74)
 MINECHARBOURG_ENTREE.setGbaEncounters([None], [74,74], [74,74], [74,74], [74,74], [74,74])
 
 MINECHARBOURG = EncounterTables("Mine Charbourg")
@@ -866,7 +866,7 @@ MINECHARBOURG.setBaseEncounters(Encounter(74,20,6,6), Encounter(74,20,7,7), Enco
 MINECHARBOURG.setDayEncounters(41,41)
 MINECHARBOURG.setNightEncounters(41,41)
 MINECHARBOURG.setSwarmEncounters(74,74)
-MINECHARBOURG.setPokeradarEncounters(74,74,74,74)
+MINECHARBOURG.setPokeradarEncounters(74,74,74,41) # Inconsistent in-game data : (74,74,74,74)
 MINECHARBOURG.setGbaEncounters([None], [74,74], [74,74], [74,74], [74,74], [74,74])
 
 CHEMINROCHEUX = EncounterTables("Chemin Rocheux")
@@ -886,7 +886,7 @@ GROTTEREVECHE.setBaseEncounters(Encounter(436,20,18,18), Encounter(74,20,18,18),
 GROTTEREVECHE.setDayEncounters(74,41)
 GROTTEREVECHE.setNightEncounters(74,41)
 GROTTEREVECHE.setSwarmEncounters(436,74)
-GROTTEREVECHE.setPokeradarEncounters(436,95,74,95)
+GROTTEREVECHE.setPokeradarEncounters(436,95,41,95) # Inconsistent in-game data : (436,95,74,95)
 GROTTEREVECHE.setGbaEncounters([None], [74,95], [74,95], [74,95], [74,95], [27,27])
 
 GROTTEREVECHE_SOUSSOL = EncounterTables("Grotte Revêche - Sous-Sol")
@@ -1047,7 +1047,7 @@ ILEDEFER_SORTIE = EncounterTables("Ile de Fer - Sortie")
 ILEDEFER_SORTIE.setBaseEncounters(Encounter(208,20,32,32), Encounter(75,20,33,33), Encounter(42,10,31,31), Encounter(42,10,33,33), Encounter(75,10,33,33), Encounter(75,10,34,34), Encounter(208,5,33,33), Encounter(208,5,35,35), Encounter(75,4,31,31), Encounter(75,4,32,32), Encounter(75,1,31,31), Encounter(75,1,32,32))
 ILEDEFER_SORTIE.setDayEncounters(42,42)
 ILEDEFER_SORTIE.setNightEncounters(42,42)
-ILEDEFER_SORTIE.setSwarmEncounters(95,75)
+ILEDEFER_SORTIE.setSwarmEncounters(208,75) # Inconsistent in-game data : (95,75)
 ILEDEFER_SORTIE.setPokeradarEncounters(75,75,75,75)
 ILEDEFER_SORTIE.setGbaEncounters([None], [302,302], [303,303], [75,75], [75,75], [75,75])
 
@@ -1144,7 +1144,7 @@ GROTTERETOUR_ENTREE.setBaseEncounters(Encounter(92,20,15,15), Encounter(436,20,1
 GROTTERETOUR_ENTREE.setDayEncounters(92,42)
 GROTTERETOUR_ENTREE.setNightEncounters(356,42)
 GROTTERETOUR_ENTREE.setSwarmEncounters(92,436)
-GROTTERETOUR_ENTREE.setPokeradarEncounters(92,42,356,433)
+GROTTERETOUR_ENTREE.setPokeradarEncounters(92,42,355,433) # Inconsistent in-game data : (92,42,356,433)
 GROTTERETOUR_ENTREE.setGbaEncounters([None], [337,337], [338,338], [356,433], [356,433], [356,433])
 
 GROTTERETOUR_AFTERFIRST = EncounterTables("Grotte Retour - Après Premier Pilier")
@@ -1152,7 +1152,7 @@ GROTTERETOUR_AFTERFIRST.setBaseEncounters(Encounter(93,20,25,25), Encounter(436,
 GROTTERETOUR_AFTERFIRST.setDayEncounters(93,42)
 GROTTERETOUR_AFTERFIRST.setNightEncounters(356,42)
 GROTTERETOUR_AFTERFIRST.setSwarmEncounters(93,436)
-GROTTERETOUR_AFTERFIRST.setPokeradarEncounters(93,42,356,433)
+GROTTERETOUR_AFTERFIRST.setPokeradarEncounters(93,42,356,358) # Inconsistent in-game data : (93,42,356,433)
 GROTTERETOUR_AFTERFIRST.setGbaEncounters([None], [337,337], [338,338], [356,433], [356,433], [356,433])
 
 GROTTERETOUR_AFTERSECOND = EncounterTables("Grotte Retour - Après Second Pilier")
