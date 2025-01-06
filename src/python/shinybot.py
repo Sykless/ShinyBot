@@ -89,9 +89,9 @@ def startShinybot():
 
                     if (encounterTable):
                         currentTables = encounterTable.generateCurrentTables(gameData, currentZone)
-                        DASHBOARD.updateEncounters(currentTables)
+                        DASHBOARD.updateEncounters(currentTables, playerData.position.zone.isCave)
                     else:
-                        DASHBOARD.updateEncounters(None)
+                        DASHBOARD.updateEncounters(None, playerData.position.zone.isCave)
 
         # Only apply new input if no input is found in memory
         elif (not memory.readJoypadData()):

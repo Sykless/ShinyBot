@@ -69,7 +69,7 @@ class Dashboard(QWidget):
         # Load custom Pokémon font
         fontId = QFontDatabase.addApplicationFont("pokemon-gen-4-regular.ttf")
         fontFamily = QFontDatabase.applicationFontFamilies(fontId)[0]
-        self.pokemonFont = QFont(fontFamily, self.windowHeight // 67)
+        self.pokemonFont = QFont(fontFamily, self.windowHeight // 80)
 
         # Create main layout
         mainLayout = QVBoxLayout()
@@ -113,8 +113,12 @@ class Dashboard(QWidget):
         encountersContainer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         # Apply grass/water background
-        grassBackground = self.getPaletteBackground(encountersContainer, tileType)
-        encountersContainer.setPalette(grassBackground)
+        encountersContainer.defaultBackground = self.getPaletteBackground(encountersContainer, tileType)
+        encountersContainer.setPalette(encountersContainer.defaultBackground)
+
+        # Set another type of background for cave encounters
+        if (tileType == "grass"):
+            encountersContainer.caveBackground = self.getPaletteBackground(encountersContainer, "cave")
 
         return encountersContainer
 
@@ -170,7 +174,7 @@ class Dashboard(QWidget):
         else:
             imageWidget.clear()
 
-    def updateEncounters(self, encounterTables):
+    def updateEncounters(self, encounterTables, isCave):
 
         # Concatenate all water encounters in one list
         if (encounterTables):
@@ -225,6 +229,12 @@ class Dashboard(QWidget):
                 self.setWidgetText(encounterLayout, NAME_COLUMN, i, None)
                 self.setWidgetText(encounterLayout, RATE_COLUMN, i, None)
                 self.setWidgetImage(encounterLayout, ITEM_COLUMN, i, None)
+
+        # Update background if zone is outside or in a cave
+        if (isCave):
+            self.walkEncountersContainer.setPalette(self.walkEncountersContainer.caveBackground)
+        else:
+            self.walkEncountersContainer.setPalette(self.walkEncountersContainer.defaultBackground)
             
     def createTiledBackground(self, tilePath):
         # Load the tile sprite
