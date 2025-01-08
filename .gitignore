@@ -1,5 +1,6 @@
 # ShinyBoy exclusive
 roms/
+backup/
 src/python/data/pkl/
 test.png
 
