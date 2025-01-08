@@ -415,7 +415,7 @@ class Emulator():
     ######################################################################
     def launchEmu(self, pokemonGameVersion, firstInstance = None):
         try:
-            process = subprocess.Popen("../../Programmes/" + self.name + "/" + self.executableName + " roms/PokemonVersion" + pokemonGameVersion + ".nds")
+            process = subprocess.Popen("../../Drive/Shared/Programmes/" + self.name + "/" + self.executableName + " roms/PokemonVersion" + pokemonGameVersion + ".nds")
         except OSError as e:
             print(f"Error: {e}")
             exit(1)
