@@ -29,7 +29,7 @@ SPIN_MODE = True
 CATCH_ALL_MODE = False
 GENERATE_GRAPH = False
 
-def startShinybot():
+def startShinybot(dashboardMode = True):
     startTime = time.time()
 
     # Generate Door Graph that contains every door-to-door path in the map
@@ -84,7 +84,7 @@ def startShinybot():
                 currentZone = playerData.zoneId
                 currentHour = gameData.hourOfDay
 
-                if (playerData.position.zone):
+                if (dashboardMode and playerData.position.zone):
                     encounterTable = playerData.position.zone.getEncounterTables(currentZone)
 
                     if (encounterTable):
@@ -264,3 +264,7 @@ def startShinybot():
             # Default : mash B
             else:
                 joypad.writeInput("B")
+
+# Launch this script to start the bot without the emulator and the dashboard
+if __name__ == "__main__":
+    startShinybot(dashboardMode = False)
