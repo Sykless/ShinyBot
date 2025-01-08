@@ -1,7 +1,8 @@
+import copy
 from data import POKEMON_NAMES
 from data import GBAGAME_NAMES
 
-from encounter import ENCOUNTERTABLES_LIST
+from encounter import ENCOUNTERTABLES_DICT
 from encounter import BASEENCOUNTER_RATES
 from encounter import SPECIALENCOUNTERS
 from encounter import SPECIALGRASSENCOUNTERS
@@ -10,9 +11,19 @@ class PokedexEntry():
     def __init__(self, pokedexId):
         self.pokedexId = pokedexId
         self.name = POKEMON_NAMES[pokedexId]
+        self.caught = False
+
         self.evolvesFrom = None
         self.evolvesInto = []
         self.encounterTables = {}
+
+        self.totalRate = 0
+        self.rarity = 0
+
+        self.maxScore = 0
+        self.bestRoute = None
+        self.bestVersionMethods = ""
+        self.bestVersion = None
 
     # Link evolution to base Pokémon
     def setEvolvesInto(self, evolutionList):
@@ -21,6 +32,9 @@ class PokedexEntry():
         for evolution in evolutionList:
             self.evolvesInto.append(POKEDEX[evolution])
             POKEDEX[evolution].evolvesFrom = self
+
+    def __str__(self):
+        return self.name + " " + str(self.encounterTables)
 
 
 POKEDEX = {pokedexId : PokedexEntry(pokedexId) for pokedexId in range(1, 494)}
@@ -223,7 +237,7 @@ def populatePokedex():
         POKEDEX[pokedexId].setEvolvesInto(evolution)
 
     # Search in each zone if a Pokémon can be found in water or grass
-    for zone in ENCOUNTERTABLES_LIST:
+    for zone in ENCOUNTERTABLES_DICT.values():
         
         # Grass encounters
         if (zone.baseEncounters):
@@ -246,7 +260,7 @@ def populatePokedex():
 
             # Pokéradar
             for pokeradarId, encounterSlot in {0:4, 1:5, 2:10, 3:11}.items():
-                if (zone.pokeradarEncounters[pokeradarId] != zone.baseEncounters[encounterSlot].pokedexId):
+                if (zone.pokeradarEncounters[pokeradarId] != zone.baseEncounters[encounterSlot].pokedexId):             
                     addPokedexEncounter(zone.pokeradarEncounters[pokeradarId], zone.name, "pokeradar", BASEENCOUNTER_RATES[encounterSlot])
 
             # Swarm
@@ -272,7 +286,7 @@ def populatePokedex():
     # Add special encounters (static, roaming, fossils, etc)
     for environment, encounterTable in SPECIALENCOUNTERS.items():
         for pokedexId in encounterTable:
-            POKEDEX[pokedexId].encounterTables[environment] = True
+            addPokedexEncounter(pokedexId, environment, environment, True)
 
     # Add Garden/Marsh encounters
     for environment, zoneName in {"garden": "Jardin Trophée", "marsh": "Grand Marais"}.items():
@@ -313,11 +327,9 @@ def populatePokedex():
 def canBeFoundInGame(encounterTable):
     return (encounterTable
             and not (len(encounterTable) == 1
-                     and ("evolution" in encounterTable
-                          or "hatch" in encounterTable)))
+                     and ("evolution" in encounterTable or "hatch" in encounterTable)))
 
 def addPokedexEncounter(pokedexId, zoneName, environment, rate):
-
     if (environment not in POKEDEX[pokedexId].encounterTables):
         POKEDEX[pokedexId].encounterTables[environment] = {}
 
@@ -335,11 +347,10 @@ def removePokedexEncounter(zone, environment, encounterSlot):
     if (not POKEDEX[zone.baseEncounters[encounterSlot].pokedexId].encounterTables[environment]):
         del POKEDEX[zone.baseEncounters[encounterSlot].pokedexId].encounterTables[environment]
 
-
 def printPokedex():
     with open("pokedex.txt", "w", encoding="utf-8") as file:
         for pokedexId, pokemon in POKEDEX.items():
-            file.write(str(pokedexId) + " - " + pokemon.name + "\n")
+            file.write(f"{pokedexId} - {pokemon.name} - {pokemon.bestRoute.name if pokemon.bestRoute else None} ({pokemon.bestVersionMethods}) : {pokemon.maxScore}\n")
 
             if (pokemon.encounterTables):
                 for environment, encounterTable in pokemon.encounterTables.items():
@@ -357,11 +368,156 @@ def printPokedex():
                         if (environment not in SPECIALENCOUNTERS):
                             for encounter, rate in encounterTable.items():
                                 file.write("\t\t" + str(encounter) + " : " + str(rate) + "%\n")
-                    
+
             else:
                 file.write("\tCannot be found\n")
 
             file.write("\n")
 
+def populatePokedexEncounters():
+    for pokedexEntry in POKEDEX.values():
+        for method, encounterTable in pokedexEntry.encounterTables.items():
+            # Base grass/cave encounters
+            if method in ["morning", "day", "night"]:
+                for rate in encounterTable.values():
+                    pokedexEntry.totalRate += rate
+
+            # Special grass/cave encounters
+            elif method in ["gba", "swarm", "garden", "marsh"]:
+                for rate in encounterTable.values():
+                    pokedexEntry.totalRate += 3 * rate # x3 since you can find them during morning/day/night
+
+            # Surf encounters
+            elif method in ["surf"]:
+                for rate in encounterTable.values():
+                    pass # Do something with surf rates
+
+            # Rods encounters
+            elif method in ["oldrod", "goodrod", "superrod"]:
+                for rate in encounterTable.values():
+                    pass # Do something with rod rates
+
+        # Calculate rarity score from encounter total rate
+        if (pokedexEntry.totalRate > 0):
+            pokedexEntry.rarity = round(100 / pokedexEntry.totalRate, 2)
+
+    # Find most optimal zone
+    for pokedexEntry in POKEDEX.values():
+        if (pokedexEntry.totalRate > 0):
+            findMostOptimalZone(pokedexEntry.pokedexId)
+
+def calculateZoneScore(zoneVersion, targetPokemon):
+    if (targetPokemon not in zoneVersion):
+        return 0
+
+    # Calculate non-caught encounters rarity score
+    rarityScore = round(sum(zoneVersion[pokedexId] * POKEDEX[pokedexId].rarity 
+                            for pokedexId in zoneVersion if pokedexId != targetPokemon and not POKEDEX[pokedexId].caught), 2)
+
+    # Sum with target Pokemon encounter rate to have the global zone score
+    zoneScore = zoneVersion[targetPokemon] + rarityScore
+
+    # for pokedexId in zoneVersion:
+    #     print(f"{POKEMON_NAMES[pokedexId]} : {zoneVersion[pokedexId]} * {POKEDEX[pokedexId].rarity} = {zoneVersion[pokedexId] * POKEDEX[pokedexId].rarity}")
+    # print(zoneVersion)
+    # print(f"{zoneVersion[targetPokemon]} + {rarityScore} = {zoneScore}", end = "\n\n")
+
+    return zoneScore
+
+def findMostOptimalZone(targetPokemon):
+    maxScore = 0
+    bestRoute = None
+    bestVersion = None
+    bestVersionMethods = ""
+
+    # Calculate rarity score for each zone to find the most optimal one
+    for zone in ENCOUNTERTABLES_DICT.values():
+
+        # Grass/Cave encounters
+        if (zone.baseEncounters):
+            zoneVersion = {"morning": {}, "day": {}, "night": {}}
+            bestGbaVersion = None
+
+            # Generate encounter table for morning/day/night
+            for i in range(12):
+                encounter = zone.baseEncounters[i]
+
+                # Base encounter slots for all three periods of the day
+                if i not in (2,3):
+                    zoneVersion["morning"][encounter.pokedexId] = zoneVersion["morning"].get(encounter.pokedexId, 0) + encounter.rate
+                    zoneVersion["day"][encounter.pokedexId] = zoneVersion["day"].get(encounter.pokedexId, 0) + encounter.rate
+                    zoneVersion["night"][encounter.pokedexId] = zoneVersion["night"].get(encounter.pokedexId, 0) + encounter.rate
+
+                # Period-specific encounter slots
+                else:
+                    zoneVersion["morning"][encounter.pokedexId] = zoneVersion["morning"].get(encounter.pokedexId, 0) + encounter.rate
+                    zoneVersion["day"][zone.dayEncounters[i - 2]] = zoneVersion["day"].get(zone.dayEncounters[i - 2], 0) + BASEENCOUNTER_RATES[i]
+                    zoneVersion["night"][zone.nightEncounters[i - 2]] = zoneVersion["night"].get(zone.nightEncounters[i - 2], 0) + BASEENCOUNTER_RATES[i]
+
+            # Calculate zone score for each period of the day
+            zoneScores = {
+                "morning": calculateZoneScore(zoneVersion["morning"], targetPokemon),
+                "day": calculateZoneScore(zoneVersion["day"], targetPokemon),
+                "night" : calculateZoneScore(zoneVersion["night"], targetPokemon)
+            }
+
+            # Find most optimal period to find the rarer Pokemon
+            maxRouteScore = max(zoneScores.values())
+            bestPeriods = [period for period, score in zoneScores.items() if score == maxRouteScore]
+            bestRouteVersion = copy.deepcopy(zoneVersion[bestPeriods[0]])
+
+            selectedPeriod = "/".join(bestPeriods)
+            selectedGba = ""
+
+            # Swarm encounters
+            if (zone.swarmEncounters[0] != zone.baseEncounters[0].pokedexId):
+                zoneVersion["swarm"] = copy.deepcopy(bestRouteVersion)
+
+                # Check if enabling swarm is more optimal
+                for swarmId, encounterSlot in {0:0, 1:1}.items():
+                    zoneVersion["swarm"][zone.baseEncounters[encounterSlot].pokedexId] -= BASEENCOUNTER_RATES[encounterSlot]
+                    zoneVersion["swarm"][zone.swarmEncounters[swarmId]] = zoneVersion["swarm"].get(zone.swarmEncounters[swarmId], 0) + BASEENCOUNTER_RATES[encounterSlot]
+
+                swarmScore = calculateZoneScore(zoneVersion["swarm"], targetPokemon)
+
+                if (swarmScore > maxRouteScore):
+                    maxRouteScore = swarmScore
+                    selectedPeriod += " swarm"
+                    bestRouteVersion = zoneVersion["swarm"]
+
+            # GBA encounters
+            for gbaGame in range(1,6):
+                if (zone.gbaEncounters[gbaGame][0] != zone.baseEncounters[8].pokedexId or zone.gbaEncounters[gbaGame][1] != zone.baseEncounters[9].pokedexId):
+                    zoneVersion[GBAGAME_NAMES[gbaGame]] = copy.deepcopy(bestRouteVersion)
+
+                    # Check if enabling GBA game is more optimal
+                    for gbaId, encounterSlot in {0:8, 1:9}.items():
+                        zoneVersion[GBAGAME_NAMES[gbaGame]][zone.baseEncounters[encounterSlot].pokedexId] -= BASEENCOUNTER_RATES[encounterSlot]
+                        zoneVersion[GBAGAME_NAMES[gbaGame]][zone.gbaEncounters[gbaGame][gbaId]] = zoneVersion[GBAGAME_NAMES[gbaGame]].get(zone.gbaEncounters[gbaGame][gbaId], 0) + BASEENCOUNTER_RATES[encounterSlot]
+
+                    gbaScore = calculateZoneScore(zoneVersion[GBAGAME_NAMES[gbaGame]], targetPokemon)
+
+                    if (gbaScore > maxRouteScore):
+                        maxRouteScore = gbaScore
+                        selectedGba = " gba (" + GBAGAME_NAMES[gbaGame] + ")"
+                        bestGbaVersion = zoneVersion[GBAGAME_NAMES[gbaGame]]
+
+            if (bestGbaVersion):
+                bestRouteVersion = bestGbaVersion
+
+            # Check if this route has the best overall rarity score for the target Pokemon
+            if (maxRouteScore > maxScore):
+                maxScore = maxRouteScore
+                bestRoute = zone
+                bestVersion = bestRouteVersion
+                bestVersionMethods = selectedPeriod + selectedGba
+
+    # Save most optimal zone
+    POKEDEX[targetPokemon].maxScore = maxScore
+    POKEDEX[targetPokemon].bestRoute = bestRoute
+    POKEDEX[targetPokemon].bestVersionMethods = bestVersionMethods
+    POKEDEX[targetPokemon].bestVersion = bestVersion
+
 populatePokedex()
+populatePokedexEncounters()
 printPokedex()
