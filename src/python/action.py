@@ -8,9 +8,9 @@ import memory
 import pokemon
 import pathfinding
 
+from bag import ITEMS_SECTION, KEYITEMS_SECTION
+from data import ITEM_NAMES
 from utils import waitFrames
-
-import time
 
 MENU_POKEDEX = 1
 MENU_POKEMON = 2
@@ -141,96 +141,129 @@ def saveGame():
     # Cannot open menu
     return None
 
+# Input sequence to use an item
+def useItem(itemId = None, repel = False, register = False, use = True):
 
-# Input sequence to use repel
-def useRepel():
+    # Default : find the provided item in the bag
+    if (itemId):
+        itemPosition = bag.findItemInBag(itemId)
 
-    # Check if we have repel in the bag
-    repelPosition = bag.getRepelLocation()
-
-    if (repelPosition is not None):
-
-        # Need to open menu first
-        menuPosition = openMenu()
-
-        # Cannot open menu, let the main loop handle it
-        if (menuPosition > 0):
-
-            # Open bag menu
-            goToMenuSection(MENU_BAG, menuPosition)
-
-            bagOpened = False
-            repelUsed = False
-
-            while True:
-                # Don't check memory more than once a frame to avoid overloading the CPU
-                waitFrames(1)
-
-                # Only apply new input if no input is found in memory
-                if (len(memory.readJoypadData()) == 0):
-                    screenshot = img.getScreenshot()
-
-                    # Bag menu has been opened
-                    if (not bagOpened and img.bagTouchscreen.isOnScreen(screenshot)):
-                        waitFrames(10) #  Small lag after Bag menu is displayed
-                        bagOpened = True
-
-                    # Repel has been used, go back to main menu
-                    elif (repelUsed):
-
-                        # Exit bag
-                        if (img.bagTouchscreen.isOnScreen(screenshot)):
-                            joypad.writeInput("B")
-                        
-                        # We're back on the overworld after repel has been used, exit menu
-                        elif (img.poketch.isOnScreen(screenshot)):
-                            waitFrames(10) # Small lag after closing the bag
-                            joypad.writeInput("B") # Exit menu
-                            return True
-
-                    # Cursor is visible, we can move between sections or items
-                    elif (bagOpened and img.bagItemSelector.isOnScreen(screenshot)):
-
-                        # Repel hasn't been used, move the cursor and use it
-                        if (not repelUsed):
-                            gameData = game.getGameData()
-
-                            # We're in the Items section, search for Repel
-                            if (gameData.selectedBagSection == bag.ITEMS_SECTION):
-
-                                # If we're on the close bag button, our current position is after every item
-                                if (gameData.closeBag):
-                                    currentPosition = len(bag.getBagData().items[bag.ITEMS_SECTION])
-                                else:
-                                    currentPosition = bag.findItemInBag(gameData.selectedBagItem.id)
-
-                                positionDiff = currentPosition - repelPosition
-
-                                # Move the cusor by the difference between current and Repel position
-                                if (positionDiff > 0):
-                                    joypad.writeInput("u" * positionDiff)
-                                elif (positionDiff < 0):
-                                    joypad.writeInput("d" * (-1 * positionDiff))
-
-                                # Found Repel : use it and skip dialogue
-                                else:
-                                    joypad.writeInput("AA@@@A")
-                                    repelUsed = True
-
-                            # Go left or right depending on the current bag section
-                            elif (gameData.selectedBagSection < bag.MAIL_SECTION):
-                                joypad.writeInput("l")
-                            else:
-                                joypad.writeInput("r")
-        
-        # Menu not opened, let the main loop handle it
-        else:
+        # Item cannot be found, TODO go buy item
+        if (itemPosition is None):
+            print(f"Item {ITEM_NAMES[itemId]} cannot be found in the bag")
             return None
         
-    # No repel in the bag, TODO go buy some
+    # Particular case : repel - find any repel in the bag, prioritizing the best ones
+    elif (repel):
+        itemPosition = bag.getRepelLocation()
+
+        # No repel in the bag, TODO go buy some
+        if (itemPosition is None):
+            print("No repel in the bag !")
+            return None
+        
+    # No itemId provided
     else:
-        print("No repel in the bag !")
+        print("No itemId provided")
         return None
+
+    # Need to open menu first
+    menuPosition = openMenu()
+
+    # Cannot open menu, let the main loop handle it
+    if (menuPosition == 0):
+        return None
+    
+    # Open bag menu
+    goToMenuSection(MENU_BAG, menuPosition)
+    
+    bagOpened = False
+    itemUsed = False
+    bagSection = bag.getBagSection(itemId) if itemId else ITEMS_SECTION
+
+    # Loop until the item is used and we're back on overworld
+    while True:
+        waitFrames(1) # Don't check memory more than once a frame to avoid overloading the CPU
+
+        # Only apply new input if no input is found in memory
+        if (len(memory.readJoypadData()) == 0):
+            screenshot = img.getScreenshot()
+
+            # Bag menu has been opened
+            if (not bagOpened and img.bagTouchscreen.isOnScreen(screenshot)):
+                waitFrames(10) #  Small lag after Bag menu is displayed
+                bagOpened = True
+
+            # Item has been used, go back to main menu
+            elif (itemUsed):
+
+                # Exit bag
+                if (img.bagTouchscreen.isOnScreen(screenshot)):
+                    joypad.writeInput("B")
+                
+                # We're back on the overworld after item has been used, exit menu
+                elif (img.poketch.isOnScreen(screenshot)):
+                    waitFrames(10) # Small lag after closing the bag
+
+                    # We don't have to close the menu if we used a key item
+                    if (bagSection != KEYITEMS_SECTION or not use):
+                        joypad.writeInput("B") # Exit menu
+
+                    return True
+
+            # Cursor is visible, we can move between sections or items
+            elif (bagOpened and img.bagItemSelector.isOnScreen(screenshot)):
+
+                # Item hasn't been used, move the cursor and use it
+                if (not itemUsed):
+                    gameData = game.getGameData()
+
+                    # We're in the correct section, search for the item to use
+                    if (gameData.selectedBagSection == bagSection):
+
+                        # If we're on the close bag button, our current position is after every item
+                        if (gameData.closeBag):
+                            currentPosition = len(bag.getBagData().items[bagSection])
+                        else:
+                            currentPosition = bag.findItemInBag(gameData.selectedBagItem.id)
+
+                        positionDiff = currentPosition - itemPosition
+
+                        # Move the cusor by the difference between current and Repel position
+                        if (positionDiff > 0):
+                            joypad.writeInput("u" * positionDiff)
+                        elif (positionDiff < 0):
+                            joypad.writeInput("d" * (-1 * positionDiff))
+
+                        # Found item : use it and skip dialogue
+                        elif register:
+                            joypad.writeInput("AdA@")
+                            register = False
+
+                        # Found item
+                        else:
+                            inputSequence = ""
+                            itemUsed = True
+
+                            # Item section : Use item and skip dialogue
+                            if (bagSection == ITEMS_SECTION):
+                                inputSequence += "AA@@@A"
+
+                            # Key Item section : register item if needed then use item - no skip needed
+                            elif (bagSection == KEYITEMS_SECTION):
+                                if (register):
+                                    inputSequence += "AdA@"
+
+                                if (use):
+                                    inputSequence += "AA"
+
+                            joypad.writeInput(inputSequence)
+
+                    # Go left or right depending on the current bag section
+                    elif (gameData.selectedBagSection <= (4 + bagSection) % 8):
+                        joypad.writeInput("l")
+                    else:
+                        joypad.writeInput("r")
 
 
 def useHM(hmId, city = None):
@@ -238,98 +271,98 @@ def useHM(hmId, city = None):
     # Need to open menu first
     menuPosition = openMenu()
 
-    # Menu open
-    if (menuPosition > 0):
+    # Cannot open menu, let the main loop handle it
+    if (menuPosition == 0):
+        print("Can't open menu")
+        return None
 
-        # For performance purpose, we only upload team data once every second
-        # So we wait to make sure the team data is valid
-        waitFrames(20)
+    # For performance purpose, we only upload team data once every second
+    # So we wait to make sure the team data is valid
+    waitFrames(20)
 
-        # Check if there is a Pokemon than can use the HM in our team
-        pokemonPosition, movePosition = pokemon.isHMAvailable(hmId)
+    # Check if there is a Pokemon than can use the HM in our team
+    pokemonPosition, movePosition = pokemon.isHMAvailable(hmId)
 
-        # Fly is available
-        if (pokemonPosition is not None):
+    # No Pokémon with the HM, TODO go to the nearest Pokémon Center
+    if (not pokemonPosition):
+        print("No Pokémon with Hm " + pokemon.MOVE_NAMES[hmId] + " !")
+        return None
 
-            # Open Pokémon menu
-            goToMenuSection(MENU_POKEMON, menuPosition)
+    # Open Pokémon menu
+    goToMenuSection(MENU_POKEMON, menuPosition)
 
-            while True:
-                # Don't check memory more than once a frame to avoid overloading the CPU
-                waitFrames(1)
+    while True:
+        # Don't check memory more than once a frame to avoid overloading the CPU
+        waitFrames(1)
 
-                # Only apply new input if no input is found in memory
-                if (len(memory.readJoypadData()) == 0):
-                    screenshot = img.getScreenshot()
-                    
-                    # Pokemon menu : use HM
-                    if (img.pokemonMenu.isOnScreen(screenshot)):
-                        waitFrames(20) # Small lag after Pokémon menu is displayed
-                        pokemonSelectionSequence = ""
+        # Only apply new input if no input is found in memory
+        if (len(memory.readJoypadData()) == 0):
+            screenshot = img.getScreenshot()
+            
+            # Pokemon menu : use HM
+            if (img.pokemonMenu.isOnScreen(screenshot)):
+                waitFrames(20) # Small lag after Pokémon menu is displayed
+                pokemonSelectionSequence = ""
 
-                        # Only press right if pokemonPosition is odd
-                        if (pokemonPosition % 2 == RIGHT_ROW):
-                            pokemonSelectionSequence += "r"
+                # Only press right if pokemonPosition is odd
+                if (pokemonPosition % 2 == RIGHT_ROW):
+                    pokemonSelectionSequence += "r"
 
-                        # Press down depending on the HM Pokémon position
-                        pokemonSelectionSequence += "d" * int(pokemonPosition / 2) + "A" + "d" * movePosition + "A"
+                # Press down depending on the HM Pokémon position
+                pokemonSelectionSequence += "d" * int(pokemonPosition / 2) + "A" + "d" * movePosition + "A"
+                joypad.writeInput(pokemonSelectionSequence)
+
+            # HM used : exit function
+            elif (img.hmAnimation.isOnScreen(screenshot)):
+
+                # Wait until Poketch is no longer visible (transition screen)
+                img.waitUntilNotVisible(img.poketch)
+
+                # Wait until Poketch is visible again (Fly ended)
+                while (not img.poketch.isOnScreen(img.getScreenshot())):
+                    waitFrames(1)
+
+                # Animation time before player can move again (flying Pokemon goes back to pokeball, etc)
+                waitFrames(150)
+
+                return True
+            
+            # Only for Fly : move cursor to the city we need to fly to
+            elif (hmId == pokemon.FLY_ID):
+                cursorPosition = img.getMapCursorPosition(screenshot)
+
+                # Map menu : move cursor to selected city
+                if (cursorPosition):
+
+                    # Find closest Fly coordinates
+                    closestDistance = 99
+                    closestPosition = [0,0]
+
+                    for cityPosition in city.flyCoordinates:
+                        if (abs(cityPosition[0] - cursorPosition[0]) + abs(cityPosition[1] - cursorPosition[1]) < closestDistance):
+                            closestDistance = abs(cityPosition[0] - cursorPosition[0]) + abs(cityPosition[1] - cursorPosition[1])
+                            closestPosition = cityPosition
+
+                    # Generate input sequence from closest position
+                    pokemonSelectionSequence = ""
+                    moveX = closestPosition[0] - cursorPosition[0]
+                    moveY = closestPosition[1] - cursorPosition[1]
+
+                    if (moveX > 0):
+                        pokemonSelectionSequence += "r" * moveX
+                    if (moveX < 0):
+                        pokemonSelectionSequence += "l" * (moveX * -1)
+                    if (moveY > 0):
+                        pokemonSelectionSequence += "d" * moveY
+                    if (moveY < 0):
+                        pokemonSelectionSequence += "u" * (moveY * -1)
+
+                    # Play input sequence and press A to fly to the selected city
+                    if (pokemonSelectionSequence):
                         joypad.writeInput(pokemonSelectionSequence)
+                    else:
+                        joypad.writeInput("A")
 
-                    # HM used : exit function
-                    elif (img.hmAnimation.isOnScreen(screenshot)):
-
-                        # Wait until Poketch is no longer visible (transition screen)
-                        img.waitUntilNotVisible(img.poketch)
-
-                        # Wait until Poketch is visible again (Fly ended)
-                        while (not img.poketch.isOnScreen(img.getScreenshot())):
-                            waitFrames(1)
-
-                        # Animation time before player can move again (flying Pokemon goes back to pokeball, etc)
-                        waitFrames(150)
-
-                        return True
-                    
-                    # Only for Fly : move cursor to the city we need to fly to
-                    elif (hmId == pokemon.FLY_ID):
-                        cursorPosition = img.getMapCursorPosition(screenshot)
-
-                        # Map menu : move cursor to selected city
-                        if (cursorPosition):
-
-                            # Find closest Fly coordinates
-                            closestDistance = 99
-                            closestPosition = [0,0]
-
-                            for cityPosition in city.flyCoordinates:
-                                if (abs(cityPosition[0] - cursorPosition[0]) + abs(cityPosition[1] - cursorPosition[1]) < closestDistance):
-                                    closestDistance = abs(cityPosition[0] - cursorPosition[0]) + abs(cityPosition[1] - cursorPosition[1])
-                                    closestPosition = cityPosition
-
-                            # Generate input sequence from closest position
-                            pokemonSelectionSequence = ""
-                            moveX = closestPosition[0] - cursorPosition[0]
-                            moveY = closestPosition[1] - cursorPosition[1]
-
-                            if (moveX > 0):
-                                pokemonSelectionSequence += "r" * moveX
-                            if (moveX < 0):
-                                pokemonSelectionSequence += "l" * (moveX * -1)
-                            if (moveY > 0):
-                                pokemonSelectionSequence += "d" * moveY
-                            if (moveY < 0):
-                                pokemonSelectionSequence += "u" * (moveY * -1)
-
-                            # Play input sequence and press A to fly to the selected city
-                            if (pokemonSelectionSequence):
-                                joypad.writeInput(pokemonSelectionSequence)
-                            else:
-                                joypad.writeInput("A")
-
-        # No Pokémon with the HM, TODO go to the nearest Pokémon Center
-        else:
-            print("No Pokémon with Hm " + pokemon.MOVE_NAMES[hmId] + " !")
-            return None
         
 
 ###################################################################################################

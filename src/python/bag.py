@@ -16,6 +16,10 @@ POKEBALL_ID = 4
 REPEL_ID = 79
 SUPERREPEL_ID = 76
 MAXREPEL_ID = 77
+OLDROD_ID = 445
+GOODROD_ID = 446
+SUPERROD_ID = 447
+BIKE_ID = 450
 
 class Item:
     def __init__(self, id, quantity = None):
@@ -90,6 +94,8 @@ def getItemFromBagId(selectedBagSection, selectedBagItemId):
             return Item(selectedBagItemId + 256)
 
 def findItemInBag(itemId):
+
+    # Retrieve bag data from memory
     bag = getBagData()
     bagSectionId = getBagSection(itemId)
     bagSection = bag.items[bagSectionId]
@@ -103,11 +109,13 @@ def findItemInBag(itemId):
     return None
 
 def getRepelLocation():
-    bag = getBagData()
-    itemsSection = bag.items[ITEMS_SECTION]
     repelLocation = -1
     superRepelLocation = -1
     maxRepelLocation = -1
+
+    # Retrieve bag data from memory
+    bag = getBagData()
+    itemsSection = bag.items[ITEMS_SECTION]
 
     # Search for Poké Ball location
     for itemId in range(len(itemsSection)):

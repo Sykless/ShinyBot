@@ -780,7 +780,7 @@ def checkPathIsFollowed(path):
         elif (isRepelActive and gameData.repelSteps == 0):
             memory.clearJoypadInputs() # Clear input
             joypad.writeInput("@@@@A") # Wait for the dialogue to be displayed and skip it
-            action.useRepel() # Use Repel and go back to overworld
+            action.useItem(repel = True) # Use Repel and go back to overworld
 
         # Reached the end or went to another zone, clear all inputs and go back to main loop
         elif (playerPosition == path[-1].position or playerPosition.zone.zoneId != path[-1].position.zone.zoneId):
