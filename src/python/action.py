@@ -166,7 +166,14 @@ def useItem(itemId = None, repel = False, register = False, use = True):
     else:
         print("No itemId provided")
         return None
-
+    
+    #   Don't register an already registered key item
+    if (register and itemId == game.getGameData().registeredKeyItem):
+        if (use):
+            register = False
+        else:
+            return True
+    
     # Need to open menu first
     menuPosition = openMenu()
 

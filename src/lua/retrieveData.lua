@@ -16,6 +16,7 @@ MEMORYADDRESSES = {
         BIKE_OFFSET = 0x12C8,
         BIKESPEED_OFFSET = 0x12C4,
         ORIENTATION_OFFSET = 0x2484C,
+        REGISTEREDKEYITEM_OFFSET = 0xD94,
         WALKENCOUNTERTABLE_OFFSET = 0x243AC,
         TIMEHOUR_ADDRESS = 0x021C49A8,
         SELECTEDBAGSECTION_OFFSET = 0x29568,
@@ -36,6 +37,7 @@ MEMORYADDRESSES = {
         BIKE_OFFSET = 0x1310,
         BIKESPEED_OFFSET = 0x130C,
         ORIENTATION_OFFSET = 0x23894,
+        REGISTEREDKEYITEM_OFFSET = 0xDA0,
         WALKENCOUNTERTABLE_OFFSET = 0x233D0,
         TIMEHOUR_ADDRESS = 0x021BF7C8,
         SELECTEDBAGSECTION_OFFSET = 0x285B4,
@@ -187,6 +189,8 @@ function retrieveGameData()
 
         selectedBagSection = memory.readbyte(baseAddress + MEMORYADDRESSES[GAMECODE]["SELECTEDBAGSECTION_OFFSET"]),
         selectedBagItemId = memory.readbyte(baseAddress + MEMORYADDRESSES[GAMECODE]["SELECTEDBAGITEM_OFFSET"]),
+        registeredKeyItem = memory.read_u32_le(baseAddress + MEMORYADDRESSES[GAMECODE]["REGISTEREDKEYITEM_OFFSET"]),
+
         swarmPokemon = memory.read_u32_le(baseAddress + SWARMPOKEMON_OFFSET) % 22,
         marshPokemonList = marshPokemonList,
         gardenPokemonToday = memory.read_u16_le(baseAddress + GARDENPOKEMON_TODAY_OFFSET),

@@ -9,10 +9,11 @@ from data import GBAGAME_NAMES
 CLOSEBAGMENU = 24
 
 class Game:
-    def __init__(self, hourOfDay, repelSteps, selectedBagSection, selectedBagItemId, swarmPokemon, marshPokemonList, gardenPokemonToday, gardenPokemonYesterday, gbaGame, encounterTables):
+    def __init__(self, hourOfDay, repelSteps, selectedBagSection, selectedBagItemId, registeredKeyItem, swarmPokemon, marshPokemonList, gardenPokemonToday, gardenPokemonYesterday, gbaGame, encounterTables):
         self.hourOfDay = hourOfDay
         self.repelSteps = repelSteps
         self.selectedBagSection = None
+        self.registeredKeyItem = registeredKeyItem
         self.swarmPokemon = swarmPokemon
         self.marshPokemonList = marshPokemonList
         self.gardenPokemonToday = gardenPokemonToday
