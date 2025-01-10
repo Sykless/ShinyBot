@@ -8,7 +8,7 @@ import memory
 import pokemon
 import pathfinding
 
-from bag import ITEMS_SECTION, KEYITEMS_SECTION
+from bag import ITEMS_SECTION, KEYITEMS_SECTION, OLDROD_ID, GOODROD_ID, SUPERROD_ID
 from data import ITEM_NAMES
 from utils import waitFrames
 
@@ -370,7 +370,40 @@ def useHM(hmId, city = None):
                     else:
                         joypad.writeInput("A")
 
-        
+
+def useRod(rodType):
+    gameData = game.getGameData()
+    registeredKeyItem = gameData.registeredKeyItem
+    fishFound = False
+
+    # Make sure we are using a rod
+    if (rodType not in [OLDROD_ID, GOODROD_ID, SUPERROD_ID]):
+        print(f"{ITEM_NAMES[rodType]} is not a rod")
+        return None
+
+    # Register rod as key item, press Y if already the case
+    if (registeredKeyItem != rodType):
+        useItem(itemId = rodType, register = True, use = True)
+    else:
+        joypad.writeInput("Y")
+
+    # Keep fishing until a Pokémon is found
+    while (not fishFound):
+        waitFrames(1)
+        screenshot = img.getScreenshot()
+
+        # Fish found, exit loop
+        if (img.exclamationBox.isOnScreen(screenshot)):
+            fishFound = True
+
+        # No fish found, exit dialog and keep fishing
+        elif (img.noFishFoundDialog.isOnScreen(screenshot)):
+            joypad.writeInput("AY")
+
+    # Press A to reel fish, then confirm dialog to start battle
+    joypad.writeInput("A@@@@@@A")
+
+
 
 ###################################################################################################
 # Go in front of Union Room and prepare the exact setup MelonDS emulator needs to perform trading #

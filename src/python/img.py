@@ -122,6 +122,8 @@ closeBagMenuSelected = Template("close-bag-selected", 106, 15, 42, 113, 1)
 
 battleTouchscreen = Template("battle-touchscreen", 0, 192, 256, 192, 1, mask = True)
 hmAnimation = Template("hm-animation", 0, 56, 255, 80, 1, mask = True)
+exclamationBox = Template("exclamation-box", 113, 57, 30, 25, 1)
+noFishFoundDialog = Template("no-fish-found", 16, 155, 76, 10, 1)
 pokemonMenu = Template("pokemon-menu", 48, 192, 160, 192, 1)
 journalFooter = Template("journal-footer", 9, 176, 238, 4, 1)
 runaway = Template("runaway", 100, 354, 56, 30, 1)
