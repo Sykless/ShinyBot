@@ -75,6 +75,7 @@ SOLID_BLOCKS = [
     "N", # NPC
     "P", # Post (Special process since it displays a message if coming from the bottom)
     "I", # Interactable (Static encounter, Shop, etc)
+    "H", # Honey Tree
     "b", # Boulder (Cannot be removed like Cut or Rock Smash, so is actually an obsctacle)
     "v", # Bike ramp
 ]
