@@ -9,6 +9,7 @@ import pokemon
 import pathfinding
 
 from bag import ITEMS_SECTION, KEYITEMS_SECTION, OLDROD_ID, GOODROD_ID, SUPERROD_ID
+from zone import MONTCOURONNE_SALLE8, Position
 from data import ITEM_NAMES
 from utils import waitFrames
 
@@ -436,3 +437,50 @@ def setupTradePosition():
     # Make sure we're facing up
     while (player.getPlayerData().orientation != "u"):
         joypad.writeInput("u")
+
+
+def setupFeebasFishingPosition():
+    shortestDistance = 9999
+    startingPosition = None
+    closestNeighbourg = None
+    orientation = None
+
+    # Retrieve Feebas tiles positions from memory
+    gameData = game.getGameData()
+    playerPosition = player.getPlayerData().position
+    feebasTiles = gameData.getFeebasTiles()
+
+    # If we're already in the area, start there
+    if (playerPosition.zone == MONTCOURONNE_SALLE8):
+        startingPosition = playerPosition
+
+    # If we're outside, find which door is closest
+    else:
+        shortestStartingPosition = 9999
+
+        # Iterate on each door to find the closest one to our current position
+        for door in MONTCOURONNE_SALLE8.doorList:
+            startingPositionScore = pathfinding.calculateWorldPathCost(door)
+
+            if (startingPositionScore < shortestStartingPosition):
+                shortestStartingPosition = startingPositionScore
+                startingPosition = door.position
+
+    # Find best position to fish
+    for feebasTile in feebasTiles:
+        for neighbour in [(-1,0,"r"),(1,0,"l"),(0,-1,"d"),(0,1,"u")]:
+            neighbourPosition = Position(feebasTile.X + neighbour[0], feebasTile.Y + neighbour[1], feebasTile.zone)
+            neighbourPath = pathfinding.getMostEfficientPath(startingPosition, neighbourPosition)
+
+            if (neighbourPath and neighbourPath[-1].g < shortestDistance):
+                shortestDistance = neighbourPath[-1].g
+                closestNeighbourg = neighbourPosition
+                orientation = neighbour
+
+    # Go to fishing spot and make sure we're stopped
+    pathfinding.goToWorldLocation(closestNeighbourg)
+    waitFrames(10)
+
+    # Make sure we're facing the fishing spot
+    if (player.getPlayerData().orientation != orientation[2]):
+        joypad.writeInput(orientation[2])

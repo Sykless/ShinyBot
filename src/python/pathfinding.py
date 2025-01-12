@@ -934,6 +934,25 @@ def initDoorGraph():
     memory.saveGraph(DOOR_GRAPH, 'src/python/data/pkl/graph.pkl')
 
 
+
+########################################################################################
+# Calculate the total cost of the path from player position to provided world location #
+########################################################################################
+def calculateWorldPathCost(location):
+    pathCost = 0
+
+    # Retrieve node-to-node complete path needed to reach location
+    flyCity, completePath = generateWorldPath(location)
+    completeNodePath = processWorldPath(completePath, location.destination if isinstance(location, Door) else None, calculateScore = True)
+
+    # Add each node list total cost to get the whole path cost
+    for nodeList in completeNodePath:
+        pathCost += nodeList[-1].g
+
+    return pathCost
+
+
+
 ###################################################################################
 # Retrieve the best possible path from any door to another and process the inputs #
 ###################################################################################
@@ -983,8 +1002,7 @@ def goToWorldLocation(location):
 ################################################################################
 # Convert all paths to Node paths and follow them until we reached destination #
 ################################################################################
-def processWorldPath(worldPath, endPosition):
-
+def processWorldPath(worldPath, endPosition, calculateScore = False):
     completeNodePath = []
     lastDoors = []
 
@@ -1009,7 +1027,11 @@ def processWorldPath(worldPath, endPosition):
                 lastDoors.append(lastPosition.zone.getDoorByPosition(lastPosition))
 
             completeNodePath += pathList
-            
+
+    # If we just want to calculate path score, we can return the path without processing it
+    if (calculateScore):
+        return completeNodePath
+ 
     # Process every subpath between each doors
     for pathId in range(len(completeNodePath)):
 

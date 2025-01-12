@@ -2,6 +2,7 @@
 from utils import waitFrames
 from pokemon import Pokemon
 from dashboard import DASHBOARD
+from emu import BIZHAWK, MELONDS, PLATINE
 
 import time
 
@@ -9,9 +10,11 @@ import bag
 import img
 import zone
 import game
+import action
 import player
 import joypad
 import memory
+import pokemon
 import pathfinding
 
 LEFT_ROW = 0
@@ -30,6 +33,12 @@ CATCH_ALL_MODE = False
 GENERATE_GRAPH = False
 
 def startShinybot(dashboardMode = True):
+
+    # If Dashboard is not enabled, let this script launch BizHawk and setup the game
+    if (not dashboardMode):
+        BIZHAWK.initEmulator(PLATINE, fullscreen = False)
+        action.loadGame()
+
     startTime = time.time()
 
     # Generate Door Graph that contains every door-to-door path in the map
@@ -59,40 +68,43 @@ def startShinybot(dashboardMode = True):
         # Don't check memory more than once a frame to avoid overloading the CPU
         waitFrames(1)
 
+        # Retrieve current game state
+        playerData = player.getPlayerData()
+        gameData = game.getGameData()
+
+        # Update dashboard
+        if (dashboardMode and (gameData.hourOfDay != currentHour or playerData.zoneId != currentZone)):
+            currentZone = playerData.zoneId
+            currentHour = gameData.hourOfDay
+
+            if (playerData.position.zone):
+                encounterTable = playerData.position.zone.getEncounterTables(currentZone)
+
+                if (encounterTable):
+                    currentTables = encounterTable.generateCurrentTables(gameData, currentZone)
+                    DASHBOARD.updateEncounters(currentTables, playerData.position.zone.isCave)
+                else:
+                    DASHBOARD.updateEncounters(None, playerData.position.zone.isCave)
+
         # Read JSON Pokemon data from memory file
         jsonPokemonData = memory.readWildPokemonData()
 
         # Check if a new wild Pokemon has been found
         if (jsonPokemonData and jsonPokemonData["pid"] not in [0, loadedPokemonPid]):
             # Convert JSON data to Pokemon object
-            pokemon = Pokemon(**jsonPokemonData)
-            loadedPokemonPid = pokemon.pid
+            wildPokemon = Pokemon(**jsonPokemonData)
+            loadedPokemonPid = wildPokemon.pid
 
             # Stop pathfinding
             memory.clearJoypadInputs()
 
             print("New wild Pokemon !")
-            print(pokemon)
+            print(wildPokemon)
 
         # Debug screenshot mode : only save the screenshot
         if (FREE_MODE):
-            screenshot = img.getScreenshot()
-            playerData = player.getPlayerData()
-            gameData = game.getGameData()
-
-            if (gameData.hourOfDay != currentHour or playerData.zoneId != currentZone):
-                currentZone = playerData.zoneId
-                currentHour = gameData.hourOfDay
-
-                if (dashboardMode and playerData.position.zone):
-                    encounterTable = playerData.position.zone.getEncounterTables(currentZone)
-
-                    if (encounterTable):
-                        currentTables = encounterTable.generateCurrentTables(gameData, currentZone)
-                        DASHBOARD.updateEncounters(currentTables, playerData.position.zone.isCave)
-                    else:
-                        DASHBOARD.updateEncounters(None, playerData.position.zone.isCave)
-
+            pass
+            
         # Only apply new input if no input is found in memory
         elif (not memory.readJoypadData()):
             screenshot = img.getScreenshot()
