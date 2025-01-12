@@ -708,30 +708,6 @@ def generateRampNodePath(rampNode, destinationNode, zoneMap):
 #                                                                                                        #
 ##########################################################################################################
 
-###################################################################
-# Generate the best path to go to location and process the inputs #
-###################################################################
-def goToLocation(location: Position):
-
-    # Calculate path from current position
-    playerData = player.getPlayerData()
-    playerPosition = playerData.position
-
-    # We only manage pathfinding within the same zone for now
-    if (playerPosition.zone.zoneId != location.zone.zoneId):
-        return None
-    
-    # Location is a position, just get path to this location
-    path = getMostEfficientPath(playerData.position, location)
-
-    if (not path):
-        print("No path has been found from " + str(playerPosition) + " to " + str(location))
-        return None
-    
-    # Go from starting node to ending node
-    processPath(path)
-
-
 ######################################################################################################
 # Generate every input needed to go through the provided node list and check if the path is followed #
 ######################################################################################################

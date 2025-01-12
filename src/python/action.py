@@ -216,6 +216,10 @@ def useItem(itemId = None, repel = False, register = False, use = True):
                     if (bagSection != KEYITEMS_SECTION or not use):
                         joypad.writeInput("B") # Exit menu
 
+                    # Wait until the menu is actually closed
+                    while (img.getMenuPosition(img.getScreenshot())):
+                        waitFrames(1)
+
                     return True
 
             # Cursor is visible, we can move between sections or items
@@ -283,7 +287,7 @@ def useHM(hmId, city = None):
         print("Can't open menu")
         return None
 
-    # For performance purpose, we only upload team data once every second
+    # For performance purpose, we only upload team data once every 20 frames
     # So we wait to make sure the team data is valid
     waitFrames(20)
 
@@ -321,13 +325,16 @@ def useHM(hmId, city = None):
 
             # HM used : exit function
             elif (img.hmAnimation.isOnScreen(screenshot)):
+                    
+                # Fly : transition screen between flying and landing animation
+                if (hmId == pokemon.FLY_ID):
 
-                # Wait until Poketch is no longer visible (transition screen)
-                img.waitUntilNotVisible(img.poketch)
+                    # Wait until Poketch is no longer visible (transition screen)
+                    img.waitUntilNotVisible(img.poketch)
 
-                # Wait until Poketch is visible again (Fly ended)
-                while (not img.poketch.isOnScreen(img.getScreenshot())):
-                    waitFrames(1)
+                    # Wait until Poketch is visible again (Fly ended)
+                    while (not img.poketch.isOnScreen(img.getScreenshot())):
+                        waitFrames(1)
 
                 # Animation time before player can move again (flying Pokemon goes back to pokeball, etc)
                 waitFrames(150)
@@ -335,7 +342,7 @@ def useHM(hmId, city = None):
                 return True
             
             # Only for Fly : move cursor to the city we need to fly to
-            elif (hmId == pokemon.FLY_ID):
+            elif (hmId == pokemon.FLY_ID and img.worldMap.isOnScreen(screenshot)):
                 cursorPosition = img.getMapCursorPosition(screenshot)
 
                 # Map menu : move cursor to selected city
@@ -389,7 +396,6 @@ def useRod(rodType):
 
     # Keep fishing until a Pokémon is found
     while (not fishFound):
-        waitFrames(1)
         screenshot = img.getScreenshot()
 
         # Fish found, exit loop
@@ -400,9 +406,14 @@ def useRod(rodType):
         elif (img.noFishFoundDialog.isOnScreen(screenshot)):
             joypad.writeInput("AY")
 
+        waitFrames(1)
+
     # Press A to reel fish, then confirm dialog to start battle
     joypad.writeInput("A@@@@@@A")
 
+    # Wait until the inputs have been processed
+    while (not memory.readJoypadData()):
+        waitFrames(1)
 
 
 ###################################################################################################
