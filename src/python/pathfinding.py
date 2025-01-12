@@ -2,6 +2,7 @@ from zone import Door
 from zone import DoorKey
 from zone import Position
 from utils import waitFrames
+from bag import BIKE_ID
 
 import time
 import heapq
@@ -1014,6 +1015,13 @@ def processWorldPath(worldPath, endPosition):
 
         # Process current path
         currentPath = completeNodePath[pathId]
+
+        # Make sure bike is the registered key item if needed since we'll be pressing Y to use it
+        if (game.getGameData().registeredKeyItem != BIKE_ID):
+            for node in currentPath:
+                if (joypad.canBike(node)):
+                    action.useItem(BIKE_ID, register = True, use = False)
+                    break
 
         # Go from starting node to ending node
         processPath(currentPath)

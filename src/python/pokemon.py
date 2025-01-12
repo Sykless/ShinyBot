@@ -7,6 +7,7 @@ import memory
 
 FLY_ID = 19
 DIG_ID = 91
+DEFOG_ID = 432
 
 class Move:
     def __init__(self, id, PP, PPUp):
@@ -197,6 +198,7 @@ def isHMAvailable(hmId):
 HM_LIST = [
     FLY_ID, # Vol
     DIG_ID, # Tunnel
+    DEFOG_ID, # Anti-Brume
     15,  # Coupe
     29,  # Coup d'Boule
     57,  # Surf
@@ -212,6 +214,5 @@ HM_LIST = [
     290, # Force Cachée
     291, # Plongée
     431, # Escalade
-    432, # Anti-Brume
     448, # Babil
 ] 

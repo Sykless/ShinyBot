@@ -341,6 +341,10 @@ def useHM(hmId, city = None):
 
                 return True
             
+            # Only for Defog : confirm dialog
+            elif (hmId == pokemon.DEFOG_ID and img.dialogConfirm.isOnScreen(screenshot)):
+                joypad.writeInput("A")
+            
             # Only for Fly : move cursor to the city we need to fly to
             elif (hmId == pokemon.FLY_ID and img.worldMap.isOnScreen(screenshot)):
                 cursorPosition = img.getMapCursorPosition(screenshot)
