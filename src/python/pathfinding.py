@@ -813,6 +813,12 @@ def checkPathIsFollowed(path):
                 path = writePathInputsFromCurrentState(path, pathIndex + 1)
                 pathIndex = 0
 
+        # Entered a foggy area : use Defog
+        elif (gameData.isFoggy):
+            memory.clearJoypadInputs() # Clear input
+            action.useHM(pokemon.DEFOG_ID) # Use Repel and go back to overworld
+
+
 
 ##############################################################################################
 # Erase inputs and start again from the already processed nodes and the current player state #
