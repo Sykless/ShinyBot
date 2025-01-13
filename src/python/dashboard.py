@@ -1,11 +1,10 @@
 from PyQt5.QtWidgets import QApplication, QWidget, QHBoxLayout, QVBoxLayout, QLabel, QGridLayout, QSizePolicy, QSpacerItem
 from PyQt5.QtGui import QPixmap, QPainter, QFontDatabase, QFont, QBrush, QPalette, QColor
-from PyQt5.QtCore import Qt, pyqtSignal
+from PyQt5.QtCore import Qt, QTimer
 from itertools import chain
 import sys
 
 import img
-from emu import BIZHAWK, MELONDS
 from data import POKEMON_NAMES
 
 SPRITE_COLUMN = 0
@@ -32,35 +31,30 @@ class FilteredBackgroundWidget(QWidget):
         painter.end()
 
 class Dashboard(QWidget):
-    encounterSignal = pyqtSignal(dict)
-
     def __init__(self):
         super().__init__()
-        self.encounterSignal.connect(self.updateEncounters)
 
-    def initDashboard(self):
-        # Retrieve emulator currently running
-        EMULATOR = BIZHAWK if BIZHAWK.mainWindow else MELONDS
+    def initDashboard(self, emulatorWindow):
 
         # Retrieve screen size
         app = QApplication.instance()
         screenWidth = app.primaryScreen().size().width()
 
         # Fullscreen mode : hide title bar and stay on top
-        if (EMULATOR.fullscreen):
+        if (emulatorWindow["fullscreen"]):
             self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.Tool)
-            self.windowWidth = screenWidth - EMULATOR.mainWindow.width
-            self.windowHeight = EMULATOR.mainWindow.height
+            self.windowWidth = screenWidth - emulatorWindow["width"]
+            self.windowHeight = emulatorWindow["height"]
             windowPositionY = 0
         
         # Windowed mode : take borders and title bar into account
         else:
-            self.windowWidth = screenWidth - EMULATOR.mainWindow.width + 2 * EMULATOR.mainWindow.borderSize
-            self.windowHeight = EMULATOR.mainWindow.height - EMULATOR.mainWindow.titleBarHeight - EMULATOR.mainWindow.borderSize
-            windowPositionY = EMULATOR.mainWindow.titleBarHeight + EMULATOR.mainWindow.top
+            self.windowWidth = screenWidth - emulatorWindow["width"] + 2 * emulatorWindow["borderSize"]
+            self.windowHeight = emulatorWindow["height"] - emulatorWindow["titleBarHeight"] - emulatorWindow["borderSize"]
+            windowPositionY = emulatorWindow["titleBarHeight"] + emulatorWindow["top"]
 
         # Set up the main window title, size and position
-        self.setWindowTitle("ShinyBot Dashboard - Pokémon Version " + EMULATOR.mainWindow.gameName)
+        self.setWindowTitle("ShinyBot Dashboard - Pokémon Version " + emulatorWindow["gameName"])
         self.setGeometry(screenWidth - self.windowWidth, windowPositionY, self.windowWidth, self.windowHeight - 200)
 
         # Set white text for the whole widget
@@ -174,16 +168,16 @@ class Dashboard(QWidget):
         else:
             imageWidget.clear()
 
-    def updateEncounters(self, encounterTables, isCave):
+    def updateEncounters(self, encounterData):
 
         # Concatenate all water encounters in one list
-        if (encounterTables):
-            encounterLists = [(("walk", f"walk_{pokedexId}", encounter) for pokedexId, encounter in encounterTables["walkTable"].items()),
+        if (encounterData["encounterTables"]):
+            encounterLists = [(("walk", f"walk_{pokedexId}", encounter) for pokedexId, encounter in encounterData["encounterTables"]["walkTable"].items()),
                             chain(
-                                (("surf", f"surf_{pokedexId}", encounter) for pokedexId, encounter in encounterTables["surfTable"].items()),
-                                (("old-rod", f"oldRod_{pokedexId}", encounter) for pokedexId, encounter in encounterTables["oldRodTable"].items()),
-                                (("good-rod", f"goodRod_{pokedexId}", encounter) for pokedexId, encounter in encounterTables["goodRodTable"].items()),
-                                (("super-rod", f"superRod_{pokedexId}", encounter) for pokedexId, encounter in encounterTables["superRodTable"].items()))]
+                                (("surf", f"surf_{pokedexId}", encounter) for pokedexId, encounter in encounterData["encounterTables"]["surfTable"].items()),
+                                (("old-rod", f"oldRod_{pokedexId}", encounter) for pokedexId, encounter in encounterData["encounterTables"]["oldRodTable"].items()),
+                                (("good-rod", f"goodRod_{pokedexId}", encounter) for pokedexId, encounter in encounterData["encounterTables"]["goodRodTable"].items()),
+                                (("super-rod", f"superRod_{pokedexId}", encounter) for pokedexId, encounter in encounterData["encounterTables"]["superRodTable"].items()))]
         else:
             encounterLists = [{},{}]
 
@@ -231,7 +225,7 @@ class Dashboard(QWidget):
                 self.setWidgetImage(encounterLayout, ITEM_COLUMN, i, None)
 
         # Update background if zone is outside or in a cave
-        if (isCave):
+        if (encounterData["isCave"]):
             self.walkEncountersContainer.setPalette(self.walkEncountersContainer.caveBackground)
         else:
             self.walkEncountersContainer.setPalette(self.walkEncountersContainer.defaultBackground)

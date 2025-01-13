@@ -288,7 +288,7 @@ class Emulator():
     ########################################################################################################
     # Launch Emulator window, position/resize it, and make sure Lua script is running on BizHawk instances #
     ########################################################################################################
-    def initEmulator(self, gameName, fullscreen = False):
+    def initEmulator(self, gameName, emulatorWindow = None, fullscreen = False):
 
         # Retrieve emulator window by executable
         emulatorWindowList = self.findEmuWindowByTitle(self.name)
@@ -315,7 +315,17 @@ class Emulator():
         # Run shinybot Lua Script on BizHawk
         if (self == BIZHAWK):
             self.runLuaScript()
-    
+
+        # If emulatorWindow object is provided, fill it with the values the dashboard needs
+        if (emulatorWindow is not None):
+            emulatorWindow["fullscreen"] = self.fullscreen
+            emulatorWindow["height"] = self.mainWindow.height
+            emulatorWindow["width"] = self.mainWindow.width
+            emulatorWindow["borderSize"] = self.mainWindow.borderSize
+            emulatorWindow["titleBarHeight"] = self.mainWindow.titleBarHeight
+            emulatorWindow["top"] = self.mainWindow.top
+            emulatorWindow["gameName"] = self.mainWindow.gameName
+
 
     ####################################################################
     # Launch Emulator secondary instance window and resize/position it #
