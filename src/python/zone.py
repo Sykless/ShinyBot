@@ -212,7 +212,15 @@ class City():
 
     def __str__(self):
         return "City " + str(self.name)
-    
+
+class HoneyTree():
+    def __init__(self, position):
+        self.position = position
+        self.countdown = 0
+
+    def __str__(self):
+        return f"Honey Tree {self.position} : {self.countdown}"
+
 class Interactable():
     def __init__(self, position: Position, interactableType):
         self.position = position
@@ -1535,6 +1543,30 @@ ZONEDICTIONARY = {
     591: ROUTE228_GROTTEREGIROCK,
     1350: PISTECYCLABLE # Route 206 / Piste Cyclable
 }
+
+HONEYTREES_LIST = [
+    HoneyTree(Position(212,652,NORTHWEST)),
+    HoneyTree(Position(282,524,NORTHWEST)),
+    HoneyTree(Position(309,648,SOUTHCENTER)),
+    HoneyTree(Position(310,709,SOUTHCENTER)),
+    HoneyTree(Position(432,731,ROUTE208)),
+    HoneyTree(Position(551,709,NORTHCENTER)),
+    HoneyTree(Position(569,609,NORTHCENTER)),
+    HoneyTree(Position(569,528,NORTHCENTER)),
+    HoneyTree(Position(433,530,NORTHCENTER)),
+    HoneyTree(Position(449,748,SOUTH)),
+    HoneyTree(Position(535,845,SOUTH)),
+    HoneyTree(Position(646,825,ROUTE213_OUEST)),
+    HoneyTree(Position(724,722,SOUTHEAST)),
+    HoneyTree(Position(590,580,NORTHCENTER)),
+    HoneyTree(Position(85,753,ROUTE218)),
+    HoneyTree(Position(274,911,SOUTHWEST)),
+    HoneyTree(Position(825,780,SOUTHEAST)),
+    HoneyTree(Position(245,657,NORTHWEST)),
+    HoneyTree(Position(221,558,NORTHWEST)),
+    HoneyTree(Position(185,596,NORTHWEST)),
+    HoneyTree(Position(36,45,PREFLORAVILLE)),
+]
 
 # Obsolete doors (prefer using left-most, up-most or center door)
 OBSOLETEDOORS = [

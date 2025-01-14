@@ -4,7 +4,7 @@ import memory
 
 from encounter import SPECIALGRASSENCOUNTERS
 from data import POKEMON_NAMES, GBAGAME_NAMES
-from zone import MONTCOURONNE_SALLE8, Position
+from zone import MONTCOURONNE_SALLE8, HONEYTREES_LIST, Position
 
 CLOSEBAGMENU = 24
 FEEBAS_ROCK_POSITIONS = [51, 56, 184, 203, 203, 203, 203, 203, 203, 203, 214, 214, 214,
@@ -16,7 +16,7 @@ FEEBAS_ROCK_POSITIONS = [51, 56, 184, 203, 203, 203, 203, 203, 203, 203, 214, 21
                          449, 455, 455, 471, 471, 477]
 
 class Game:
-    def __init__(self, hourOfDay, repelSteps, selectedBagSection, selectedBagItemId, registeredKeyItem, isFoggy, feebasSeed, swarmPokemon, marshPokemonList, gardenPokemonToday, gardenPokemonYesterday, gbaGame, encounterTables):
+    def __init__(self, hourOfDay, repelSteps, selectedBagSection, selectedBagItemId, registeredKeyItem, isFoggy, feebasSeed, honeyTrees, swarmPokemon, marshPokemonList, gardenPokemonToday, gardenPokemonYesterday, gbaGame, encounterTables):
         self.hourOfDay = hourOfDay
         self.repelSteps = repelSteps
         self.selectedBagSection = None
@@ -29,6 +29,10 @@ class Game:
         self.gardenPokemonYesterday = gardenPokemonYesterday if gardenPokemonYesterday != 0xFFFF else None
         self.gbaGame = gbaGame
         self.encounterTables = encounterTables
+
+        # Refresh every Honey Tree countdown
+        for honeyTreeId in range(21):
+            HONEYTREES_LIST[honeyTreeId].countdown = honeyTrees[honeyTreeId]
 
         # Data only valid if in the bag menu
         if (0 <= selectedBagSection <= 7):

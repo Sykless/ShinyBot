@@ -12,6 +12,7 @@ MEMORYADDRESSES = {
         POSITIONX_OFFSET = 0x1240,
         POSITIONY_OFFSET = 0x1244,
         FOGTYPE_OFFSET = 0x129E,
+        HONEYTREES_OFFSET = 0x72DC,
         CYCLINGROAD_OFFSET = 0xFDC,
         REPELSTEPS_OFFSET = 0x73E0,
         BIKE_OFFSET = 0x12C8,
@@ -35,6 +36,7 @@ MEMORYADDRESSES = {
         POSITIONX_OFFSET = 0x1288,
         POSITIONY_OFFSET = 0x128C,
         FOGTYPE_OFFSET = 0x12E6,
+        HONEYTREES_OFFSET = 0x7F30,
         CYCLINGROAD_OFFSET = 0xFEC,
         REPELSTEPS_OFFSET = 0x8073,
         BIKE_OFFSET = 0x1310,
@@ -187,6 +189,13 @@ function retrieveGameData()
         getBits(marshPokemonIds,25,5), -- Zone 6
     }
 
+    local honeyTrees = {}
+    local honeyAddress = baseAddress + MEMORYADDRESSES[GAMECODE]["HONEYTREES_OFFSET"]
+
+    for i = 1, 21 do
+        honeyTrees[i] = memory.read_u32_le(honeyAddress + 8 * i)
+    end
+
     return {
         hourOfDay = memory.read_u32_le(MEMORYADDRESSES[GAMECODE]["TIMEHOUR_ADDRESS"]),
         repelSteps = memory.readbyte(baseAddress + MEMORYADDRESSES[GAMECODE]["REPELSTEPS_OFFSET"]),
@@ -197,6 +206,7 @@ function retrieveGameData()
 
         isFoggy = memory.readbyte(baseAddress + MEMORYADDRESSES[GAMECODE]["FOGTYPE_OFFSET"]) == 14,
         feebasSeed = memory.read_u32_le(baseAddress + MEMORYADDRESSES[GAMECODE]["FEEBASSEED_OFFSET"]),
+        honeyTrees = honeyTrees,
         swarmPokemon = memory.read_u32_le(baseAddress + SWARMPOKEMON_OFFSET) % 22,
         marshPokemonList = marshPokemonList,
         gardenPokemonToday = memory.read_u16_le(baseAddress + GARDENPOKEMON_TODAY_OFFSET),
