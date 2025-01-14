@@ -192,7 +192,7 @@ class Dashboard(QWidget):
             for i, (source, uniqueId, encounter) in enumerate(encounterList):
 
                 # Retrieve sprite and remove top/bottom transparent pixels
-                croppedImage = img.resizeSprite(f"sprites/nonshiny/{encounter.pokedexId}.png", self.windowHeight // 11)
+                croppedImage = img.resizeSprite(f"data/sprites/nonshiny/{encounter.pokedexId}.png", self.windowHeight // 11)
                 spritePixmap = QPixmap.fromImage(croppedImage)
 
                 spriteList.append(spritePixmap)
@@ -210,7 +210,7 @@ class Dashboard(QWidget):
                 self.setWidgetImage(encounterLayout, SPRITE_COLUMN, i, spriteList[i])
                 self.setWidgetText(encounterLayout, NAME_COLUMN, i, POKEMON_NAMES[encounter.pokedexId])
                 self.setWidgetText(encounterLayout, RATE_COLUMN, i, f"{encounter.rate} %")
-                self.setWidgetImage(encounterLayout, ITEM_COLUMN, i, QPixmap(f"sprites/items/{source}.png"))
+                self.setWidgetImage(encounterLayout, ITEM_COLUMN, i, QPixmap(f"data/sprites/items/{source}.png"))
 
                 # Update line height based on average cropped sprite height
                 encounterLayout.setRowMinimumHeight(i, averageHeigth)
@@ -251,7 +251,7 @@ class Dashboard(QWidget):
         return backgroundPixmap
 
     def getPaletteBackground(self, widgetContainer, tileName):
-        tiledBackground = self.createTiledBackground(f"sprites/background/{tileName}.png")
+        tiledBackground = self.createTiledBackground(f"data/sprites/background/{tileName}.png")
 
         # Set the tiled background on a QLabel
         backgroundLabel = QLabel()

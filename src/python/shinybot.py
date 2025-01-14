@@ -4,6 +4,7 @@ from pokemon import Pokemon
 from dashboard import DASHBOARD
 from emu import BIZHAWK, MELONDS, PLATINE
 
+from threading import Thread
 import time
 
 import bag
@@ -34,10 +35,13 @@ GENERATE_GRAPH = False
 
 def startShinybot(dashboardData = None):
 
-    # If Dashboard is not enabled, let this script launch BizHawk and setup the game
-    dashboardMode = (dashboardData is not None)
+    # If Dashboard is enabled
+    if (dashboardData is not None):
+        updateDashboardThread = Thread(target = updateDashboard, args = (dashboardData,), daemon = True)
+        updateDashboardThread.start()
 
-    if (not dashboardMode):
+    # If Dashboard is not enabled, let this script launch BizHawk and setup the game
+    else:
         BIZHAWK.initEmulator(PLATINE, fullscreen = False)
         action.loadGame()
 
@@ -69,27 +73,6 @@ def startShinybot(dashboardData = None):
     while BOT_MODE:
         # Don't check memory more than once a frame to avoid overloading the CPU
         waitFrames(1)
-
-        # Retrieve current game state
-        playerData = player.getPlayerData()
-        gameData = game.getGameData()
-
-        # Update dashboard
-        if (dashboardMode and (gameData.hourOfDay != currentHour or playerData.zoneId != currentZone)):
-            currentZone = playerData.zoneId
-            currentHour = gameData.hourOfDay
-
-            if (playerData.position.zone):
-                encounterTable = playerData.position.zone.getEncounterTables(currentZone)
-
-                if (encounterTable):
-                    currentTables = encounterTable.generateCurrentTables(gameData, currentZone)
-                    dashboardData.encounterData["encounterTables"] = currentTables
-                else:
-                    dashboardData.encounterData["encounterTables"] = {}
-
-                dashboardData.encounterData["isCave"] = playerData.position.zone.isCave
-                dashboardData.ready()
 
         # Read JSON Pokemon data from memory file
         jsonPokemonData = memory.readWildPokemonData()
@@ -281,6 +264,37 @@ def startShinybot(dashboardData = None):
             # Default : mash B
             else:
                 joypad.writeInput("B")
+
+
+# Send encounters data to dashboard in a separate thread
+def updateDashboard(dashboardData):
+    currentZone = None
+    currentHour = None
+
+    # Infinite loop to update dashboard
+    while True:
+        waitFrames(1)
+
+        # Retrieve current game state
+        playerData = player.getPlayerData()
+        gameData = game.getGameData()
+
+        # Update dashboard
+        if (gameData.hourOfDay != currentHour or playerData.zoneId != currentZone):
+            currentZone = playerData.zoneId
+            currentHour = gameData.hourOfDay
+
+            if (playerData.position.zone):
+                encounterTable = playerData.position.zone.getEncounterTables(currentZone)
+
+                if (encounterTable):
+                    currentTables = encounterTable.generateCurrentTables(gameData, currentZone)
+                    dashboardData.encounterData["encounterTables"] = currentTables
+                else:
+                    dashboardData.encounterData["encounterTables"] = {}
+
+                dashboardData.encounterData["isCave"] = playerData.position.zone.isCave
+                dashboardData.ready()
 
 # Launch this script to start the bot without the emulator and the dashboard
 if __name__ == "__main__":
