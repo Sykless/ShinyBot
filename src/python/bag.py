@@ -16,6 +16,7 @@ POKEBALL_ID = 4
 REPEL_ID = 79
 SUPERREPEL_ID = 76
 MAXREPEL_ID = 77
+HONEY_ID = 94
 OLDROD_ID = 445
 GOODROD_ID = 446
 SUPERROD_ID = 447
@@ -103,10 +104,10 @@ def findItemInBag(itemId):
     # Iterate on bag items
     for bagItemId in range(len(bagSection)):
         if (bagSection[bagItemId].id == itemId):
-            return bagItemId
+            return bagItemId, bagSection[bagItemId].quantity
         
     # Item not found in the bag
-    return None
+    return None, 0
 
 def getRepelLocation():
     repelLocation = -1

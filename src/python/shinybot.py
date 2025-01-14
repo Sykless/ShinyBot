@@ -110,7 +110,7 @@ def startShinybot(dashboardData = None):
         if (FREE_MODE):
             pass
             
-        # Only apply new input if no input is found in memory
+        # Only apply new input when all inputs have been processed
         elif (not memory.readJoypadData()):
             screenshot = img.getScreenshot()
             playerData = player.getPlayerData()
@@ -194,7 +194,7 @@ def startShinybot(dashboardData = None):
 
             elif (img.insideBalls.isOnScreen(screenshot)):
                 # Get Poké Ball location in bag
-                pokeballLocation = bag.findItemInBag(bag.POKEBALL_ID)
+                pokeballLocation, quantity = bag.findItemInBag(bag.POKEBALL_ID)
 
                 # I'd rather crash than miss a Shiny
                 if (pokeballLocation == None):
@@ -284,4 +284,4 @@ def startShinybot(dashboardData = None):
 
 # Launch this script to start the bot without the emulator and the dashboard
 if __name__ == "__main__":
-    startShinybot(dashboardMode = False)
+    startShinybot()

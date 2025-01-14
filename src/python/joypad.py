@@ -1,5 +1,6 @@
 import player
 import memory
+from utils import waitFrames
 
 FRAMES_RELEASE_TIME = 5
 TURNAROUND_ANIMATION = 6
@@ -37,6 +38,13 @@ def writeInput(inputSequence, endSequence = None):
         frameByFrameInputSequence += endSequence
     
     writeRawInput(frameByFrameInputSequence)
+
+def writeInputAndWait(inputSequence, endSequence = None):
+    writeInput(inputSequence, endSequence)
+
+    # Exit method when all inputs have been processed
+    while (memory.readJoypadData()):
+        waitFrames(1)
 
 def writePathfindingInput(nodeList, strengthUsed = False, destroyedObstacles = []):
 
@@ -319,7 +327,7 @@ def writePathfindingInput(nodeList, strengthUsed = False, destroyedObstacles = [
 
 
 def canBikeOnCell(cellType):
-    return cellType not in ["W","w","S","m","M","1","2","3","4","g"]
+    return cellType not in ["W","w","S","s","m","M","1","2","3","4","g"]
 
 def canBike(node):
     return node.position.zone.canBike and canBikeOnCell(node.cellType) and not node.isSurfing

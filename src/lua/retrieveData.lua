@@ -189,11 +189,11 @@ function retrieveGameData()
         getBits(marshPokemonIds,25,5), -- Zone 6
     }
 
-    local honeyTrees = {}
+    local honeyTreesCountdown = {}
     local honeyAddress = baseAddress + MEMORYADDRESSES[GAMECODE]["HONEYTREES_OFFSET"]
 
     for i = 1, 21 do
-        honeyTrees[i] = memory.read_u32_le(honeyAddress + 8 * i)
+        honeyTreesCountdown[i] = memory.read_u32_le(honeyAddress + 8 * i)
     end
 
     return {
@@ -206,7 +206,7 @@ function retrieveGameData()
 
         isFoggy = memory.readbyte(baseAddress + MEMORYADDRESSES[GAMECODE]["FOGTYPE_OFFSET"]) == 14,
         feebasSeed = memory.read_u32_le(baseAddress + MEMORYADDRESSES[GAMECODE]["FEEBASSEED_OFFSET"]),
-        honeyTrees = honeyTrees,
+        honeyTreesCountdown = honeyTreesCountdown,
         swarmPokemon = memory.read_u32_le(baseAddress + SWARMPOKEMON_OFFSET) % 22,
         marshPokemonList = marshPokemonList,
         gardenPokemonToday = memory.read_u16_le(baseAddress + GARDENPOKEMON_TODAY_OFFSET),

@@ -757,7 +757,7 @@ def checkPathIsFollowed(path):
         # Repel no longer active, stop moving and use another one
         elif (isRepelActive and gameData.repelSteps == 0):
             memory.clearJoypadInputs() # Clear input
-            joypad.writeInput("@@@@A") # Wait for the dialogue to be displayed and skip it
+            joypad.writeInputAndWait("@@@@A") # Wait for the dialogue to be displayed and skip it
             action.useItem(repel = True) # Use Repel and go back to overworld
 
         # Reached the end or went to another zone, clear all inputs and go back to main loop
@@ -802,10 +802,9 @@ def checkPathIsFollowed(path):
             # Make sure player is not moving anymore before checking his position
             waitFrames(10) # Wait 10 frames (time needed to completely stop on a bike)
             playerPosition = player.getPlayerData().position
-            screenshot = img.getScreenshot()
 
             # Poketch not visible, we changed zone, go back to main loop
-            if (not img.poketch.isOnScreen(screenshot)):
+            if (not img.poketch.isOnScreen()):
                 break
             # Reached the end, go back to main loop
             elif (playerPosition == path[-1].position):
@@ -1046,8 +1045,16 @@ def processWorldPath(worldPath, endPosition, calculateScore = False):
                     action.useItem(BIKE_ID, register = True, use = False)
                     break
 
+        # Close menu if open
+        if (img.getMenuPosition()):
+            joypad.writeInputAndWait("B")
+
         # Go from starting node to ending node
         processPath(currentPath)
+
+        # Only continue when all inputs have been processed
+        while (memory.readJoypadData()):
+            waitFrames(1)
 
         # Only apply door animation between paths, or if the final position is a door destination
         if (pathId + 1 < len(completeNodePath) or endPosition):
@@ -1060,7 +1067,7 @@ def processWorldPath(worldPath, endPosition, calculateScore = False):
                 waitFrames(1)
 
                 # Count the number of frames while poketch is visible
-                if (img.poketch.isOnScreen(img.getScreenshot())):
+                if (img.poketch.isOnScreen()):
                     framesOnOverworld += 1
 
                 # Spent 2 seconds on the wrong position while on the overworld : start again
@@ -1068,7 +1075,7 @@ def processWorldPath(worldPath, endPosition, calculateScore = False):
                     return False
 
             # Wait poketch is visible (after transition screen)
-            while (not img.poketch.isOnScreen(img.getScreenshot())):
+            while (not img.poketch.isOnScreen()):
                 waitFrames(1)
 
             # Moving from door to actual end position, wait for walking animation to be over

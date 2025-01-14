@@ -17,6 +17,22 @@ from utils import waitFrames
 # https://stackoverflow.com/questions/42462431/oserror-broken-data-stream-when-reading-image-file
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
+# Most important method : retrieve game screenshot from emulator memory
+def getScreenshot():
+    while True:
+        screenshotBytes = io.BytesIO(mmap.mmap(0, 64000, "screenshot"))
+        
+        try:
+            screenshotImage = Image.open(screenshotBytes)
+            screenshotImage.save("bizhawk.png")
+
+            # Convert RGB screenshot to BGR in order to be cv2-readable
+            return cv2.cvtColor(numpy.array(screenshotImage), cv2.COLOR_RGB2BGR)
+        except Exception as e:
+            waitFrames(1) # Check one frame later after memory has been updated
+
+
+# Template class to search a specific image in a specific position
 class Template:
     def __init__(self, name, positionX, positionY, width, height, threshold, mask = None):
         self.image = cv2.imread("src/python/data/img/" + name + ".png")
@@ -33,17 +49,12 @@ class Template:
         return screenshot[
                 self.positionY:self.positionY + self.height,
                 self.positionX:self.positionX + self.width]
-    
-    def getPositionOnScreen(self,screenshot):
-        return getTemplatePosition(screenshot, self.image, cv2.TM_SQDIFF, templatemask = self.mask)
 
-    def getNormedPositionOnScreen(self,screenshot):
-        return getTemplatePosition(screenshot, self.image, cv2.TM_SQDIFF_NORMED, templatemask = self.mask)
-
-    def isOnScreen(self, screenshot):
-        return isTemplateInImage(self.getSubScreenshot(screenshot),
+    def isOnScreen(self, screenshot = None):
+        return isTemplateInImage(self.getSubScreenshot(screenshot if screenshot is not None else getScreenshot()),
                                  self.image, self.threshold, templatemask = self.mask)[0]
 
+# Specific type of Template used for images different in other Sinnoh games
 class GameTemplate:
     def __init__(self, platinumTemplate, diamondPearlTemplate):
         self.templates = {
@@ -52,9 +63,10 @@ class GameTemplate:
             "Perle": diamondPearlTemplate,
         }
 
-    def isOnScreen(self, screenshot):
+    def isOnScreen(self, screenshot = None):
         return (self.templates[BIZHAWK.mainWindow.gameName if BIZHAWK.mainWindow else "Platine"]).isOnScreen(screenshot)
     
+# Specific type of Template for background images, needed for melonDS emulator since the screenshot size is not constant
 class BackgroundTemplate:
     def __init__(self, name, xFractionStart, xFractionEnd, yFractionStart, yFractionEnd):
         self.name = name
@@ -132,6 +144,7 @@ insideBalls = Template("inside-battle-balls-menu", 91, 348, 74, 32, 1)
 pokeballLastUsed = Template("pokeball-last-used", 8, 352, 192, 26, 1)
 saveConfirmation = Template("save-confirmation", 16, 155, 225, 12, 1)
 dialogConfirm = Template("dialog-confirm", 245, 173, 5, 8, 1, mask = True)
+confirmationBox = Template("confirmation-box", 200, 107, 25, 10, 10)
 whiteBanner = Template("white-banner", 177, 170, 50, 10, 1)
 poketch = GameTemplate(
     platinumTemplate = Template("poketch", 224, 225, 32, 126, 1),
@@ -169,7 +182,7 @@ def waitUntilNotVisible(template):
     while True:
         
         # Increment counter when the image is not visible
-        if (not template.isOnScreen(getScreenshot())):
+        if (not template.isOnScreen()):
             framesNotVisible += 1
         else:
             framesNotVisible = 0
@@ -228,7 +241,8 @@ def getCursorPosition(screenshot, sectionSize):
         return None
     
 # Returns cursor position on the map
-def getMapCursorPosition(screenshot):
+def getMapCursorPosition(screenshot = None):
+    screenshot = screenshot if screenshot is not None else getScreenshot()
     selectorInImage, location = isTemplateInImage(screenshot[0:0+170 , 20:20+216], MAP_CURSOR_ICON, 1, MAP_CURSOR_ICON_MASK)
 
     if (selectorInImage):
@@ -240,7 +254,8 @@ def getMapCursorPosition(screenshot):
         return None
 
 # Returns X menu cursor position
-def getMenuPosition(screenshot):
+def getMenuPosition(screenshot = None):
+    screenshot = screenshot if screenshot is not None else getScreenshot()
     selectorInImage, location = isTemplateInImage(screenshot[8:8+168 , 158:158+3], MENU_CURRENT_LOCATION_SELECTOR)
 
     if (selectorInImage):
@@ -252,19 +267,6 @@ def printImage(image):
     cv2.imshow("image", image)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
-
-def getScreenshot():
-    while True:
-        screenshotBytes = io.BytesIO(mmap.mmap(0, 64000, "screenshot"))
-        
-        try:
-            screenshotImage = Image.open(screenshotBytes)
-            screenshotImage.save("bizhawk.png")
-
-            # Convert RGB screenshot to BGR in order to be cv2-readable
-            return cv2.cvtColor(numpy.array(screenshotImage), cv2.COLOR_RGB2BGR)
-        except Exception as e:
-            waitFrames(1) # Check one frame later after memory has been updated
 
 def saveScreenshot(screenshot, filename):
     cv2.imwrite(os.path.join("backup/screenshots", time.strftime('%Y%m%d-%H%M%S') + "-" + filename + ".png"), screenshot)

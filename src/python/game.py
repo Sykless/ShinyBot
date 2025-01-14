@@ -4,7 +4,7 @@ import memory
 
 from encounter import SPECIALGRASSENCOUNTERS
 from data import POKEMON_NAMES, GBAGAME_NAMES
-from zone import MONTCOURONNE_SALLE8, HONEYTREES_LIST, Position
+from zone import MONTCOURONNE_SALLE8, HONEYTREES_POSITIONS, Position, HoneyTree
 
 CLOSEBAGMENU = 24
 FEEBAS_ROCK_POSITIONS = [51, 56, 184, 203, 203, 203, 203, 203, 203, 203, 214, 214, 214,
@@ -16,13 +16,14 @@ FEEBAS_ROCK_POSITIONS = [51, 56, 184, 203, 203, 203, 203, 203, 203, 203, 214, 21
                          449, 455, 455, 471, 471, 477]
 
 class Game:
-    def __init__(self, hourOfDay, repelSteps, selectedBagSection, selectedBagItemId, registeredKeyItem, isFoggy, feebasSeed, honeyTrees, swarmPokemon, marshPokemonList, gardenPokemonToday, gardenPokemonYesterday, gbaGame, encounterTables):
+    def __init__(self, hourOfDay, repelSteps, selectedBagSection, selectedBagItemId, registeredKeyItem, isFoggy, feebasSeed, honeyTreesCountdown, swarmPokemon, marshPokemonList, gardenPokemonToday, gardenPokemonYesterday, gbaGame, encounterTables):
         self.hourOfDay = hourOfDay
         self.repelSteps = repelSteps
         self.selectedBagSection = None
         self.registeredKeyItem = registeredKeyItem
         self.isFoggy = isFoggy
         self.feebasSeed = feebasSeed
+        self.honeyTreeList = []
         self.swarmPokemon = swarmPokemon
         self.marshPokemonList = marshPokemonList
         self.gardenPokemonToday = gardenPokemonToday
@@ -32,7 +33,7 @@ class Game:
 
         # Refresh every Honey Tree countdown
         for honeyTreeId in range(21):
-            HONEYTREES_LIST[honeyTreeId].countdown = honeyTrees[honeyTreeId]
+            self.honeyTreeList.append(HoneyTree(HONEYTREES_POSITIONS[honeyTreeId], honeyTreesCountdown[honeyTreeId]))
 
         # Data only valid if in the bag menu
         if (0 <= selectedBagSection <= 7):
@@ -42,7 +43,7 @@ class Game:
             # Id 24 could be an item or the close menu button
             if (selectedBagItemId == CLOSEBAGMENU):
                 if (selectedBagSection in [0,1]):
-                    self.closeBag = img.closeBagMenuSelected.isOnScreen(img.getScreenshot())
+                    self.closeBag = img.closeBagMenuSelected.isOnScreen()
 
                     # Regular itemId, get item from id
                     if (not self.closeBag):

@@ -34,12 +34,11 @@ def loadGame():
 
         # Wait until game is loaded
         while (memory.isOnTitleScreen()):
-            if (not memory.readJoypadData()):
-                joypad.writeInput("A" if not img.journalFooter.isOnScreen(img.getScreenshot()) else "B")
+            joypad.writeInputAndWait("A" if not img.journalFooter.isOnScreen() else "B")
             waitFrames(1)
 
         # Wait until Poketch is visible
-        while (not img.poketch.isOnScreen(img.getScreenshot())):
+        while (not img.poketch.isOnScreen()):
             waitFrames(1)
 
 
@@ -47,7 +46,7 @@ def loadGame():
 def openMenu():
 
     # If not on overworld, don't even try to open menu, just mash B
-    openMenuTries = 3 * (not img.poketch.isOnScreen(img.getScreenshot()))
+    openMenuTries = 3 * (not img.poketch.isOnScreen())
     mashExitTries = 0
     waitAfterPress = False
 
@@ -57,8 +56,7 @@ def openMenu():
 
         # Only apply new input if no input is found in memory
         if (len(memory.readJoypadData()) == 0):
-            screenshot = img.getScreenshot()
-            menuPosition = img.getMenuPosition(screenshot)
+            menuPosition = img.getMenuPosition()
 
             # Menu is not open
             if (menuPosition == 0):
@@ -100,7 +98,7 @@ def goToMenuSection(menuSection, menuPosition):
         menuNavigationSequence = "d" * cursorDifferential
 
     # Go up or down depending on current menu position, then press A to open Pokemon menu
-    joypad.writeInput(menuNavigationSequence + "A")
+    joypad.writeInputAndWait(menuNavigationSequence + "A")
 
 
 # Input sequence to save the game
@@ -145,9 +143,21 @@ def saveGame():
 # Input sequence to use an item
 def useItem(itemId = None, repel = False, register = False, use = True):
 
+    # Need to open menu first
+    menuPosition = openMenu()
+
+    # Cannot open menu, let the main loop handle it
+    if (menuPosition == 0):
+        print("Can't open menu")
+        return None
+
+    # For performance purpose, we only upload team data once every 20 frames
+    # So we wait to make sure the team data is valid
+    waitFrames(20)
+
     # Default : find the provided item in the bag
     if (itemId):
-        itemPosition = bag.findItemInBag(itemId)
+        itemPosition, quantity = bag.findItemInBag(itemId)
 
         # Item cannot be found, TODO go buy item
         if (itemPosition is None):
@@ -174,13 +184,6 @@ def useItem(itemId = None, repel = False, register = False, use = True):
             register = False
         else:
             return True
-    
-    # Need to open menu first
-    menuPosition = openMenu()
-
-    # Cannot open menu, let the main loop handle it
-    if (menuPosition == 0):
-        return None
     
     # Open bag menu
     goToMenuSection(MENU_BAG, menuPosition)
@@ -218,7 +221,7 @@ def useItem(itemId = None, repel = False, register = False, use = True):
                         joypad.writeInput("B") # Exit menu
 
                     # Wait until the menu is actually closed
-                    while (img.getMenuPosition(img.getScreenshot())):
+                    while (img.getMenuPosition()):
                         waitFrames(1)
 
                     return True
@@ -237,7 +240,7 @@ def useItem(itemId = None, repel = False, register = False, use = True):
                         if (gameData.closeBag):
                             currentPosition = len(bag.getBagData().items[bagSection])
                         else:
-                            currentPosition = bag.findItemInBag(gameData.selectedBagItem.id)
+                            currentPosition, quantity = bag.findItemInBag(gameData.selectedBagItem.id)
 
                         positionDiff = currentPosition - itemPosition
 
@@ -334,11 +337,11 @@ def useHM(hmId, city = None):
                     img.waitUntilNotVisible(img.poketch)
 
                     # Wait until Poketch is visible again (Fly ended)
-                    while (not img.poketch.isOnScreen(img.getScreenshot())):
+                    while (not img.poketch.isOnScreen()):
                         waitFrames(1)
 
                 # Animation time before player can move again (flying Pokemon goes back to pokeball, etc)
-                waitFrames(150)
+                waitFrames(170)
 
                 return True
             
@@ -397,7 +400,7 @@ def useRod(rodType):
     if (registeredKeyItem != rodType):
         useItem(itemId = rodType, register = True, use = True)
     else:
-        joypad.writeInput("Y")
+        joypad.writeInputAndWait("Y")
 
     # Keep fishing until a Pokémon is found
     while (not fishFound):
@@ -414,11 +417,7 @@ def useRod(rodType):
         waitFrames(1)
 
     # Press A to reel fish, then confirm dialog to start battle
-    joypad.writeInput("A@@@@@@A")
-
-    # Wait until the inputs have been processed
-    while (not memory.readJoypadData()):
-        waitFrames(1)
+    joypad.writeInputAndWait("A@@@@@@A")
 
 
 ###################################################################################################
@@ -437,6 +436,70 @@ def setupTradePosition():
     # Make sure we're facing up
     while (player.getPlayerData().orientation != "u"):
         joypad.writeInput("u")
+
+
+def setupAllHoneyTrees():
+    gameData = game.getGameData()
+    honeyTreeList = [honeyTree for honeyTree in gameData.honeyTreeList if honeyTree.countdown == 0]
+
+    # Need to open menu first
+    menuPosition = openMenu()
+
+    # Cannot open menu, let the main loop handle it
+    if (menuPosition == 0):
+        print("Can't open menu")
+        return None
+
+    # For performance purpose, we only upload team data once every 20 frames
+    # So we wait to make sure the team data is valid
+    waitFrames(20)
+
+    # Default : find the provided item in the bag
+    itemPosition, quantity = bag.findItemInBag(bag.HONEY_ID)
+
+    # Item cannot be found, TODO go buy item
+    if (quantity < len(honeyTreeList)):
+        print(f"Not enough Honey in the bag")
+        return None
+    
+    # Go to each Honey Tree without Honey and apply Honey
+    for honeyTree in honeyTreeList:
+        honeyApplied = False
+
+        # Calculate position player needs to reach to apply Honey (default : left cell)
+        neighbourHoneyCell = Position(honeyTree.position.X, honeyTree.position.Y + 1, honeyTree.position.zone)
+
+        # If cell is already taken by a NPC, go to the right cell
+        if (neighbourHoneyCell.getCell() == "N"):
+            neighbourHoneyCell = Position(honeyTree.position.X + 1, honeyTree.position.Y + 1, honeyTree.position.zone)
+
+        # Go to honey spot and make sure we're stopped
+        pathfinding.goToWorldLocation(neighbourHoneyCell)
+        waitFrames(10)
+
+        # Make sure we're facing up
+        if (player.getPlayerData().orientation != "u"):
+            joypad.writeInputAndWait("u")
+
+        # Interact with Honey Tree
+        joypad.writeInputAndWait("A")
+
+        # Loop until Honey has been applied
+        while (not honeyApplied or memory.readJoypadData()):
+            waitFrames(1)
+
+            # Only apply new input when all inputs have been processed
+            if (not memory.readJoypadData()):
+                screenshot = img.getScreenshot()
+
+                # Honey Tree status : confirm dialog
+                if (img.dialogConfirm.isOnScreen(screenshot)):
+                    joypad.writeInput("A")
+
+                # Use Honey : confirm and skip following dialog
+                elif (img.confirmationBox.isOnScreen(screenshot)):
+                    joypad.writeInput("A@@@@@@A")
+                    honeyApplied = True
 
 
 def setupFeebasFishingPosition():
@@ -483,4 +546,4 @@ def setupFeebasFishingPosition():
 
     # Make sure we're facing the fishing spot
     if (player.getPlayerData().orientation != orientation[2]):
-        joypad.writeInput(orientation[2])
+        joypad.writeInputAndWait(orientation[2])
