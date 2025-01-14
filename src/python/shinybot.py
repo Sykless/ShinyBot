@@ -48,7 +48,7 @@ def startShinybot(dashboardData = None):
         pathfinding.initDoorGraph()
         print("Graph generated in " + str(round(time.time() - startTime,2)) + " seconds")
     else:
-        pathfinding.DOOR_GRAPH = memory.loadGraph('src/python/data/pkl/graph.pkl')
+        pathfinding.DOOR_GRAPH = memory.loadGraph('data/pkl/graph.pkl')
         print("Graph loaded in " + str(round(time.time() - startTime,2)) + " seconds")
 
     jsonPokemonData = memory.readWildPokemonData()

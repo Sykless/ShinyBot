@@ -253,7 +253,7 @@ def initDoorGraph():
                     DOOR_GRAPH.setdefault(doorKey, []).append(DoorNode(door, otherDoorInZone, doorPath))
 
     # Save graph as a file to easily retrieve it at a later execution
-    memory.saveGraph(DOOR_GRAPH, 'src/python/data/pkl/graph.pkl')
+    memory.saveGraph(DOOR_GRAPH, 'data/pkl/graph.pkl')
 
 
 

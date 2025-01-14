@@ -34,7 +34,7 @@ class Zone():
     def __init__(self, name, zoneId, mapFile, canBike, canFly, canDig, isCave):
         self.name = name
         self.zoneId = zoneId
-        self.map = open('src/python/data/map/' + mapFile + '.map').readlines()
+        self.map = open('data/map/' + mapFile + '.map').readlines()
         self.doorList = []
         self.subzoneList = []
         self.interactableList = []

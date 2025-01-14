@@ -35,8 +35,8 @@ def getScreenshot():
 # Template class to search a specific image in a specific position
 class Template:
     def __init__(self, name, positionX, positionY, width, height, threshold, mask = None):
-        self.image = cv2.imread("src/python/data/img/" + name + ".png")
-        self.mask = mask and cv2.imread("src/python/data/img/" + name + "-mask.png")
+        self.image = cv2.imread("data/img/" + name + ".png")
+        self.mask = mask and cv2.imread("data/img/" + name + "-mask.png")
         self.name = name
 
         self.positionX = positionX
@@ -70,7 +70,7 @@ class GameTemplate:
 class BackgroundTemplate:
     def __init__(self, name, xFractionStart, xFractionEnd, yFractionStart, yFractionEnd):
         self.name = name
-        self.image = cv2.imread("src/python/data/img/background/" + name + ".png")
+        self.image = cv2.imread("data/img/background/" + name + ".png")
 
         # We don't know the MelonDS screenshot size so we're working with coordinate fractions
         self.xFractionStart = xFractionStart
@@ -107,10 +107,10 @@ class BackgroundTemplate:
         return isTemplateInImage(self.getSubScreenshot(windowContent, imageLocation), self.image)[0]
 
 
-ITEM_CURRENT_LOCATION_SELECTOR = cv2.imread('src/python/data/img/item-current-location-selector.png')
-MENU_CURRENT_LOCATION_SELECTOR = cv2.imread('src/python/data/img/menu-selector.png')
-MAP_CURSOR_ICON = cv2.imread('src/python/data/img/map-cursor.png')
-MAP_CURSOR_ICON_MASK = cv2.imread('src/python/data/img/map-cursor-mask.png')
+ITEM_CURRENT_LOCATION_SELECTOR = cv2.imread('data/img/item-current-location-selector.png')
+MENU_CURRENT_LOCATION_SELECTOR = cv2.imread('data/img/menu-selector.png')
+MAP_CURSOR_ICON = cv2.imread('data/img/map-cursor.png')
+MAP_CURSOR_ICON_MASK = cv2.imread('data/img/map-cursor-mask.png')
 
 BAG_SECTION_SELECTION = {}
 BAG_SECTION_SELECTION["linesNumber"] = 2
