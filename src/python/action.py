@@ -202,7 +202,7 @@ def useItem(itemId = None, repel = False, register = False, use = True):
 
             # Bag menu has been opened
             if (not bagOpened and img.bagTouchscreen.isOnScreen(screenshot)):
-                waitFrames(10) #  Small lag after Bag menu is displayed
+                waitFrames(10) # Small lag after Bag menu is displayed
                 bagOpened = True
 
             # Item has been used, go back to main menu
@@ -475,7 +475,7 @@ def setupAllHoneyTrees():
 
         # Go to honey spot and make sure we're stopped
         pathfinding.goToWorldLocation(neighbourHoneyCell)
-        waitFrames(10)
+        waitFrames(15)
 
         # Make sure we're facing up
         if (player.getPlayerData().orientation != "u"):
@@ -542,7 +542,7 @@ def setupFeebasFishingPosition():
 
     # Go to fishing spot and make sure we're stopped
     pathfinding.goToWorldLocation(closestNeighbourg)
-    waitFrames(10)
+    waitFrames(15)
 
     # Make sure we're facing the fishing spot
     if (player.getPlayerData().orientation != orientation[2]):

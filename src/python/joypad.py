@@ -28,7 +28,6 @@ def writeRunSections(runSectionsString):
     memory.writeMemoryData("runSections", runSectionsString)
 
 def writeInput(inputSequence, endSequence = None):
-
     frameByFrameInputSequence = "".join(
         [input * FRAMES_RELEASE_TIME # Press button for FRAMES_RELEASE_TIME frames
          + "@" * FRAMES_RELEASE_TIME # Release input for FRAMES_RELEASE_TIME frames
@@ -46,6 +45,9 @@ def writeInputAndWait(inputSequence, endSequence = None):
     while (memory.readJoypadData()):
         waitFrames(1)
 
+################################################################
+# Write all the inputs needed to process the node-to-node path #
+################################################################
 def writePathfindingInput(nodeList, strengthUsed = False, destroyedObstacles = []):
 
     # Only move if there are at least two nodes
@@ -66,7 +68,7 @@ def writePathfindingInput(nodeList, strengthUsed = False, destroyedObstacles = [
         skipNode = False
 
         # Not on bike and should be : press Y to use bike
-        if (canBike(previousNode) and not isOnBike):
+        if (previousNode.canBike() and not isOnBike):
             frameByFrameInputSequence += 5 * "Y" + 10 * "@"
             isOnBike = True
 
@@ -98,7 +100,7 @@ def writePathfindingInput(nodeList, strengthUsed = False, destroyedObstacles = [
                 inputButton = "l"
 
             # Not on bike and should be : press Y to use bike
-            if (canBike(previousNode) and not isOnBike):
+            if (previousNode.canBike() and not isOnBike):
                 frameByFrameInputSequence += 5 * "Y" + 10 * "@"
                 isOnBike = True
 
@@ -268,7 +270,7 @@ def writePathfindingInput(nodeList, strengthUsed = False, destroyedObstacles = [
                 stopped = True
 
             # Non-Bike-cell when previously on bike
-            elif (isOnBike and not canBike(node)):
+            elif (isOnBike and not node.canBike()):
 
                 # Stop biking before reaching the cell, then start running
                 frameByFrameInputSequence += (12 * "@"            # Release direction to stop moving
@@ -281,7 +283,7 @@ def writePathfindingInput(nodeList, strengthUsed = False, destroyedObstacles = [
                 stopped = False
 
             # Bike-cell when previously not on bike
-            elif (not isOnBike and canBike(node)):
+            elif (not isOnBike and node.canBike()):
 
                 # Reach the bike cell
                 frameByFrameInputSequence += getInputsToProgressCell(isOnBike, previousNode.cellType, stopped, inputButton, playerDirection)
@@ -326,12 +328,6 @@ def writePathfindingInput(nodeList, strengthUsed = False, destroyedObstacles = [
         writeRunSections(runSections)
 
 
-def canBikeOnCell(cellType):
-    return cellType not in ["W","w","S","s","m","M","1","2","3","4","g"]
-
-def canBike(node):
-    return node.position.zone.canBike and canBikeOnCell(node.cellType) and not node.isSurfing
-
 def getHmInputs(hm, inputButton):
     return  (8 * inputButton       # Face the tree/rock/water/etc
         + 6 * "@"                  # Turning animation
@@ -370,7 +366,7 @@ def getStrengthInputs(inputButton):
 #
 # With all that in mind, to apply the input needed to start moving, you need to apply input for the longest time possible,
 # But never for too long to not go beyond the wanted cell
-# So the max starting input time = 3 (lowest animation lag) + threshold - 1 (to not cross it)
+# So the max starting input time = 3 (lowest animation lag) + threshold - 1 (to avoid crossing it)
 #                                = 3 + number of frames to go to a cell - 2 - 1
 #                                = number of frames to go to a cell
 
