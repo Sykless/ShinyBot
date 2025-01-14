@@ -192,7 +192,7 @@ class Dashboard(QWidget):
             for i, (source, uniqueId, encounter) in enumerate(encounterList):
 
                 # Retrieve sprite and remove top/bottom transparent pixels
-                croppedImage = img.resizeSprite(f"data/sprites/nonshiny/{encounter.pokedexId}.png", self.windowHeight // 11)
+                croppedImage = img.resizeDashboardSprite(f"data/sprites/nonshiny/{encounter.pokedexId}.png", self.windowHeight // 11)
                 spritePixmap = QPixmap.fromImage(croppedImage)
 
                 spriteList.append(spritePixmap)

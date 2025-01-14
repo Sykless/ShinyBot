@@ -31,8 +31,16 @@ def getScreenshot():
         except Exception as e:
             waitFrames(1) # Check one frame later after memory has been updated
 
+def saveScreenshot(screenshot, filename):
+    cv2.imwrite(os.path.join("backup/screenshots", time.strftime('%Y%m%d-%H%M%S') + "-" + filename + ".png"), screenshot)
 
-# Template class to search a specific image in a specific position
+def displayScreenshot(screenshot):
+    cv2.imshow("image", screenshot)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+
+
+# Template class to search a specific image at a specific position
 class Template:
     def __init__(self, name, positionX, positionY, width, height, threshold, mask = None):
         self.image = cv2.imread("data/img/" + name + ".png")
@@ -54,7 +62,27 @@ class Template:
         return isTemplateInImage(self.getSubScreenshot(screenshot if screenshot is not None else getScreenshot()),
                                  self.image, self.threshold, templatemask = self.mask)[0]
 
-# Specific type of Template used for images different in other Sinnoh games
+    def waitUntilNotVisible(self):
+        framesNotVisible = 0
+
+        # Loop until the image is no longer visible
+        while True:
+            
+            # Increment counter when the image is not visible
+            if (not self.isOnScreen()):
+                framesNotVisible += 1
+            else:
+                framesNotVisible = 0
+
+            # Screenshot can be partially cropped so we only stop after 3 frames in a row
+            if (framesNotVisible == 3):
+                break
+
+            # Only check screenshot once every frame
+            waitFrames(1)
+
+
+# Templates used for images different in the other Sinnoh games
 class GameTemplate:
     def __init__(self, platinumTemplate, diamondPearlTemplate):
         self.templates = {
@@ -66,7 +94,11 @@ class GameTemplate:
     def isOnScreen(self, screenshot = None):
         return (self.templates[BIZHAWK.mainWindow.gameName if BIZHAWK.mainWindow else "Platine"]).isOnScreen(screenshot)
     
-# Specific type of Template for background images, needed for melonDS emulator since the screenshot size is not constant
+    def waitUntilNotVisible(self):
+        return (self.templates[BIZHAWK.mainWindow.gameName if BIZHAWK.mainWindow else "Platine"]).waitUntilNotVisible()
+
+
+# Templates used on MelonDS when we can only use the window screenshot, not knowing the screen resolution
 class BackgroundTemplate:
     def __init__(self, name, xFractionStart, xFractionEnd, yFractionStart, yFractionEnd):
         self.name = name
@@ -107,172 +139,154 @@ class BackgroundTemplate:
         return isTemplateInImage(self.getSubScreenshot(windowContent, imageLocation), self.image)[0]
 
 
-ITEM_CURRENT_LOCATION_SELECTOR = cv2.imread('data/img/item-current-location-selector.png')
-MENU_CURRENT_LOCATION_SELECTOR = cv2.imread('data/img/menu-selector.png')
-MAP_CURSOR_ICON = cv2.imread('data/img/map-cursor.png')
-MAP_CURSOR_ICON_MASK = cv2.imread('data/img/map-cursor-mask.png')
+# Specific type of Template that returns the position of a cursor on the screen
+class PositionTemplate:
+    def __init__(self, name, linesNumber = None, menuWidth = None, width = None, height = None, mask = None):
+        self.name = name
+        self.image = cv2.imread("data/img/" + name + ".png")
+        self.mask = mask and cv2.imread("data/img/" + name + "-mask.png")
+        
+        self.linesNumber = linesNumber
+        self.menuWidth = menuWidth
+        self.width = width
+        self.height = height
 
-BAG_SECTION_SELECTION = {}
-BAG_SECTION_SELECTION["linesNumber"] = 2
-BAG_SECTION_SELECTION["menuWidth"] = 214
-BAG_SECTION_SELECTION["width"] = 128
-BAG_SECTION_SELECTION["height"] = 72
+    # Returns cursor position depending on the template image
+    def getCursorPosition(self, screenshot = None):
+        screenshot = screenshot if screenshot is not None else getScreenshot()
 
-ITEM_SELECTION = {}
-ITEM_SELECTION["linesNumber"] = 3
-ITEM_SELECTION["menuWidth"] = 40
-ITEM_SELECTION["width"] = 128
-ITEM_SELECTION["height"] = 48
+        if (self.name == "battle/item-current-location-selector"):
+            return self.__getItemCursorPosition(screenshot)
+        elif (self.name == "menu/map-cursor"):
+            return self.__getMapCursorPosition(screenshot)
+        elif (self.name == "menu/menu-selector"):
+            return self.__getMenuPosition(screenshot)
 
-bagTouchscreen = Template("bag-menu-touchscreen", 0, 192, 256, 192, 1, mask = True)
-bagItemSelector = Template("bagitem-selector", 105, 15, 158, 113, 1, mask = True)
-cdDouteuxSelected = Template("cd-douteux-selected", 106, 15, 64, 113, 1)
-tissuFaucheSelected = Template("tissu-fauche-selected", 106, 15, 73, 113, 1)
-griffeRasoirSelected = Template("griffe-rasoir.selected", 106, 15, 68, 113, 1)
-crocRasoirSelected = Template("croc-rasoir-selected", 106, 15, 67, 113, 1)
-closeBagMenuSelected = Template("close-bag-selected", 106, 15, 42, 113, 1)
+    # Returns cursor position in bag menu in battle
+    def __getItemCursorPosition(self, screenshot):
+        selectorInImage, location = isTemplateInImage(screenshot[198:198+152 , 0:0+256], self.image)
 
-battleTouchscreen = Template("battle-touchscreen", 0, 192, 256, 192, 1, mask = True)
-exclamationBox = Template("exclamation-box", 113, 57, 30, 25, 1)
-noFishFoundDialog = Template("no-fish-found", 16, 155, 76, 10, 1)
-pokemonMenu = Template("pokemon-menu", 48, 192, 160, 192, 1)
-journalFooter = Template("journal-footer", 9, 176, 238, 4, 1)
-runaway = Template("runaway", 100, 354, 56, 30, 1)
-worldMap = Template("world-map", 103, 275, 50, 51, 1)
-insideBag = Template("inside-battle-bag-menu", 135, 208, 114, 58, 1)
-insideBalls = Template("inside-battle-balls-menu", 91, 348, 74, 32, 1)
-pokeballLastUsed = Template("pokeball-last-used", 8, 352, 192, 26, 1)
-saveConfirmation = Template("save-confirmation", 16, 155, 225, 12, 1)
-dialogConfirm = Template("dialog-confirm", 245, 173, 5, 8, 1, mask = True)
-confirmationBox = Template("confirmation-box", 200, 107, 25, 10, 10)
-whiteBanner = Template("white-banner", 177, 170, 50, 10, 1)
-poketch = GameTemplate(
-    platinumTemplate = Template("poketch", 224, 225, 32, 126, 1),
-    diamondPearlTemplate = Template("poketch-diamondpearl", 217, 278, 33, 92, 1)
-)
+        if (selectorInImage):
+            y = round((location[1] + self.height) / self.height) - 1
+
+            # Cursor on a item
+            if (y < self.linesNumber):
+                x = round((location[0] + self.width) / self.width) - 1
+            # Cursor on a menu button
+            else:
+                x = min(round((location[0] + self.menuWidth) / self.menuWidth) - 1 , 2)
+
+            return x,y
+        else:
+            return None
+        
+    # Returns cursor position on the map
+    def __getMapCursorPosition(self, screenshot):
+        selectorInImage, location = isTemplateInImage(screenshot[0:0+170 , 20:20+216], self.image, 1, self.mask)
+
+        if (selectorInImage):
+            x = round((location[0] - 6) * 27 / 189)
+            y = round((location[1] - 2) * 22 / 154)
+
+            return x,y
+        else:
+            return None
+
+    # Returns X menu cursor position
+    def __getMenuPosition(self, screenshot):
+        selectorInImage, location = isTemplateInImage(screenshot[8:8+168 , 158:158+3], self.image)
+
+        if (selectorInImage):
+            return round(location[1] / 24) + 1
+        else:
+            return 0
+
+
+# Bag
+bagTouchscreen = Template("bag/bag-menu-touchscreen", 0, 192, 256, 192, 1, mask = True)
+bagItemSelector = Template("bag/bag-item-selector", 105, 15, 158, 113, 1, mask = True)
+cdDouteuxSelected = Template("bag/cd-douteux-selected", 106, 15, 64, 113, 1)
+closeBagMenuSelected = Template("bag/close-bag-selected", 106, 15, 42, 113, 1)
+crocRasoirSelected = Template("bag/croc-rasoir-selected", 106, 15, 67, 113, 1)
+griffeRasoirSelected = Template("bag/griffe-rasoir.selected", 106, 15, 68, 113, 1)
+tissuFaucheSelected = Template("bag/tissu-fauche-selected", 106, 15, 73, 113, 1)
+
+# Battle
+battleTouchscreen = Template("battle/battle-touchscreen", 0, 192, 256, 192, 1, mask = True)
+insideBag = Template("battle/inside-battle-bag-menu", 135, 208, 114, 58, 1)
+insideBalls = Template("battle/inside-battle-balls-menu", 91, 348, 74, 32, 1)
+bagSectionCursor = PositionTemplate("battle/item-current-location-selector", 2, 214, 128, 72)
+itemSelectionCursor = PositionTemplate("battle/item-current-location-selector", 3, 40, 128, 48)
+newPokedexEntry = Template("battle/new-pokedex-entry", 0, 0, 241, 15, 1)
+pageOne = Template("battle/page-1", 183, 359, 6, 10, 1)
+pageTwo = Template("battle/page-2", 183, 359, 6, 10, 1)
+pageThree = Template("battle/page-3", 183, 359, 6, 10, 1)
+pokeballLastUsed = Template("battle/pokeball-last-used", 8, 352, 192, 26, 1)
+runaway = Template("battle/runaway", 100, 354, 56, 30, 1)
+useItem = Template("battle/use-item", 8, 351, 192, 27, 1)
+
+# Dialog
+confirmationBox = Template("dialog/confirmation-box", 200, 107, 25, 10, 10)
+dialogConfirm = Template("dialog/dialog-confirm", 245, 173, 5, 8, 1, mask = True)
+noFishFoundDialog = Template("dialog/no-fish-found", 16, 155, 76, 10, 1)
+saveConfirmation = Template("dialog/save-confirmation", 16, 155, 225, 12, 1)
+whiteBanner = Template("dialog/white-banner", 177, 170, 50, 10, 1)
+
+# Menu
+mapCursor = PositionTemplate("menu/map-cursor", mask = True)
+menuCursor = PositionTemplate("menu/menu-selector")
+pokemonMenu = Template("menu/pokemon-menu", 48, 192, 160, 192, 1)
+worldMap = Template("menu/world-map", 103, 275, 50, 51, 1)
+
+# Other
+exclamationBox = Template("other/exclamation-box", 113, 57, 30, 25, 1)
 hmAnimation = GameTemplate(
-    platinumTemplate = Template("hm-animation", 104, 93, 48, 6, 1),
-    diamondPearlTemplate = Template("hm-animation-diamondpearl", 104, 93, 48, 6, 1)
+    platinumTemplate = Template("other/hm-animation", 104, 93, 48, 6, 1),
+    diamondPearlTemplate = Template("other/hm-animation-diamondpearl", 104, 93, 48, 6, 1)
+)
+journalFooter = Template("other/journal-footer", 9, 176, 238, 4, 1)
+poketch = GameTemplate(
+    platinumTemplate = Template("other/poketch", 224, 225, 32, 126, 1),
+    diamondPearlTemplate = Template("other/poketch-diamondpearl", 217, 278, 33, 92, 1)
 )
 
-firstPage = Template("first-page", 183, 359, 6, 10, 1)
-secondPage = Template("second-page", 183, 359, 6, 10, 1)
-thirdPage = Template("third-page", 183, 359, 6, 10, 1)
-useItem = Template("use-item", 8, 351, 192, 27, 1)
-newPokedexEntry = Template("new-pokedex-entry", 0, 0, 241, 15, 1)
-
-# Templates used on MelonDS when we can only use the window screenshot, not knowing the screen resolution
+# Background (melonDS)
+blackBackground = BackgroundTemplate("black", 0, 1, 0.5, 1)
+confirmationboxBackground = BackgroundTemplate("confirmationbox", 0.75, 1, 0.25, 0.4)
+dialogboxBackground = BackgroundTemplate("dialogbox", 0, 1, 0.25, 0.43)
+evolutionBackground = BackgroundTemplate("evolution", 0, 1, 0.5, 1)
+journalBackground = BackgroundTemplate("journal", 0, 1, 0.25, 0.5)
+learnmoveBackground = BackgroundTemplate("learnmove", 0, 1, 0.5, 1)
+selectionboxBackground = BackgroundTemplate("selectionbox", 0.5, 1, 0, 0.4)
+tradeBackground = BackgroundTemplate("trade", 0.5, 1, 0.5, 1)
+whiteBackground = BackgroundTemplate("white", 0, 0.5, 0, 0.5)
 TOPSCREEN = (0, 1, 0, 0.5)
 BOTTOMSCREEN = (0, 1, 0.5, 1)
-whiteBackground = BackgroundTemplate("white", 0, 0.5, 0, 0.5)
-blackBackground = BackgroundTemplate("black", 0, 1, 0.5, 1)
-dialogboxBackground = BackgroundTemplate("dialogbox", 0, 1, 0.25, 0.43)
-journalBackground = BackgroundTemplate("journal", 0, 1, 0.25, 0.5)
-selectionboxBackground = BackgroundTemplate("selectionbox", 0.5, 1, 0, 0.4)
-confirmationboxBackground = BackgroundTemplate("confirmationbox", 0.75, 1, 0.25, 0.4)
-tradeBackground = BackgroundTemplate("trade", 0.5, 1, 0.5, 1)
-evolutionBackground = BackgroundTemplate("evolution", 0, 1, 0.5, 1)
-learnmoveBackground = BackgroundTemplate("learnmove", 0, 1, 0.5, 1)
 
 
-def waitUntilNotVisible(template):
-    framesNotVisible = 0
-
-    # Loop until the image is no longer visible
-    while True:
-        
-        # Increment counter when the image is not visible
-        if (not template.isOnScreen()):
-            framesNotVisible += 1
-        else:
-            framesNotVisible = 0
-
-        # Screenshot can be partially cropped so we only stop after 3 frames in a row
-        if (framesNotVisible == 3):
-            break
-
-        # Only check screenshot once every frame
-        waitFrames(1)
-
-
+# Check if an image is present in the screenshot
 def isTemplateInImage(image, templateImage, threshold = 1, templatemask = None):
-    min_val, min_loc = getTemplatePosition(image, templateImage, cv2.TM_SQDIFF, templatemask)
-    return min_val <= threshold, min_loc
-
-def getTemplatePosition(image, templateImage, matchingMethod, templatemask = None):
 
     # Template matching using TM_SQDIFF : Perfect match -> minimum value around 0.0
-    result = cv2.matchTemplate(image, templateImage, matchingMethod, mask = templatemask)
+    result = cv2.matchTemplate(image, templateImage, cv2.TM_SQDIFF, mask = templatemask)
 
     # Get best match
     min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
 
-    return min_val, min_loc
+    # Returns a boolean indicating if the template is present in the image, and its location
+    return min_val <= threshold, min_loc
 
 
+# Returns current bag item page in battle
 def getPageNumber(screenshot):
-    if (firstPage.isOnScreen(screenshot)): return 1
-    elif (secondPage.isOnScreen(screenshot)): return 2
-    elif (thirdPage.isOnScreen(screenshot)): return 3
+    if (pageOne.isOnScreen(screenshot)): return 1
+    elif (pageTwo.isOnScreen(screenshot)): return 2
+    elif (pageThree.isOnScreen(screenshot)): return 3
     else: return None
 
-def getCurrentBagSectionSelectedPosition(screenshot):
-    return getCursorPosition(screenshot, BAG_SECTION_SELECTION)
-
-def getCurrentItemSelectedPosition(screenshot):
-    return getCursorPosition(screenshot, ITEM_SELECTION)
-
-# Returns cursor position in bag menu in battle
-def getCursorPosition(screenshot, sectionSize):
-    selectorInImage, location = isTemplateInImage(screenshot[198:198+152 , 0:0+256], ITEM_CURRENT_LOCATION_SELECTOR)
-
-    if (selectorInImage):
-        y = round((location[1] + sectionSize["height"]) / sectionSize["height"]) - 1
-
-        # Cursor on a item
-        if (y < sectionSize["linesNumber"]):
-            x = round((location[0] + sectionSize["width"]) / sectionSize["width"]) - 1
-        # Cursor on a menu button
-        else:
-            x = min(round((location[0] + sectionSize["menuWidth"]) / sectionSize["menuWidth"]) - 1 , 2)
-
-        return x,y
-    else:
-        return None
-    
-# Returns cursor position on the map
-def getMapCursorPosition(screenshot = None):
-    screenshot = screenshot if screenshot is not None else getScreenshot()
-    selectorInImage, location = isTemplateInImage(screenshot[0:0+170 , 20:20+216], MAP_CURSOR_ICON, 1, MAP_CURSOR_ICON_MASK)
-
-    if (selectorInImage):
-        x = round((location[0] - 6) * 27 / 189)
-        y = round((location[1] - 2) * 22 / 154)
-
-        return x,y
-    else:
-        return None
-
-# Returns X menu cursor position
-def getMenuPosition(screenshot = None):
-    screenshot = screenshot if screenshot is not None else getScreenshot()
-    selectorInImage, location = isTemplateInImage(screenshot[8:8+168 , 158:158+3], MENU_CURRENT_LOCATION_SELECTOR)
-
-    if (selectorInImage):
-        return round(location[1] / 24) + 1
-    else:
-        return 0
-
-def printImage(image):
-    cv2.imshow("image", image)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
-
-def saveScreenshot(screenshot, filename):
-    cv2.imwrite(os.path.join("backup/screenshots", time.strftime('%Y%m%d-%H%M%S') + "-" + filename + ".png"), screenshot)
 
 # Crops top/bottom transparent pixels and scale the sprite to the dashboard height
-def resizeSprite(imagePath, scale):
+def resizeDashboardSprite(imagePath, scale):
     image = QImage(imagePath)
 
     if image.isNull():

@@ -56,7 +56,7 @@ def openMenu():
 
         # Only apply new input if no input is found in memory
         if (len(memory.readJoypadData()) == 0):
-            menuPosition = img.getMenuPosition()
+            menuPosition = img.menuCursor.getCursorPosition()
 
             # Menu is not open
             if (menuPosition == 0):
@@ -221,7 +221,7 @@ def useItem(itemId = None, repel = False, register = False, use = True):
                         joypad.writeInput("B") # Exit menu
 
                     # Wait until the menu is actually closed
-                    while (img.getMenuPosition()):
+                    while (img.menuCursor.getCursorPosition()):
                         waitFrames(1)
 
                     return True
@@ -334,7 +334,7 @@ def useHM(hmId, city = None):
                 if (hmId == pokemon.FLY_ID):
 
                     # Wait until Poketch is no longer visible (transition screen)
-                    img.waitUntilNotVisible(img.poketch)
+                    img.poketch.waitUntilNotVisible()
 
                     # Wait until Poketch is visible again (Fly ended)
                     while (not img.poketch.isOnScreen()):
@@ -351,7 +351,7 @@ def useHM(hmId, city = None):
             
             # Only for Fly : move cursor to the city we need to fly to
             elif (hmId == pokemon.FLY_ID and img.worldMap.isOnScreen(screenshot)):
-                cursorPosition = img.getMapCursorPosition(screenshot)
+                cursorPosition = img.mapCursor.getCursorPosition(screenshot)
 
                 # Map menu : move cursor to selected city
                 if (cursorPosition):

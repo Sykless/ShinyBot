@@ -368,7 +368,7 @@ def processWorldPath(worldPath, endPosition, calculateScore = False):
                     break
 
         # Close menu if open
-        if (img.getMenuPosition()):
+        if (img.menuCursor.getCursorPosition()):
             joypad.writeInputAndWait("B")
 
         # Go from starting node to ending node

@@ -61,8 +61,6 @@ def startShinybot(dashboardData = None):
     gameData = game.getGameData()
 
     loadedPokemonPid = 0
-    currentZone = None
-    currentHour = None
     backToShop = True
 
     # Free mode : don't let the script interact with the game
@@ -145,7 +143,7 @@ def startShinybot(dashboardData = None):
             # Inside bag : Go to Balls sequence
             elif (img.insideBag.isOnScreen(screenshot)):
                 # Get cursor location (None if not present)
-                cursorLocation = img.getCurrentBagSectionSelectedPosition(screenshot)
+                cursorLocation = img.bagSectionCursor.getCursorPosition(screenshot)
 
                 # No cursor on screen : input left to make it appear
                 if (not cursorLocation):
@@ -184,7 +182,7 @@ def startShinybot(dashboardData = None):
                     backToShop = True
 
                 # Get cursor location (None if not present)
-                cursorLocation = img.getCurrentItemSelectedPosition(screenshot)
+                cursorLocation = img.itemSelectionCursor.getCursorPosition(screenshot)
 
                 # No cursor on screen : input left to make it appear
                 if (not cursorLocation):
