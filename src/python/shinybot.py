@@ -32,9 +32,11 @@ SPIN_MODE = True
 CATCH_ALL_MODE = False
 GENERATE_GRAPH = False
 
-def startShinybot(dashboardMode = True):
+def startShinybot(dashboardData = None):
 
     # If Dashboard is not enabled, let this script launch BizHawk and setup the game
+    dashboardMode = (dashboardData is not None)
+
     if (not dashboardMode):
         BIZHAWK.initEmulator(PLATINE, fullscreen = False)
         action.loadGame()
@@ -82,9 +84,12 @@ def startShinybot(dashboardMode = True):
 
                 if (encounterTable):
                     currentTables = encounterTable.generateCurrentTables(gameData, currentZone)
-                    DASHBOARD.updateEncounters(currentTables, playerData.position.zone.isCave)
+                    dashboardData.encounterData["encounterTables"] = currentTables
                 else:
-                    DASHBOARD.updateEncounters(None, playerData.position.zone.isCave)
+                    dashboardData.encounterData["encounterTables"] = {}
+
+                dashboardData.encounterData["isCave"] = playerData.position.zone.isCave
+                dashboardData.ready()
 
         # Read JSON Pokemon data from memory file
         jsonPokemonData = memory.readWildPokemonData()
@@ -147,7 +152,7 @@ def startShinybot(dashboardMode = True):
             # TODO : Weaken Pokemon (False Swipe + Status ?)
             elif (img.runaway.isOnScreen(screenshot)):
                 # Shiny Pokemon : Go to bag sequence
-                if (not backToShop and (pokemon.isShiny or CATCH_ALL_MODE)):
+                if (not backToShop and (wildPokemon.isShiny or CATCH_ALL_MODE)):
                     joypad.writeInput("llA", endSequence = "@@@@@@@@@@")
                 
                 # Not Shiny : Runaway sequence
