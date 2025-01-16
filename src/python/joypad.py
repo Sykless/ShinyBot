@@ -46,6 +46,9 @@ def writeInput(inputSequence, endSequence = None, wait = False):
     while (wait and memory.readJoypadData()):
         waitFrames(1)
 
+def softReset():
+    writeInput("!", wait = True)
+    waitFrames(120) # Wait 2 seconds for the game to reload
 
 ################################################################
 # Write all the inputs needed to process the node-to-node path #

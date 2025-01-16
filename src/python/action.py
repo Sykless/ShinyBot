@@ -11,9 +11,9 @@ import touchscreen
 
 from bag import ITEMS_SECTION, KEYITEMS_SECTION, OLDROD_ID, GOODROD_ID, SUPERROD_ID
 from zone import MONTCOURONNE_SALLE8, Position
+from pokedex import POKEDEX
 from data import ITEM_NAMES
 from utils import waitFrames
-from pokemon import Pokemon
 
 MENU_POKEDEX = 1
 MENU_POKEMON = 2
@@ -440,6 +440,30 @@ def setupTradePosition():
         joypad.writeInput("u")
 
 
+####################################################################
+# Go in front of provided Honey Tree and make sure we're facing it #
+####################################################################
+def moveToHoneyTree(honeyTree):
+
+    # Calculate position player needs to reach to apply Honey (default : left cell)
+    neighbourHoneyCell = Position(honeyTree.position.X, honeyTree.position.Y + 1, honeyTree.position.zone)
+
+    # If cell is already taken by a NPC, go to the right cell
+    if (neighbourHoneyCell.getCell() == "N"):
+        neighbourHoneyCell = Position(honeyTree.position.X + 1, honeyTree.position.Y + 1, honeyTree.position.zone)
+
+    # Go to honey spot and make sure we're stopped
+    pathfinding.goToWorldLocation(neighbourHoneyCell)
+    waitFrames(15)
+
+    # Make sure we're facing up
+    if (player.getPlayerData().orientation != "u"):
+        joypad.writeInput("u", wait = True)
+
+
+###########################################
+# Apply Honey on all possible Honey Trees #
+###########################################
 def setupAllHoneyTrees():
     gameData = game.getGameData()
     honeyTreeList = [honeyTree for honeyTree in gameData.honeyTreeList if honeyTree.countdown == 0]
@@ -468,20 +492,8 @@ def setupAllHoneyTrees():
     for honeyTree in honeyTreeList:
         honeyApplied = False
 
-        # Calculate position player needs to reach to apply Honey (default : left cell)
-        neighbourHoneyCell = Position(honeyTree.position.X, honeyTree.position.Y + 1, honeyTree.position.zone)
-
-        # If cell is already taken by a NPC, go to the right cell
-        if (neighbourHoneyCell.getCell() == "N"):
-            neighbourHoneyCell = Position(honeyTree.position.X + 1, honeyTree.position.Y + 1, honeyTree.position.zone)
-
-        # Go to honey spot and make sure we're stopped
-        pathfinding.goToWorldLocation(neighbourHoneyCell)
-        waitFrames(15)
-
-        # Make sure we're facing up
-        if (player.getPlayerData().orientation != "u"):
-            joypad.writeInputAndWait("u")
+        # Go in front of the selected Honey Tree
+        moveToHoneyTree(honeyTree)
 
         # Interact with Honey Tree
         joypad.writeInput("A", wait = True)
@@ -504,6 +516,66 @@ def setupAllHoneyTrees():
                     honeyApplied = True
 
 
+########################################################
+# Go to each shaking Honey Tree and interact with them #
+########################################################
+def checkAllHoneyTrees():
+    gameData = game.getGameData()
+    shakingHoneyTreeList = [honeyTree for honeyTree in gameData.honeyTreeList if 0 < honeyTree.countdown <= 1080]
+
+    # Go to each shaking Honey Tree and interact with them
+    for honeyTree in shakingHoneyTreeList:
+        battleHoneyPokemon(honeyTree)
+
+
+###############################################################################
+# Reset in front of the provided Honey Tree until we find a new Shiny Pokémon #
+###############################################################################
+def battleHoneyPokemon(honeyTree):
+    honeyPokemon = None
+    pokemonCaught = False
+
+    # Go in front of the selected Honey Tree
+    moveToHoneyTree(honeyTree)
+    
+    # Save the game to shiny reset if we need to catch the Pokémon
+    saveGame()
+
+    # Keep resetting until we find the shiny version
+    while not pokemonCaught:
+        loadGame()
+
+        # Interact with Honey Tree to start battle
+        joypad.writeInput("A")
+
+        # Wait until an empty dialog box is displayed (battle starts)
+        while not img.noDialog.isOnScreen():
+            waitFrames(1)
+
+        # Wait until a dialog appears (Pokémon sprite is displayed)
+        img.noDialog.waitUntilNotVisible()
+
+        # Check if the Honey Pokémon is shiny
+        honeyPokemon = pokemon.getWildPokemon()
+
+        # Catch the Pokémon if shiny, or run away if already caught
+        if (honeyPokemon.isShiny or POKEDEX[honeyPokemon.pokedexId].caught):
+            battle(honeyPokemon)
+
+            while (not img.confirmationBox.isOnScreen()):
+                waitFrames(1)
+
+            joypad.writeInput("A@@@@@@A", wait = True)
+            pokemonCaught = True
+
+        # We need the Pokémon and it was not shiny : soft reset
+        else:
+            joypad.softReset()
+
+
+###########################################################
+# Go the the best Feebas fishing spot and prepare fishing #
+###########################################################
 def setupFeebasFishingPosition():
     shortestDistance = 9999
     startingPosition = None
@@ -551,6 +623,9 @@ def setupFeebasFishingPosition():
         joypad.writeInput(orientation[2], wait = True)
 
 
+######################################################################
+# Complete battle process (weaken wild Pokémon, catch, runaway, etc) #
+######################################################################
 def battle(wildPokemon, catchAll = False):
     backToShop = False
 
@@ -600,7 +675,7 @@ def battle(wildPokemon, catchAll = False):
                 elif (img.insideBalls.isOnScreen(screenshot)):
 
                     # Get Poké Ball location in bag
-                    pokeballLocation, quantity = bag.findItemInBag("Master Ball")
+                    pokeballLocation, quantity = bag.findItemInBag(bag.POKEBALL_ID)
 
                     # TODO : Find another ball to throw
                     if (pokeballLocation == None):

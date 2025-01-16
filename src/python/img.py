@@ -208,6 +208,7 @@ useItem = Template("battle/use-item", 80, 361, 46, 10, 1, mask = True)
 # Dialog
 confirmationBox = Template("dialog/confirmation-box", 200, 107, 25, 10, 10)
 dialogConfirm = Template("dialog/dialog-confirm", 245, 173, 5, 8, 1, mask = True)
+noDialog = Template("dialog/no-dialog", 16, 155, 10, 10, 1)
 noFishFoundDialog = Template("dialog/no-fish-found", 16, 155, 76, 10, 1)
 saveConfirmation = Template("dialog/save-confirmation", 16, 155, 225, 12, 1)
 whiteBanner = Template("dialog/white-banner", 177, 170, 50, 10, 1)

@@ -49,8 +49,6 @@ def startShinybot(dashboardData = None):
     playerData = player.getPlayerData()
     gameData = game.getGameData()
 
-    loadedPokemonPid = 0
-
     # Free mode : don't let the script interact with the game
     if (FREE_MODE):
         print("Free mode")
@@ -68,22 +66,12 @@ def startShinybot(dashboardData = None):
         else:
             screenshot = img.getScreenshot()
             playerData = player.getPlayerData()
-            jsonPokemonData = memory.readWildPokemonData()
 
-            # Check if a new wild Pokemon has been found
-            if (jsonPokemonData and jsonPokemonData["pid"] not in [0, loadedPokemonPid]):
+            # Check if a new wild Pokémon has been found
+            wildPokemon = action.getWildPokemon()
                 
-                # Convert JSON data to Pokemon object
-                wildPokemon = Pokemon(**jsonPokemonData)
-                loadedPokemonPid = wildPokemon.pid
-
-                # Stop pathfinding
-                memory.clearJoypadInputs()
-
-                print("New wild Pokemon !")
-                print(wildPokemon)
-
-                # Start battle
+            # Start battle if a wild Pokémon is found
+            if (wildPokemon):
                 action.battle(wildPokemon)
 
             # Overworld : find Pokémon

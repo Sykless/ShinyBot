@@ -14,7 +14,8 @@ BUTTON_MAPPING = {
     ["s"] = "Select",
     ["S"] = "Start",
     ["T"] = "Touch",
-    ["@"] = "Nothing"
+    ["@"] = "Nothing",
+    ["!"] = "SoftReset"
 }
 
 local runSections = {}
@@ -94,7 +95,15 @@ function inputFromMemory()
         else
             client.clearautohold() -- Clear programmatically set Touch X/Y
         end
-              
+
+        -- Special input : Inputs needed to Soft Reset
+        if (buttonPress == "!") then
+            joypadMap["L"] = "True"
+            joypadMap["R"] = "True"
+            joypadMap["Start"] = "True"
+            joypadMap["Select"] = "True"
+        end
+
         local remainingInputs = string.sub(joypadInput, inputLenght + 1, string.len(joypadInput))
 
         -- Convert value retrieved from memory to actual button pressed

@@ -174,6 +174,25 @@ def getPokemonTeam():
 
     return pokemonTeam
 
+def getWildPokemon():
+    jsonPokemonData = memory.readWildPokemonData()
+
+    # Check if a new wild Pokemon has been found
+    if (jsonPokemonData and jsonPokemonData["pid"] > 0):
+        
+        # Convert JSON data to Pokemon object
+        wildPokemon = Pokemon(**jsonPokemonData)
+
+        # Stop pathfinding
+        memory.clearJoypadInputs()
+
+        print("New wild Pokemon !")
+        print(wildPokemon)
+        return wildPokemon
+
+    # No Pokemon found
+    else:
+        return None
 
 def isHMAvailable(hmId):
     jsonTeamData = memory.readPokemonTeamData()

@@ -96,6 +96,10 @@ def getItemFromBagId(selectedBagSection, selectedBagItemId):
 
 def findItemInBag(itemId):
 
+    # Retrieve itemId by item name if provided
+    if (isinstance(itemId, str)):
+        itemId = ITEM_NAMES.index(itemId)
+
     # Retrieve bag data from memory
     bag = getBagData()
     bagSectionId = getBagSection(itemId)
