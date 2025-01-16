@@ -27,7 +27,11 @@ def writeRunSections(runSectionsString):
     print(runSectionsString)
     memory.writeMemoryData("runSections", runSectionsString)
 
-def writeInput(inputSequence, endSequence = None):
+def writeTouchInput(touchX, touchY, wait = False):
+    joypadInput = ["T" + str(touchX).zfill(3) + str(touchY).zfill(3)]
+    writeInput(joypadInput, wait = wait)
+
+def writeInput(inputSequence, endSequence = None, wait = False):
     frameByFrameInputSequence = "".join(
         [input * FRAMES_RELEASE_TIME # Press button for FRAMES_RELEASE_TIME frames
          + "@" * FRAMES_RELEASE_TIME # Release input for FRAMES_RELEASE_TIME frames

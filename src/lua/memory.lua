@@ -13,6 +13,7 @@ BUTTON_MAPPING = {
     ["r"] = "Right",
     ["s"] = "Select",
     ["S"] = "Start",
+    ["T"] = "Touch",
     ["@"] = "Nothing"
 }
 
@@ -78,13 +79,25 @@ function inputFromMemory()
         else
             processedInputs = processedInputs + 1
         end
-        
+
         -- Retrieve the first button of the sequence (only 1 input per frame)
         local joypadMap = {}
+        local joypadAnalogMap = {}
+        local inputLenght = 1
         local buttonPress = string.sub(joypadInput,1,1)
-        local remainingInputs = string.sub(joypadInput, 2, string.len(joypadInput))
 
-        -- Copnvert value retreived from memory to actual button pressed
+        -- If touchscreen is needed, retrieve 7 characters instead of 1 to get X,Y Touch coordinates
+        if (buttonPress == "T") then
+            inputLenght = 7
+            joypadAnalogMap["Touch X"] = string.sub(joypadInput, 2, 4)
+            joypadAnalogMap["Touch Y"] = string.sub(joypadInput, 5, 7)
+        else
+            client.clearautohold() -- Clear programmatically set Touch X/Y
+        end
+              
+        local remainingInputs = string.sub(joypadInput, inputLenght + 1, string.len(joypadInput))
+
+        -- Convert value retrieved from memory to actual button pressed
         joypadMap[BUTTON_MAPPING[buttonPress]] = "True"
 
         -- If run sections are present, check if we need to run
@@ -103,9 +116,10 @@ function inputFromMemory()
 
         -- Apply generated joypad to emulator
         joypad.set(joypadMap)
-    
+        joypad.setanalog(joypadAnalogMap)
+
         -- Erase first input with \x00 null character and shift the rest to the left
-        comm.mmfWrite("joypad", remainingInputs .. "\x00")
+        comm.mmfWrite("joypad", remainingInputs ..  string.rep("\x00", inputLenght))
 
     -- No more input to process, prepare to read runSections
     else
