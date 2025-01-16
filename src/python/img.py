@@ -155,30 +155,10 @@ class PositionTemplate:
     def getCursorPosition(self, screenshot = None):
         screenshot = screenshot if screenshot is not None else getScreenshot()
 
-        if (self.name == "battle/item-current-location-selector"):
-            return self.__getItemCursorPosition(screenshot)
-        elif (self.name == "menu/map-cursor"):
+        if (self.name == "menu/map-cursor"):
             return self.__getMapCursorPosition(screenshot)
         elif (self.name == "menu/menu-selector"):
             return self.__getMenuPosition(screenshot)
-
-    # Returns cursor position in bag menu in battle
-    def __getItemCursorPosition(self, screenshot):
-        selectorInImage, location = isTemplateInImage(screenshot[198:198+152 , 0:0+256], self.image)
-
-        if (selectorInImage):
-            y = round((location[1] + self.height) / self.height) - 1
-
-            # Cursor on a item
-            if (y < self.linesNumber):
-                x = round((location[0] + self.width) / self.width) - 1
-            # Cursor on a menu button
-            else:
-                x = min(round((location[0] + self.menuWidth) / self.menuWidth) - 1 , 2)
-
-            return x,y
-        else:
-            return None
         
     # Returns cursor position on the map
     def __getMapCursorPosition(self, screenshot):
@@ -212,18 +192,18 @@ griffeRasoirSelected = Template("bag/griffe-rasoir.selected", 106, 15, 68, 113, 
 tissuFaucheSelected = Template("bag/tissu-fauche-selected", 106, 15, 73, 113, 1)
 
 # Battle
-battleTouchscreen = Template("battle/battle-touchscreen", 0, 192, 256, 192, 1, mask = True)
-insideBag = Template("battle/inside-battle-bag-menu", 135, 208, 114, 58, 1)
-insideBalls = Template("battle/inside-battle-balls-menu", 91, 348, 74, 32, 1)
-bagSectionCursor = PositionTemplate("battle/item-current-location-selector", 2, 214, 128, 72)
-itemSelectionCursor = PositionTemplate("battle/item-current-location-selector", 3, 40, 128, 48)
-newPokedexEntry = Template("battle/new-pokedex-entry", 0, 0, 241, 15, 1)
+cancelAttack = Template("battle/cancel-attack", 104, 365, 49, 10, 1)
+insideBag = Template("battle/inside-battle-bag-menu", 174, 243, 35, 10, 1)
+insideBalls = Template("battle/inside-battle-balls-menu", 113, 359, 30, 10, 1)
+newPokedexEntry = Template("battle/new-pokedex-entry", 110, 3, 42, 10, 1)
 pageOne = Template("battle/page-1", 183, 359, 6, 10, 1)
 pageTwo = Template("battle/page-2", 183, 359, 6, 10, 1)
 pageThree = Template("battle/page-3", 183, 359, 6, 10, 1)
-pokeballLastUsed = Template("battle/pokeball-last-used", 8, 352, 192, 26, 1)
-runaway = Template("battle/runaway", 100, 354, 56, 30, 1)
-useItem = Template("battle/use-item", 8, 351, 192, 27, 1)
+pageFour = Template("battle/page-4", 183, 359, 6, 10, 1)
+pokeballLastUsed = Template("battle/pokeball-last-used", 11, 357, 18, 18, 10)
+returnButton = Template("battle/return-button", 223, 352, 26, 26, 10)
+runaway = Template("battle/runaway", 111, 365, 35, 10, 1)
+useItem = Template("battle/use-item", 80, 361, 46, 10, 1, mask = True)
 
 # Dialog
 confirmationBox = Template("dialog/confirmation-box", 200, 107, 25, 10, 10)
@@ -282,6 +262,7 @@ def getPageNumber(screenshot):
     if (pageOne.isOnScreen(screenshot)): return 1
     elif (pageTwo.isOnScreen(screenshot)): return 2
     elif (pageThree.isOnScreen(screenshot)): return 3
+    elif (pageFour.isOnScreen(screenshot)): return 4
     else: return None
 
 

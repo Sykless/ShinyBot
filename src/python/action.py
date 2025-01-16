@@ -7,11 +7,13 @@ import joypad
 import memory
 import pokemon
 import pathfinding
+import touchscreen
 
 from bag import ITEMS_SECTION, KEYITEMS_SECTION, OLDROD_ID, GOODROD_ID, SUPERROD_ID
 from zone import MONTCOURONNE_SALLE8, Position
 from data import ITEM_NAMES
 from utils import waitFrames
+from pokemon import Pokemon
 
 MENU_POKEDEX = 1
 MENU_POKEMON = 2
@@ -547,3 +549,84 @@ def setupFeebasFishingPosition():
     # Make sure we're facing the fishing spot
     if (player.getPlayerData().orientation != orientation[2]):
         joypad.writeInput(orientation[2], wait = True)
+
+
+def battle(wildPokemon, catchAll = False):
+    backToShop = False
+
+    # Only exit loop when battle is over
+    while True:
+
+        # Only apply new input when all inputs have been processed
+        if (not memory.readJoypadData()):
+
+            # Read JSON Pokemon data from memory file
+            jsonPokemonData = memory.readWildPokemonData()
+
+            # No PID or different than the provided one : battle ended, we can exit the method
+            if (not jsonPokemonData or jsonPokemonData["pid"] != wildPokemon.pid):
+                return True
+
+            # Detect in which battle section we are from the game screenshot
+            screenshot = img.getScreenshot()
+
+            # Runaway button displayed : main battle menu
+            if (img.runaway.isOnScreen(screenshot)):
+
+                # Shiny Pokemon : Go to bag sequence
+                if (not backToShop and (wildPokemon.isShiny or catchAll)):
+                    touchscreen.bagButton.pressButton()
+                
+                # Not Shiny : click on Runaway and exit battle
+                else:
+                    touchscreen.runawayButton.pressButton()
+                    return True
+                
+            # Return button displayed : Bag or Pokémon menu
+            elif (img.returnButton.isOnScreen(screenshot)):
+
+                # Inside bag : click on Balls section
+                if (img.insideBag.isOnScreen(screenshot)):
+
+                    # If Poké Ball is the last used item, use it
+                    if (img.pokeballLastUsed.isOnScreen(screenshot)):
+                        touchscreen.pokeballLastUsedButton.pressButton()
+
+                    # Find Poké Ball in the Balls section
+                    else:
+                        touchscreen.BATTLE_FOURCHOICES_BUTTONS[1].pressButton()
+
+                # Inside Balls section : find Poké Ball
+                elif (img.insideBalls.isOnScreen(screenshot)):
+
+                    # Get Poké Ball location in bag
+                    pokeballLocation, quantity = bag.findItemInBag("Master Ball")
+
+                    # TODO : Find another ball to throw
+                    if (pokeballLocation == None):
+                        backToShop = True
+
+                    pageNuber = img.getPageNumber(screenshot)
+                    pokeballPageLocation = int(pokeballLocation / 6) + 1
+
+                    if (pageNuber):
+
+                        # We're on the right page, click on Poké Ball
+                        if (pageNuber == pokeballPageLocation):
+                            touchscreen.BATTLE_SIXCHOICES_BUTTONS[pokeballLocation % 6].pressButton()
+
+                        # Poké Ball are on a different page, go to next page
+                        else:
+                            touchscreen.nextPageButton.pressButton()
+                
+                # Use item
+                elif (img.useItem.isOnScreen(screenshot)):
+                    touchscreen.useItemButton.pressButton()
+            
+            # New Pokedex entry : Press A
+            elif (img.newPokedexEntry.isOnScreen(screenshot)):
+                joypad.writeInput("A")
+
+            # Default : mash B
+            else:
+                joypad.writeInput("B")
