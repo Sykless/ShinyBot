@@ -38,12 +38,10 @@ def writeInput(inputSequence, endSequence = None):
     
     writeRawInput(frameByFrameInputSequence)
 
-def writeInputAndWait(inputSequence, endSequence = None):
-    writeInput(inputSequence, endSequence)
-
     # Exit method when all inputs have been processed
-    while (memory.readJoypadData()):
+    while (wait and memory.readJoypadData()):
         waitFrames(1)
+
 
 ################################################################
 # Write all the inputs needed to process the node-to-node path #

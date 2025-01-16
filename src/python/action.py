@@ -34,7 +34,7 @@ def loadGame():
 
         # Wait until game is loaded
         while (memory.isOnTitleScreen()):
-            joypad.writeInputAndWait("A" if not img.journalFooter.isOnScreen() else "B")
+            joypad.writeInput("A" if not img.journalFooter.isOnScreen() else "B", wait = True)
             waitFrames(1)
 
         # Wait until Poketch is visible
@@ -98,7 +98,7 @@ def goToMenuSection(menuSection, menuPosition):
         menuNavigationSequence = "d" * cursorDifferential
 
     # Go up or down depending on current menu position, then press A to open Pokemon menu
-    joypad.writeInputAndWait(menuNavigationSequence + "A")
+    joypad.writeInput(menuNavigationSequence + "A", wait = True)
 
 
 # Input sequence to save the game
@@ -400,7 +400,7 @@ def useRod(rodType):
     if (registeredKeyItem != rodType):
         useItem(itemId = rodType, register = True, use = True)
     else:
-        joypad.writeInputAndWait("Y")
+        joypad.writeInput("Y", wait = True)
 
     # Keep fishing until a Pokémon is found
     while (not fishFound):
@@ -417,7 +417,7 @@ def useRod(rodType):
         waitFrames(1)
 
     # Press A to reel fish, then confirm dialog to start battle
-    joypad.writeInputAndWait("A@@@@@@A")
+    joypad.writeInput("A@@@@@@A", wait = True)
 
 
 ###################################################################################################
@@ -482,7 +482,7 @@ def setupAllHoneyTrees():
             joypad.writeInputAndWait("u")
 
         # Interact with Honey Tree
-        joypad.writeInputAndWait("A")
+        joypad.writeInput("A", wait = True)
 
         # Loop until Honey has been applied
         while (not honeyApplied or memory.readJoypadData()):
@@ -546,4 +546,4 @@ def setupFeebasFishingPosition():
 
     # Make sure we're facing the fishing spot
     if (player.getPlayerData().orientation != orientation[2]):
-        joypad.writeInputAndWait(orientation[2])
+        joypad.writeInput(orientation[2], wait = True)

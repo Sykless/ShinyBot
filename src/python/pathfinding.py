@@ -79,7 +79,7 @@ def checkPathIsFollowed(path):
         # Repel no longer active, stop moving and use another one
         elif (isRepelActive and gameData.repelSteps == 0):
             memory.clearJoypadInputs() # Clear input
-            joypad.writeInputAndWait("@@@@A") # Wait for the dialogue to be displayed and skip it
+            joypad.writeInput("@@@@A", wait = True) # Wait for the dialogue to be displayed and skip it
             action.useItem(repel = True) # Use Repel and go back to overworld
 
         # Reached the end or went to another zone, clear all inputs and go back to main loop
@@ -369,7 +369,7 @@ def processWorldPath(worldPath, endPosition, calculateScore = False):
 
         # Close menu if open
         if (img.menuCursor.getCursorPosition()):
-            joypad.writeInputAndWait("B")
+            joypad.writeInput("B", wait = True)
 
         # Go from starting node to ending node
         processPath(currentPath)
