@@ -141,6 +141,11 @@ def checkPathIsFollowed(path):
             memory.clearJoypadInputs() # Clear input
             action.useHM(pokemon.DEFOG_ID) # Use Repel and go back to overworld
 
+        # Entered a dark area : use Flash
+        elif (gameData.isDark):
+            memory.clearJoypadInputs() # Clear input
+            action.useHM(pokemon.FLASH_ID) # Use Repel and go back to overworld
+
 
 
 ##############################################################################################

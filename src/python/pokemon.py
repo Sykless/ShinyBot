@@ -7,6 +7,7 @@ import memory
 
 FLY_ID = 19
 DIG_ID = 91
+FLASH_ID = 148
 DEFOG_ID = 432
 
 class Move:
@@ -217,6 +218,7 @@ def isHMAvailable(hmId):
 HM_LIST = [
     FLY_ID, # Vol
     DIG_ID, # Tunnel
+    FLASH_ID, # Flash
     DEFOG_ID, # Anti-Brume
     15,  # Coupe
     29,  # Coup d'Boule
@@ -225,7 +227,6 @@ HM_LIST = [
     100, # Téléport
     127, # Cascade
     135, # E-Coque
-    148, # Flash
     208, # Lait à Boire
     230, # Doux Parfum
     249, # Éclate-Roc

@@ -6,6 +6,8 @@ from encounter import SPECIALGRASSENCOUNTERS
 from data import POKEMON_NAMES, GBAGAME_NAMES
 from zone import MONTCOURONNE_SALLE8, HONEYTREES_POSITIONS, Position, HoneyTree
 
+FOG_WEATHER = 14
+DARK_WEATHER = 16
 CLOSEBAGMENU = 24
 FEEBAS_ROCK_POSITIONS = [51, 56, 184, 203, 203, 203, 203, 203, 203, 203, 214, 214, 214,
                          214, 214, 214, 214, 225, 225, 225, 225, 225, 225, 225, 230, 230,
@@ -16,12 +18,13 @@ FEEBAS_ROCK_POSITIONS = [51, 56, 184, 203, 203, 203, 203, 203, 203, 203, 214, 21
                          449, 455, 455, 471, 471, 477]
 
 class Game:
-    def __init__(self, hourOfDay, repelSteps, selectedBagSection, selectedBagItemId, registeredKeyItem, isFoggy, feebasSeed, honeyTreesCountdown, swarmPokemon, marshPokemonList, gardenPokemonToday, gardenPokemonYesterday, gbaGame, encounterTables):
+    def __init__(self, hourOfDay, repelSteps, selectedBagSection, selectedBagItemId, registeredKeyItem, fogType, feebasSeed, honeyTreesCountdown, swarmPokemon, marshPokemonList, gardenPokemonToday, gardenPokemonYesterday, gbaGame, encounterTables):
         self.hourOfDay = hourOfDay
         self.repelSteps = repelSteps
         self.selectedBagSection = None
         self.registeredKeyItem = registeredKeyItem
-        self.isFoggy = isFoggy
+        self.isFoggy = fogType == FOG_WEATHER
+        self.isDark = fogType == DARK_WEATHER
         self.feebasSeed = feebasSeed
         self.honeyTreeList = []
         self.swarmPokemon = swarmPokemon

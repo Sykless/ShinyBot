@@ -204,7 +204,7 @@ function retrieveGameData()
         selectedBagItemId = memory.readbyte(baseAddress + MEMORYADDRESSES[GAMECODE]["SELECTEDBAGITEM_OFFSET"]),
         registeredKeyItem = memory.read_u32_le(baseAddress + MEMORYADDRESSES[GAMECODE]["REGISTEREDKEYITEM_OFFSET"]),
 
-        isFoggy = memory.readbyte(baseAddress + MEMORYADDRESSES[GAMECODE]["FOGTYPE_OFFSET"]) == 14,
+        fogType = memory.readbyte(baseAddress + MEMORYADDRESSES[GAMECODE]["FOGTYPE_OFFSET"]),
         feebasSeed = memory.read_u32_le(baseAddress + MEMORYADDRESSES[GAMECODE]["FEEBASSEED_OFFSET"]),
         honeyTreesCountdown = honeyTreesCountdown,
         swarmPokemon = memory.read_u32_le(baseAddress + SWARMPOKEMON_OFFSET) % 22,
