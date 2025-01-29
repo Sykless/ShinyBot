@@ -1,5 +1,8 @@
-from data import POKEMON_NAMES
+
 import copy
+
+import memory
+from data import POKEMON_NAMES, GBAGAME_NAMES
 
 SAPPHIRE = 1
 RUBY = 2
@@ -17,6 +20,30 @@ SPECIALGRASSENCOUNTERS = {
     "swarm": [84, 263, 104, 246, 231, 206, 209, 325, 96, 225, 100, 83, 300, 177, 296, 98, 327, 374, 127, 222, 309, 287],
     "marsh": [454, 352, 352, 455, 451, 453, 195, 452, 451, 453, 195, 115, 46, 452, 102, 102, 451, 453, 451, 455, 193, 285, 46, 115, 316, 357, 316, 285, 451, 455, 453, 114],
 }
+
+# Update special Pokémon in memory by Pokémon/Game name or PokédexId
+def updateSpecialPokemon(marshPokemonId = None, swarmPokemonId = None, gardenPokemonIdToday = None, gardenPokemonIdYesterday = None, gbaGameId = None):
+    if (marshPokemonId is not None):
+        marshPokemonId = marshPokemonId if isinstance(marshPokemonId, int) else POKEMON_NAMES.index(marshPokemonId)
+        marshPokemonId = SPECIALGRASSENCOUNTERS["marsh"].index(marshPokemonId)
+
+    if (swarmPokemonId is not None):
+        swarmPokemonId = swarmPokemonId if isinstance(swarmPokemonId, int) else POKEMON_NAMES.index(swarmPokemonId)
+        swarmPokemonId = SPECIALGRASSENCOUNTERS["swarm"].index(swarmPokemonId)
+
+    if (gardenPokemonIdToday is not None):
+        gardenPokemonIdToday = gardenPokemonIdToday if isinstance(gardenPokemonIdToday, int) else POKEMON_NAMES.index(gardenPokemonIdToday)
+        gardenPokemonIdToday = SPECIALGRASSENCOUNTERS["garden"].index(gardenPokemonIdToday)
+
+    if (gardenPokemonIdYesterday is not None):
+        gardenPokemonIdYesterday = gardenPokemonIdYesterday if isinstance(gardenPokemonIdYesterday, int) else POKEMON_NAMES.index(gardenPokemonIdYesterday)
+        gardenPokemonIdYesterday = SPECIALGRASSENCOUNTERS["garden"].index(gardenPokemonIdYesterday)
+
+    if (gbaGameId is not None):
+        gbaGameId = gbaGameId if isinstance(gbaGameId, int) else GBAGAME_NAMES.index(gbaGameId)
+
+    memory.updateSpecialPokemon(marshPokemonId, swarmPokemonId, gardenPokemonIdToday, gardenPokemonIdYesterday, gbaGameId)
+
 
 # There are respectively 12, 5 and 5 different possible encounters while walking or surfing/fishing, each has a fixed encounter rate
 BASEENCOUNTER_RATES = [20,20,10,10,10,10,5,5,4,4,1,1]
@@ -153,7 +180,6 @@ class EncounterTables():
             if (objectName):
                 file.write("\n")
  
-
     def generateCurrentTables(self, gameData, zoneId, pokeradar = False):
 
         encounterTables = {

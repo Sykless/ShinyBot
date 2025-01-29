@@ -359,7 +359,7 @@ def calculatePokedexRarityScores():
 
         # Calculate rarity score from encounter total rate
         if (pokedexEntry.totalRate > 0):
-            pokedexEntry.rarity = round(100 / pokedexEntry.totalRate, 2)
+            pokedexEntry.rarity = 100 / pokedexEntry.totalRate
 
 
 ####################################################################################################
@@ -370,13 +370,13 @@ def calculateZoneScore(zoneEncounters, targetPokemon):
         return 0
 
     # Calculate non-caught encounters rarity score
-    rarityScore = round(sum(zoneEncounters[pokedexId]["rate"] * POKEDEX[pokedexId].rarity 
-                            for pokedexId in zoneEncounters if pokedexId != targetPokemon and not POKEDEX[pokedexId].caught), 2)
+    rarityScore = sum(
+        zoneEncounters[pokedexId]["rate"] * POKEDEX[pokedexId].rarity 
+        for pokedexId in zoneEncounters if not POKEDEX[pokedexId].caught
+    )
 
     # Sum with target Pokemon encounter rate to have the global zone score
-    zoneScore = zoneEncounters[targetPokemon]["rate"] + rarityScore
-
-    return zoneScore
+    return round(zoneEncounters[targetPokemon]["rate"] + rarityScore, 2)
 
 
 #####################################################################
@@ -532,7 +532,18 @@ def findMostOptimalZone():
 def printPokedex():
     with open("backup/txt/pokedex.txt", "w", encoding="utf-8") as file:
         for pokedexId, pokemon in POKEDEX.items():
-            file.write(f"{pokedexId} - {pokemon.name} - {pokemon.bestRoute.name if pokemon.bestRoute else None} ({pokemon.bestVersionMethods}) : {pokemon.maxScore}\n")
+            file.write(f"{pokedexId} - {pokemon.name}")
+
+            # Replace GBA gameId by actual GBA game name
+            if ("gba (" in pokemon.bestVersionMethods):
+                gbaGameId = int(re.findall(r"gba \((\d)", pokemon.bestVersionMethods)[0])
+                pokemon.bestVersionMethods = pokemon.bestVersionMethods.replace(f"gba ({gbaGameId}", f"gba ({GBAGAME_NAMES[gbaGameId]}")
+
+            if (pokemon.rarity):
+                file.write(f" - Rarity Score : {round(pokemon.rarity,3)}")
+            if (pokemon.bestRoute):
+                file.write(f" - Best Route : {pokemon.bestRoute.name} ({pokemon.bestVersionMethods}) : {pokemon.maxScore}")
+            file.write("\n")
 
             if (pokemon.encounterTables):
                 for environment, encounterTable in pokemon.encounterTables.items():
@@ -548,10 +559,21 @@ def printPokedex():
                         file.write("\t" + environment.capitalize() + "\n")
 
                         for encounter, encounterData in encounterTable.items():
+                            file.write("\t\t")
+
                             if (encounterData["rate"]):
-                                file.write(f"\t\t{encounter} : {encounterData["rate"]}% (lvl {encounterData["minLevel"]}{"" if encounterData["minLevel"] == encounterData["maxLevel"] else "-" + str(encounterData["maxLevel"])}){" - " + encounterData["dangerousMoves"] if encounterData["dangerousMoves"] else ""}\n")
-                            else:
-                                file.write(f"\t\tlvl {encounterData["minLevel"]}{"" if encounterData["minLevel"] == encounterData["maxLevel"] else "-" + str(encounterData["maxLevel"])}{" - " + encounterData["dangerousMoves"] if encounterData["dangerousMoves"] else ""}\n")
+                                file.write(f"{encounter} : {encounterData["rate"]}% - ")
+
+                            file.write(f"lvl {encounterData["minLevel"]}")
+
+                            if (encounterData["minLevel"] != encounterData["maxLevel"]):
+                                file.write(f"-{encounterData["maxLevel"]}")
+
+                            if (encounterData["dangerousMoves"]):
+                                file.write(f" / {encounterData["dangerousMoves"]}")
+
+                            file.write("\n")
+
             else:
                 file.write("\tCannot be found\n")
 

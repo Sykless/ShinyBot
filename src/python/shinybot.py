@@ -2,7 +2,7 @@
 from utils import waitFrames
 from pokemon import Pokemon
 from bag import SUPERROD_ID
-from emu import BIZHAWK, MELONDS, PLATINE
+from emu import BIZHAWK, MELONDS, PLATINE, DIAMANT, PERLE
 
 from threading import Thread
 import time
@@ -44,11 +44,6 @@ def startShinybot(dashboardData = None):
         pathfinding.DOOR_GRAPH = memory.loadGraph('data/pkl/graph.pkl')
         print("Graph loaded in " + str(round(time.time() - startTime,2)) + " seconds")
 
-    jsonPokemonData = memory.readWildPokemonData()
-    jsonTeamData = memory.readPokemonTeamData()
-    playerData = player.getPlayerData()
-    gameData = game.getGameData()
-
     # Free mode : don't let the script interact with the game
     if (FREE_MODE):
         print("Free mode")
@@ -57,6 +52,9 @@ def startShinybot(dashboardData = None):
     while True:
         # Don't check memory more than once a frame to avoid overloading the CPU
         waitFrames(1)
+
+        playerData = player.getPlayerData()
+        gameData = game.getGameData()
 
         # Debug screenshot mode : only save the screenshot
         if (FREE_MODE):
@@ -68,7 +66,7 @@ def startShinybot(dashboardData = None):
             playerData = player.getPlayerData()
 
             # Check if a new wild Pokémon has been found
-            wildPokemon = action.getWildPokemon()
+            wildPokemon = pokemon.getWildPokemon()
                 
             # Start battle if a wild Pokémon is found
             if (wildPokemon):
