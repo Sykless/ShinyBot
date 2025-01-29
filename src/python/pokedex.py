@@ -2,7 +2,7 @@
 import re
 
 from data import EVOLUTIONS, POKEMON_NAMES, GBAGAME_NAMES, DANGEROUS_MOVES, MOVE_NAMES
-from encounter import ENCOUNTERTABLES_DICT, SPECIALENCOUNTERS, SPECIALGRASSENCOUNTERS
+from encounter import ENCOUNTERTABLES_DICT, SPECIALENCOUNTERS, SPECIALGRASSENCOUNTERS, DIAMOND_ENCOUNTERS, PEARL_ENCOUNTERS
 from encounter import SAPPHIRE, RUBY, EMERALD, FIRERED, LEAFGREEN
 
 class PokedexEntry():
@@ -92,7 +92,7 @@ class ZoneVersion():
         currentVersion = self.reconstructBestEncounterTable(method, specialEncounters)
 
         # Calculate updated zone rarity score
-        specialEncounterScore = calculateZoneScore(currentVersion, targetPokemon)
+        specialEncounterScore = calculateZoneScore(currentVersion, targetPokemon, self.zone.name)
 
         # Check if enabling special encounter is more optimal
         if (specialEncounterScore > self.maxRouteScore):
@@ -365,10 +365,15 @@ def calculatePokedexRarityScores():
 ####################################################################################################
 # Calculate zone score from current zone encounters rarity score and target pokemon encounter rate #
 ####################################################################################################
-def calculateZoneScore(zoneEncounters, targetPokemon):
+def calculateZoneScore(zoneEncounters, targetPokemon, zoneName):
     if (targetPokemon not in zoneEncounters):
         return 0
-
+    
+    # Only catch Diamond/Pearl exclusives in Diamond/Pearl
+    if ("Diamant" in zoneName and targetPokemon not in DIAMOND_ENCOUNTERS
+            or "Perle" in zoneName and targetPokemon not in PEARL_ENCOUNTERS):
+        return 0
+        
     # Calculate non-caught encounters rarity score
     rarityScore = sum(
         zoneEncounters[pokedexId]["rate"] * POKEDEX[pokedexId].rarity 
@@ -400,7 +405,7 @@ def addZoneEncounter(currentZoneEncounters, pokedexId, encounter):
 #######################################################################################
 # Check which period (morning/day/night) has the best zone score for provided Pokémon #
 #######################################################################################
-def getBestPeriodScore(zoneVersion, targetPokemon):
+def getBestPeriodScore(zoneVersion, targetPokemon, zoneName):
 
     # Generate encounter table for morning/day/night
     zoneEncounters = {
@@ -411,9 +416,9 @@ def getBestPeriodScore(zoneVersion, targetPokemon):
 
     # Calculate zone score for each period of the day
     zoneScores = {
-        "morning": calculateZoneScore(zoneEncounters["morning"], targetPokemon),
-        "day": calculateZoneScore(zoneEncounters["day"], targetPokemon),
-        "night" : calculateZoneScore(zoneEncounters["night"], targetPokemon)
+        "morning": calculateZoneScore(zoneEncounters["morning"], targetPokemon, zoneName),
+        "day": calculateZoneScore(zoneEncounters["day"], targetPokemon, zoneName),
+        "night" : calculateZoneScore(zoneEncounters["night"], targetPokemon, zoneName)
     }
 
     # Find most optimal period to find the rarer Pokemon
@@ -447,7 +452,7 @@ def findMostOptimalZone():
             if (zone.baseEncounters):
 
                 # Find most optimal period (morning/day/night) to find the rarer Pokemon
-                maxPeriodScore, bestPeriods = getBestPeriodScore(zoneVersion, pokedexEntry.pokedexId)
+                maxPeriodScore, bestPeriods = getBestPeriodScore(zoneVersion, pokedexEntry.pokedexId, zone.name)
                 zoneVersion.maxRouteScore = maxPeriodScore
                 zoneVersion.selectedMethod["period"] = "/".join(bestPeriods)
 
@@ -472,7 +477,7 @@ def findMostOptimalZone():
 
                 # If the Pokémon doesn't normally appear, check which period is best after special encounters have been added
                 if (maxPeriodScore == 0 and zoneVersion.maxRouteScore > 0):
-                    maxPeriodScore, bestPeriods = getBestPeriodScore(zoneVersion, pokedexEntry.pokedexId)
+                    maxPeriodScore, bestPeriods = getBestPeriodScore(zoneVersion, pokedexEntry.pokedexId, zone.name)
 
                     # Check if we found a better period than default (morning)
                     if (maxPeriodScore > zoneVersion.maxRouteScore):
@@ -503,10 +508,10 @@ def findMostOptimalZone():
 
                 # Calculate zone score for each way to fish Pokemon
                 zoneScores = {
-                    "surf": calculateZoneScore(zoneWaterEncounters["surf"], pokedexEntry.pokedexId),
-                    "oldrod": calculateZoneScore(zoneWaterEncounters["oldrod"], pokedexEntry.pokedexId),
-                    "goodrod" : calculateZoneScore(zoneWaterEncounters["goodrod"], pokedexEntry.pokedexId),
-                    "superrod" : calculateZoneScore(zoneWaterEncounters["superrod"], pokedexEntry.pokedexId)
+                    "surf": calculateZoneScore(zoneWaterEncounters["surf"], pokedexEntry.pokedexId, zone.name),
+                    "oldrod": calculateZoneScore(zoneWaterEncounters["oldrod"], pokedexEntry.pokedexId, zone.name),
+                    "goodrod" : calculateZoneScore(zoneWaterEncounters["goodrod"], pokedexEntry.pokedexId, zone.name),
+                    "superrod" : calculateZoneScore(zoneWaterEncounters["superrod"], pokedexEntry.pokedexId, zone.name)
                 }
 
                 # Find most optimal method to find the rarer Pokemon
@@ -573,7 +578,7 @@ def printPokedex():
                                 file.write(f" / {encounterData["dangerousMoves"]}")
 
                             file.write("\n")
-
+                                
             else:
                 file.write("\tCannot be found\n")
 

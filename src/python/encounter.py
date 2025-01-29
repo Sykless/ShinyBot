@@ -255,6 +255,11 @@ class EncounterTables():
                 "goodRodTable": dict(sorted(encounterTables["goodRodEncounter"]["table"].items(), key = lambda encounter: encounter[1].rate, reverse = True)),
                 "superRodTable": dict(sorted(encounterTables["superRodEncounter"]["table"].items(), key = lambda encounter: encounter[1].rate, reverse = True))}
 
+
+# Pokémon exclusives to Diamond and/or Pearl
+DIAMOND_ENCOUNTERS = [86, 171, 188, 198, 239, 240, 262, 319, 328, 329, 366, 434, 435]
+PEARL_ENCOUNTERS = [171, 188, 200, 229, 239, 240, 319, 328, 329, 363, 366, 431, 432]
+
 # Pokémon not encountered in grass or water
 SPECIALENCOUNTERS = {
     "static": [
@@ -274,36 +279,6 @@ SPECIALENCOUNTERS = {
         Encounter(491,0,50), # Darkrai
         Encounter(492,0,30), # Shaymin
         Encounter(493,0,30)  # Arceus
-    ],
-    "pearl": [
-        Encounter(171,0,30), # Lanturn
-        Encounter(188,0,30), # Floravol
-        Encounter(200,0,30), # Feuforêve
-        Encounter(229,0,30), # Démolosse
-        Encounter(239,0,30), # Élekid
-        Encounter(240,0,30), # Magby
-        Encounter(319,0,30), # Sharpedo
-        Encounter(328,0,30), # Kraknoix
-        Encounter(329,0,30), # Vibraninf
-        Encounter(363,0,30), # Obalie
-        Encounter(366,0,30), # Coquiperl
-        Encounter(431,0,30), # Chaglam
-        Encounter(432,0,30)  # Chaffreux
-    ],
-    "diamond": [
-        Encounter(86,0,30),  # Otaria
-        Encounter(171,0,30), # Lanturn
-        Encounter(188,0,30), # Floravol
-        Encounter(198,0,30), # Cornèbre
-        Encounter(239,0,30), # Élekid
-        Encounter(240,0,30), # Magby
-        Encounter(262,0,30), # Grahyèna
-        Encounter(319,0,30), # Sharpedo
-        Encounter(328,0,30), # Kraknoix
-        Encounter(329,0,30), # Vibraninf
-        Encounter(366,0,30), # Coquiperl
-        Encounter(434,0,30), # Moufouette
-        Encounter(435,0,30)  # Moufflair
     ],
     "fossil": [
         Encounter(138,0,20), # Amonita
@@ -1344,6 +1319,491 @@ LACSAVOIR.setOldRodEncounters(Encounter(129,40,4,6), Encounter(129,40,3,7), Enco
 LACSAVOIR.setGoodRodEncounters(Encounter(129,40,15,20), Encounter(118,40,15,20), Encounter(129,15,10,25), Encounter(119,4,25,35), Encounter(119,1,25,35))
 LACSAVOIR.setSuperRodEncounters(Encounter(130,40,30,40), Encounter(119,40,30,40), Encounter(130,15,40,55), Encounter(119,4,40,55), Encounter(119,1,40,55))
 
+
+# DIAMOND
+ROUTE205_SUD_D = EncounterTables("Route 205 - Sud (Diamant)")
+ROUTE205_SUD_D.setBaseEncounters(Encounter(418,20,8), Encounter(422,20,8), Encounter(418,10,9), Encounter(422,10,9), Encounter(399,10,9), Encounter(422,10,9), Encounter(417,5,9), Encounter(417,5,9), Encounter(418,4,10), Encounter(422,4,10), Encounter(418,1,10), Encounter(422,1,10))
+ROUTE205_SUD_D.setDayEncounters(418,422)
+ROUTE205_SUD_D.setNightEncounters(418,422)
+ROUTE205_SUD_D.setSwarmEncounters(418,422)
+ROUTE205_SUD_D.setPokeradarEncounters(187,187,187,187)
+ROUTE205_SUD_D.setGbaEncounters([None], [418,422], [418,422], [418,422], [239,239], [418,422])
+ROUTE205_SUD_D.setSurfEncounters(Encounter(72,60,20,30), Encounter(278,30,20,30), Encounter(73,5,20,40), Encounter(279,4,20,40), Encounter(279,1,20,40))
+ROUTE205_SUD_D.setOldRodEncounters(Encounter(129,40,4,6), Encounter(129,40,3,7), Encounter(129,15,5,10), Encounter(129,4,5,10), Encounter(129,1,5,10))
+ROUTE205_SUD_D.setGoodRodEncounters(Encounter(129,40,15,20), Encounter(456,40,15,20), Encounter(129,15,10,25), Encounter(456,4,10,25), Encounter(456,1,10,25))
+ROUTE205_SUD_D.setSuperRodEncounters(Encounter(130,40,30,40), Encounter(457,40,30,40), Encounter(90,15,20,40), Encounter(457,4,20,50), Encounter(457,1,20,50))
+
+ROUTE205_NORD_D = EncounterTables("Route 205 - Nord (Diamant)")
+ROUTE205_NORD_D.setBaseEncounters(Encounter(418,20,10), Encounter(399,20,10), Encounter(418,10,11), Encounter(399,10,11), Encounter(422,10,11), Encounter(399,10,11), Encounter(417,5,11), Encounter(417,5,11), Encounter(418,4,12), Encounter(399,4,12), Encounter(418,1,12), Encounter(399,1,12))
+ROUTE205_NORD_D.setDayEncounters(418,399)
+ROUTE205_NORD_D.setNightEncounters(418,399)
+ROUTE205_NORD_D.setSwarmEncounters(418,399)
+ROUTE205_NORD_D.setPokeradarEncounters(187,187,188,188)
+ROUTE205_NORD_D.setGbaEncounters([None], [270,270], [418,399], [418,399], [418,399], [418,399])
+ROUTE205_NORD_D.setSurfEncounters(Encounter(54,60,20,30), Encounter(54,30,20,40), Encounter(55,5,30,40), Encounter(55,4,30,40), Encounter(55,1,20,40))
+ROUTE205_NORD_D.setOldRodEncounters(Encounter(129,40,4,6), Encounter(129,40,3,7), Encounter(129,15,5,10), Encounter(129,4,5,10), Encounter(129,1,5,10))
+ROUTE205_NORD_D.setGoodRodEncounters(Encounter(129,40,15,20), Encounter(339,40,15,20), Encounter(129,15,10,25), Encounter(339,4,10,25), Encounter(339,1,10,25))
+ROUTE205_NORD_D.setSuperRodEncounters(Encounter(130,40,30,40), Encounter(340,40,30,40), Encounter(130,15,40,55), Encounter(340,4,20,50), Encounter(340,1,20,50))
+
+ROUTE206_D = EncounterTables("Route 206 (Diamant)")
+ROUTE206_D.setBaseEncounters(Encounter(77,20,14), Encounter(434,20,14), Encounter(77,10,15), Encounter(401,10,14), Encounter(74,10,14), Encounter(402,10,15), Encounter(436,5,15), Encounter(436,5,15), Encounter(77,4,15), Encounter(434,4,15), Encounter(77,1,16), Encounter(434,1,16))
+ROUTE206_D.setDayEncounters(77,77)
+ROUTE206_D.setNightEncounters(41,402)
+ROUTE206_D.setSwarmEncounters(299,299)
+ROUTE206_D.setPokeradarEncounters(343,343,343,343)
+ROUTE206_D.setGbaEncounters([None], [77,434], [77,434], [207,207], [77,434], [77,434])
+
+ROUTE213_D = EncounterTables("Route 213 (Diamant)")
+ROUTE213_D.setBaseEncounters(Encounter(418,20,20), Encounter(422,20,20), Encounter(418,10,21), Encounter(278,10,20), Encounter(422,10,21), Encounter(278,10,20), Encounter(419,5,22), Encounter(422,5,22), Encounter(419,4,22), Encounter(422,4,22), Encounter(419,1,22), Encounter(422,1,22))
+ROUTE213_D.setDayEncounters(418,278)
+ROUTE213_D.setNightEncounters(418,422)
+ROUTE213_D.setSwarmEncounters(359,359)
+ROUTE213_D.setPokeradarEncounters(277,277,277,277)
+ROUTE213_D.setGbaEncounters([None], [419,422], [419,422], [419,422], [419,422], [419,422])
+ROUTE213_D.setSurfEncounters(Encounter(72,60,20,30), Encounter(278,30,20,30), Encounter(73,5,20,40), Encounter(279,4,20,40), Encounter(279,1,20,40))
+ROUTE213_D.setOldRodEncounters(Encounter(129,40,4,6), Encounter(129,40,3,7), Encounter(129,15,5,10), Encounter(129,4,5,10), Encounter(129,1,5,10))
+ROUTE213_D.setGoodRodEncounters(Encounter(129,40,15,20), Encounter(223,40,15,20), Encounter(129,15,10,25), Encounter(223,4,10,25), Encounter(223,1,10,25))
+ROUTE213_D.setSuperRodEncounters(Encounter(130,40,30,40), Encounter(224,40,30,40), Encounter(319,15,40,55), Encounter(224,4,20,50), Encounter(224,1,20,50))
+
+ROUTE214_D = EncounterTables("Route 214 (Diamant)")
+ROUTE214_D.setBaseEncounters(Encounter(77,20,23), Encounter(74,20,22), Encounter(77,10,23), Encounter(75,10,23), Encounter(434,10,23), Encounter(203,10,24), Encounter(402,5,24), Encounter(77,5,24), Encounter(434,4,24), Encounter(75,4,24), Encounter(434,1,24), Encounter(75,1,24))
+ROUTE214_D.setDayEncounters(77,75)
+ROUTE214_D.setNightEncounters(402,402)
+ROUTE214_D.setSwarmEncounters(325,325)
+ROUTE214_D.setPokeradarEncounters(262,262,262,262)
+ROUTE214_D.setGbaEncounters([None], [434,75], [434,75], [207,207], [434,75], [37,37])
+ROUTE214_D.setSurfEncounters(Encounter(54,60,20,30), Encounter(54,30,20,40), Encounter(55,5,30,40), Encounter(55,4,30,40), Encounter(55,1,20,40))
+ROUTE214_D.setOldRodEncounters(Encounter(129,40,4,6), Encounter(129,40,3,7), Encounter(129,15,5,10), Encounter(129,4,5,10), Encounter(129,1,5,10))
+ROUTE214_D.setGoodRodEncounters(Encounter(129,40,15,20), Encounter(118,40,15,20), Encounter(129,15,10,25), Encounter(118,4,10,25), Encounter(118,1,10,25))
+ROUTE214_D.setSuperRodEncounters(Encounter(130,40,30,40), Encounter(119,40,30,40), Encounter(130,15,40,55), Encounter(119,4,20,50), Encounter(119,1,20,50))
+
+ROUTE215_D = EncounterTables("Route 215 (Diamant)")
+ROUTE215_D.setBaseEncounters(Encounter(77,20,21), Encounter(74,20,20), Encounter(77,10,22), Encounter(74,10,21), Encounter(63,10,20), Encounter(402,10,20), Encounter(64,5,20), Encounter(64,5,21), Encounter(74,4,22), Encounter(64,4,22), Encounter(74,1,22), Encounter(64,1,22))
+ROUTE215_D.setDayEncounters(77,77)
+ROUTE215_D.setNightEncounters(402,402)
+ROUTE215_D.setSwarmEncounters(96,96)
+ROUTE215_D.setPokeradarEncounters(262,262,262,262)
+ROUTE215_D.setGbaEncounters([None], [74,64], [74,64], [207,207], [74,64], [74,64])
+
+ROUTE219_D = EncounterTables("Route 219 (Diamant)")
+ROUTE219_D.setSurfEncounters(Encounter(72,60,20,30), Encounter(278,30,20,30), Encounter(73,5,20,40), Encounter(279,4,20,40), Encounter(279,1,20,40))
+ROUTE219_D.setOldRodEncounters(Encounter(129,40,4,6), Encounter(129,40,3,7), Encounter(129,15,5,10), Encounter(129,4,5,10), Encounter(129,1,5,10))
+ROUTE219_D.setGoodRodEncounters(Encounter(129,40,15,20), Encounter(456,40,15,20), Encounter(129,15,10,25), Encounter(456,4,10,25), Encounter(456,1,10,25))
+ROUTE219_D.setSuperRodEncounters(Encounter(130,40,30,40), Encounter(457,40,30,40), Encounter(366,15,20,30), Encounter(457,4,20,50), Encounter(457,1,20,50))
+
+ROUTE220_D = EncounterTables("Route 220 (Diamant)")
+ROUTE220_D.setSurfEncounters(Encounter(72,60,20,30), Encounter(278,30,20,30), Encounter(73,5,20,40), Encounter(279,4,20,40), Encounter(279,1,20,40))
+ROUTE220_D.setOldRodEncounters(Encounter(129,40,4,6), Encounter(129,40,3,7), Encounter(129,15,5,10), Encounter(129,4,5,10), Encounter(129,1,5,10))
+ROUTE220_D.setGoodRodEncounters(Encounter(129,40,15,20), Encounter(456,40,15,20), Encounter(129,15,10,25), Encounter(456,4,10,25), Encounter(456,1,10,25))
+ROUTE220_D.setSuperRodEncounters(Encounter(130,40,30,40), Encounter(170,40,15,25), Encounter(457,15,30,40), Encounter(171,4,20,45), Encounter(171,1,20,45))
+
+ROUTE221_D = EncounterTables("Route 221 (Diamant)")
+ROUTE221_D.setBaseEncounters(Encounter(419,20,28), Encounter(434,20,28), Encounter(315,10,29), Encounter(422,10,28), Encounter(435,10,29), Encounter(278,10,29), Encounter(419,5,30), Encounter(423,5,29), Encounter(435,4,30), Encounter(423,4,30), Encounter(435,1,30), Encounter(423,1,30))
+ROUTE221_D.setDayEncounters(315,422)
+ROUTE221_D.setNightEncounters(315,422)
+ROUTE221_D.setSwarmEncounters(83,83)
+ROUTE221_D.setPokeradarEncounters(30,30,33,33)
+ROUTE221_D.setGbaEncounters([None], [435,423], [435,423], [435,423], [435,423], [435,423])
+ROUTE221_D.setSurfEncounters(Encounter(72,60,20,30), Encounter(278,30,20,30), Encounter(73,5,20,40), Encounter(279,4,20,40), Encounter(279,1,20,40))
+ROUTE221_D.setOldRodEncounters(Encounter(129,40,4,6), Encounter(129,40,3,7), Encounter(129,15,5,10), Encounter(129,4,5,10), Encounter(129,1,5,10))
+ROUTE221_D.setGoodRodEncounters(Encounter(129,40,15,20), Encounter(456,40,15,20), Encounter(129,15,10,25), Encounter(456,4,10,25), Encounter(456,1,10,25))
+ROUTE221_D.setSuperRodEncounters(Encounter(130,40,30,40), Encounter(457,40,30,40), Encounter(366,15,20,30), Encounter(457,4,20,50), Encounter(457,1,20,50))
+
+ROUTE222_D = EncounterTables("Route 222 (Diamant)")
+ROUTE222_D.setBaseEncounters(Encounter(419,20,40), Encounter(423,20,40), Encounter(441,10,41), Encounter(441,10,40), Encounter(122,10,41), Encounter(278,10,41), Encounter(419,5,42), Encounter(423,5,41), Encounter(122,4,42), Encounter(423,4,42), Encounter(122,1,42), Encounter(423,1,42))
+ROUTE222_D.setDayEncounters(441,441)
+ROUTE222_D.setNightEncounters(419,423)
+ROUTE222_D.setSwarmEncounters(300,300)
+ROUTE222_D.setPokeradarEncounters(180,180,180,180)
+ROUTE222_D.setGbaEncounters([None], [122,423], [122,423], [122,423], [122,423], [122,423])
+ROUTE222_D.setSurfEncounters(Encounter(72,60,20,30), Encounter(278,30,20,30), Encounter(73,5,20,40), Encounter(279,4,20,40), Encounter(279,1,20,40))
+ROUTE222_D.setOldRodEncounters(Encounter(129,40,4,6), Encounter(129,40,3,7), Encounter(129,15,5,10), Encounter(129,4,5,10), Encounter(129,1,5,10))
+ROUTE222_D.setGoodRodEncounters(Encounter(129,40,15,20), Encounter(223,40,15,20), Encounter(129,15,10,25), Encounter(223,4,10,25), Encounter(223,1,10,25))
+ROUTE222_D.setSuperRodEncounters(Encounter(130,40,30,40), Encounter(224,40,30,40), Encounter(319,15,40,55), Encounter(224,4,20,50), Encounter(224,1,20,50))
+
+ROUTE225_D = EncounterTables("Route 225 (Diamant)")
+ROUTE225_D.setBaseEncounters(Encounter(22,20,51), Encounter(20,20,50), Encounter(22,10,50), Encounter(22,10,52), Encounter(20,10,52), Encounter(435,10,51), Encounter(67,5,51), Encounter(315,5,51), Encounter(21,4,20), Encounter(19,4,20), Encounter(21,1,22), Encounter(19,1,22))
+ROUTE225_D.setDayEncounters(22,22)
+ROUTE225_D.setNightEncounters(354,354)
+ROUTE225_D.setSwarmEncounters(296,296)
+ROUTE225_D.setPokeradarEncounters(57,57,56,56)
+ROUTE225_D.setGbaEncounters([None], [21,19], [21,19], [21,19], [21,19], [21,19])
+ROUTE225_D.setSurfEncounters(Encounter(55,60,40,50), Encounter(61,30,40,50), Encounter(55,5,45,55), Encounter(55,4,45,55), Encounter(55,1,45,55))
+ROUTE225_D.setOldRodEncounters(Encounter(129,40,4,6), Encounter(129,40,3,7), Encounter(129,15,5,10), Encounter(129,4,5,10), Encounter(129,1,5,10))
+ROUTE225_D.setGoodRodEncounters(Encounter(129,40,15,20), Encounter(60,40,15,20), Encounter(129,15,10,25), Encounter(60,4,10,25), Encounter(60,1,10,25))
+ROUTE225_D.setSuperRodEncounters(Encounter(130,40,30,40), Encounter(61,40,30,40), Encounter(130,15,40,55), Encounter(61,4,35,55), Encounter(61,1,35,55))
+
+ROUTE226_D = EncounterTables("Route 226 (Diamant)")
+ROUTE226_D.setBaseEncounters(Encounter(22,20,52), Encounter(20,20,52), Encounter(22,10,53), Encounter(22,10,51), Encounter(20,10,51), Encounter(67,10,53), Encounter(55,5,53), Encounter(55,5,51), Encounter(21,4,20), Encounter(19,4,20), Encounter(21,1,22), Encounter(19,1,22))
+ROUTE226_D.setDayEncounters(22,22)
+ROUTE226_D.setNightEncounters(354,354)
+ROUTE226_D.setSwarmEncounters(98,98)
+ROUTE226_D.setPokeradarEncounters(57,57,56,56)
+ROUTE226_D.setGbaEncounters([None], [21,19], [21,19], [21,19], [21,19], [21,19])
+ROUTE226_D.setSurfEncounters(Encounter(279,60,40,55), Encounter(86,30,35,45), Encounter(73,5,40,55), Encounter(87,4,40,55), Encounter(87,1,40,55))
+ROUTE226_D.setOldRodEncounters(Encounter(129,40,4,6), Encounter(129,40,3,7), Encounter(129,15,5,10), Encounter(129,4,5,10), Encounter(129,1,5,10))
+ROUTE226_D.setGoodRodEncounters(Encounter(129,40,15,20), Encounter(116,40,15,20), Encounter(129,15,10,25), Encounter(116,4,10,25), Encounter(116,1,10,25))
+ROUTE226_D.setSuperRodEncounters(Encounter(130,40,30,40), Encounter(117,40,30,40), Encounter(369,15,40,50), Encounter(117,4,35,55), Encounter(117,1,35,55))
+
+ROUTE227_D = EncounterTables("Route 227 (Diamant)")
+ROUTE227_D.setBaseEncounters(Encounter(323,20,55), Encounter(112,20,55), Encounter(22,10,54), Encounter(75,10,54), Encounter(22,10,55), Encounter(110,10,55), Encounter(227,5,56), Encounter(75,5,56), Encounter(322,4,22), Encounter(111,4,22), Encounter(322,1,24), Encounter(111,1,24))
+ROUTE227_D.setDayEncounters(22,75)
+ROUTE227_D.setNightEncounters(354,42)
+ROUTE227_D.setSwarmEncounters(327,327)
+ROUTE227_D.setPokeradarEncounters(324,324,324,324)
+ROUTE227_D.setGbaEncounters([None], [322,111], [322,111], [207,207], [322,111], [240,240])
+ROUTE227_D.setSurfEncounters(Encounter(61,60,40,50), Encounter(60,30,20,30), Encounter(61,5,45,55), Encounter(61,4,45,55), Encounter(61,1,45,55))
+ROUTE227_D.setOldRodEncounters(Encounter(129,40,4,6), Encounter(129,40,3,7), Encounter(129,15,5,10), Encounter(129,4,5,10), Encounter(129,1,5,10))
+ROUTE227_D.setGoodRodEncounters(Encounter(129,40,15,20), Encounter(339,40,15,20), Encounter(129,15,10,25), Encounter(339,4,10,25), Encounter(339,1,10,25))
+ROUTE227_D.setSuperRodEncounters(Encounter(130,40,30,40), Encounter(340,40,30,40), Encounter(130,15,40,55), Encounter(340,4,20,50), Encounter(340,1,20,50))
+
+ROUTE228_D = EncounterTables("Route 228 (Diamant)")
+ROUTE228_D.setBaseEncounters(Encounter(51,20,53), Encounter(332,20,53), Encounter(450,10,52), Encounter(112,10,52), Encounter(112,10,53), Encounter(450,10,54), Encounter(51,5,52), Encounter(51,5,54), Encounter(50,4,23), Encounter(331,4,23), Encounter(50,1,25), Encounter(331,1,25))
+ROUTE228_D.setDayEncounters(450,112)
+ROUTE228_D.setNightEncounters(332,332)
+ROUTE228_D.setSwarmEncounters(374,374)
+ROUTE228_D.setPokeradarEncounters(329,329,328,328)
+ROUTE228_D.setGbaEncounters([None], [50,331], [50,331], [50,331], [50,331], [28,28])
+ROUTE228_D.setSurfEncounters(Encounter(61,60,40,50), Encounter(60,30,20,30), Encounter(61,5,45,55), Encounter(61,4,45,55), Encounter(61,1,45,55))
+ROUTE228_D.setOldRodEncounters(Encounter(129,40,4,6), Encounter(129,40,3,7), Encounter(129,15,5,10), Encounter(129,4,5,10), Encounter(129,1,5,10))
+ROUTE228_D.setGoodRodEncounters(Encounter(129,40,15,20), Encounter(339,40,15,20), Encounter(129,15,10,25), Encounter(339,4,10,25), Encounter(339,1,10,25))
+ROUTE228_D.setSuperRodEncounters(Encounter(130,40,30,40), Encounter(340,40,30,40), Encounter(130,15,40,55), Encounter(340,4,20,50), Encounter(340,1,20,50))
+
+ROUTE230_D = EncounterTables("Route 230 (Diamant)")
+ROUTE230_D.setBaseEncounters(Encounter(70,20,50), Encounter(44,20,50), Encounter(55,10,52), Encounter(267,10,51), Encounter(69,10,18), Encounter(43,10,18), Encounter(419,5,51), Encounter(423,5,51), Encounter(419,4,52), Encounter(419,4,50), Encounter(69,1,23), Encounter(43,1,23))
+ROUTE230_D.setDayEncounters(55,267)
+ROUTE230_D.setNightEncounters(55,267)
+ROUTE230_D.setSwarmEncounters(222,222)
+ROUTE230_D.setPokeradarEncounters(175,175,175,175)
+ROUTE230_D.setGbaEncounters([None], [419,419], [419,419], [419,419], [419,419], [419,419])
+ROUTE230_D.setSurfEncounters(Encounter(279,60,40,55), Encounter(86,30,35,45), Encounter(73,5,40,55), Encounter(87,4,40,55), Encounter(87,1,40,55))
+ROUTE230_D.setOldRodEncounters(Encounter(129,40,4,6), Encounter(129,40,3,7), Encounter(129,15,5,10), Encounter(129,4,5,10), Encounter(129,1,5,10))
+ROUTE230_D.setGoodRodEncounters(Encounter(129,40,15,20), Encounter(223,40,15,20), Encounter(129,15,10,25), Encounter(223,4,10,25), Encounter(223,1,10,25))
+ROUTE230_D.setSuperRodEncounters(Encounter(130,40,30,40), Encounter(320,40,30,40), Encounter(224,15,40,55), Encounter(321,4,35,55), Encounter(321,1,35,55))
+
+LESEOLIENNES_D = EncounterTables("Les Éoliennes (Diamant)")
+LESEOLIENNES_D.setBaseEncounters(Encounter(418,20,7), Encounter(417,20,7), Encounter(418,10,8), Encounter(422,10,8), Encounter(399,10,8), Encounter(422,10,7), Encounter(422,5,9), Encounter(417,5,8), Encounter(418,4,9), Encounter(422,4,9), Encounter(418,1,9), Encounter(422,1,9))
+LESEOLIENNES_D.setDayEncounters(418,422)
+LESEOLIENNES_D.setNightEncounters(418,422)
+LESEOLIENNES_D.setSwarmEncounters(309,309)
+LESEOLIENNES_D.setPokeradarEncounters(179,179,179,179)
+LESEOLIENNES_D.setGbaEncounters([None], [418,422], [418,422], [418,422], [239,239], [418,422])
+LESEOLIENNES_D.setSurfEncounters(Encounter(72,60,20,30), Encounter(278,30,20,30), Encounter(73,5,20,40), Encounter(279,4,20,40), Encounter(279,1,20,40))
+LESEOLIENNES_D.setOldRodEncounters(Encounter(129,40,4,6), Encounter(129,40,3,7), Encounter(129,15,5,10), Encounter(129,4,5,10), Encounter(129,1,5,10))
+LESEOLIENNES_D.setGoodRodEncounters(Encounter(129,40,15,20), Encounter(456,40,15,20), Encounter(129,15,10,25), Encounter(456,4,10,25), Encounter(456,1,10,25))
+LESEOLIENNES_D.setSuperRodEncounters(Encounter(130,40,30,40), Encounter(457,40,30,40), Encounter(90,15,20,40), Encounter(457,4,30,50), Encounter(457,1,30,50))
+
+FORETVESTIGION_D = EncounterTables("Forêt Vestigion (Diamant)")
+FORETVESTIGION_D.setBaseEncounters(Encounter(265,20,10), Encounter(266,20,10), Encounter(265,10,11), Encounter(406,10,10), Encounter(427,10,10), Encounter(406,10,11), Encounter(427,5,11), Encounter(406,5,12), Encounter(406,4,12), Encounter(427,4,12), Encounter(267,1,12), Encounter(267,1,12))
+FORETVESTIGION_D.setDayEncounters(265,406)
+FORETVESTIGION_D.setNightEncounters(198,198)
+FORETVESTIGION_D.setSwarmEncounters(287,287)
+FORETVESTIGION_D.setPokeradarEncounters(290,290,290,290)
+FORETVESTIGION_D.setGbaEncounters([None], [406,427], [273,273], [204,204], [11,11], [14,14])
+
+TOURPERDUE_REZDECHAUSSEE_D = EncounterTables("Tour Perdue - Rez-de-Chaussée (Diamant)")
+TOURPERDUE_REZDECHAUSSEE_D.setBaseEncounters(Encounter(92,20,16), Encounter(41,20,16), Encounter(92,10,17), Encounter(41,10,17), Encounter(92,10,17), Encounter(41,10,17), Encounter(92,5,18), Encounter(41,5,18), Encounter(92,4,18), Encounter(41,4,18), Encounter(92,1,18), Encounter(41,1,18))
+TOURPERDUE_REZDECHAUSSEE_D.setDayEncounters(92,41)
+TOURPERDUE_REZDECHAUSSEE_D.setNightEncounters(198,198)
+TOURPERDUE_REZDECHAUSSEE_D.setSwarmEncounters(92,41)
+TOURPERDUE_REZDECHAUSSEE_D.setPokeradarEncounters(92,41,92,41)
+TOURPERDUE_REZDECHAUSSEE_D.setGbaEncounters([None], [92,41], [92,41], [92,41], [92,41], [92,41])
+
+TOURPERDUE_ETAGE1_D = EncounterTables("Tour Perdue - Étage 1 (Diamant)")
+TOURPERDUE_ETAGE1_D.setBaseEncounters(Encounter(92,20,17), Encounter(41,20,17), Encounter(92,10,18), Encounter(41,10,18), Encounter(92,10,18), Encounter(41,10,18), Encounter(92,5,19), Encounter(41,5,19), Encounter(92,4,19), Encounter(41,4,19), Encounter(92,1,19), Encounter(41,1,19))
+TOURPERDUE_ETAGE1_D.setDayEncounters(92,41)
+TOURPERDUE_ETAGE1_D.setNightEncounters(198,198)
+TOURPERDUE_ETAGE1_D.setSwarmEncounters(92,41)
+TOURPERDUE_ETAGE1_D.setPokeradarEncounters(92,41,92,41)
+TOURPERDUE_ETAGE1_D.setGbaEncounters([None], [92,41], [92,41], [92,41], [92,41], [92,41])
+
+TOURPERDUE_ETAGE2_D = EncounterTables("Tour Perdue - Étage 2 (Diamant)")
+TOURPERDUE_ETAGE2_D.setBaseEncounters(Encounter(92,20,18), Encounter(41,20,18), Encounter(92,10,19), Encounter(41,10,19), Encounter(92,10,19), Encounter(41,10,19), Encounter(92,5,20), Encounter(41,5,20), Encounter(92,4,20), Encounter(41,4,20), Encounter(92,1,20), Encounter(42,1,19))
+TOURPERDUE_ETAGE2_D.setDayEncounters(92,41)
+TOURPERDUE_ETAGE2_D.setNightEncounters(198,198)
+TOURPERDUE_ETAGE2_D.setSwarmEncounters(92,41)
+TOURPERDUE_ETAGE2_D.setPokeradarEncounters(92,41,92,42)
+TOURPERDUE_ETAGE2_D.setGbaEncounters([None], [92,41], [92,41], [92,41], [92,41], [92,41])
+
+TOURPERDUE_ETAGE3_D = EncounterTables("Tour Perdue - Étage 3 (Diamant)")
+TOURPERDUE_ETAGE3_D.setBaseEncounters(Encounter(92,20,19), Encounter(41,20,19), Encounter(92,10,20), Encounter(41,10,20), Encounter(92,10,20), Encounter(41,10,20), Encounter(92,5,21), Encounter(41,5,21), Encounter(92,4,21), Encounter(42,4,20), Encounter(92,1,21), Encounter(42,1,21))
+TOURPERDUE_ETAGE3_D.setDayEncounters(92,41)
+TOURPERDUE_ETAGE3_D.setNightEncounters(198,198)
+TOURPERDUE_ETAGE3_D.setSwarmEncounters(92,41)
+TOURPERDUE_ETAGE3_D.setPokeradarEncounters(92,41,92,42)
+TOURPERDUE_ETAGE3_D.setGbaEncounters([None], [92,42], [92,42], [92,42], [92,42], [92,42])
+
+TOURPERDUE_ETAGE4_D = EncounterTables("Tour Perdue - Étage 4 (Diamant)")
+TOURPERDUE_ETAGE4_D.setBaseEncounters(Encounter(92,20,20), Encounter(41,20,20), Encounter(92,10,21), Encounter(41,10,21), Encounter(92,10,21), Encounter(41,10,21), Encounter(92,5,22), Encounter(42,5,21), Encounter(92,4,22), Encounter(42,4,22), Encounter(92,1,22), Encounter(42,1,23))
+TOURPERDUE_ETAGE4_D.setDayEncounters(92,41)
+TOURPERDUE_ETAGE4_D.setNightEncounters(198,198)
+TOURPERDUE_ETAGE4_D.setSwarmEncounters(92,41)
+TOURPERDUE_ETAGE4_D.setPokeradarEncounters(92,41,92,42)
+TOURPERDUE_ETAGE4_D.setGbaEncounters([None], [92,42], [92,42], [92,42], [92,42], [92,42])
+
+MONTABRUPT_EXTERIEUR_D = EncounterTables("Mont Abrupt - Extérieur (Diamant)")
+MONTABRUPT_EXTERIEUR_D.setBaseEncounters(Encounter(323,20,55), Encounter(112,20,55), Encounter(22,10,54), Encounter(75,10,54), Encounter(22,10,55), Encounter(110,10,55), Encounter(227,5,56), Encounter(75,5,56), Encounter(322,4,22), Encounter(111,4,22), Encounter(322,1,24), Encounter(111,1,24))
+MONTABRUPT_EXTERIEUR_D.setDayEncounters(22,75)
+MONTABRUPT_EXTERIEUR_D.setNightEncounters(354,42)
+MONTABRUPT_EXTERIEUR_D.setSwarmEncounters(323,112)
+MONTABRUPT_EXTERIEUR_D.setPokeradarEncounters(324,324,324,324)
+MONTABRUPT_EXTERIEUR_D.setGbaEncounters([None], [322,111], [322,111], [207,207], [322,111], [240,240])
+
+MONTABRUPT_SALLE1_D = EncounterTables("Mont Abrupt - Salle 1 (Diamant)")
+MONTABRUPT_SALLE1_D.setBaseEncounters(Encounter(75,20,55), Encounter(219,20,55), Encounter(42,10,54), Encounter(67,10,56), Encounter(219,10,56), Encounter(110,10,56), Encounter(95,5,54), Encounter(323,5,56), Encounter(74,4,25), Encounter(218,4,25), Encounter(74,1,27), Encounter(218,1,27))
+MONTABRUPT_SALLE1_D.setDayEncounters(42,67)
+MONTABRUPT_SALLE1_D.setNightEncounters(42,67)
+MONTABRUPT_SALLE1_D.setSwarmEncounters(75,219)
+MONTABRUPT_SALLE1_D.setPokeradarEncounters(219,110,74,218)
+MONTABRUPT_SALLE1_D.setGbaEncounters([None], [74,218], [74,218], [74,218], [74,218], [240,240])
+
+MONTABRUPT_SALLE2_D = EncounterTables("Mont Abrupt - Salle 2 (Diamant)")
+MONTABRUPT_SALLE2_D.setBaseEncounters(Encounter(75,20,57), Encounter(219,20,57), Encounter(42,10,56), Encounter(67,10,58), Encounter(219,10,58), Encounter(110,10,58), Encounter(95,5,56), Encounter(323,5,58), Encounter(74,4,27), Encounter(218,4,27), Encounter(74,1,29), Encounter(218,1,29))
+MONTABRUPT_SALLE2_D.setDayEncounters(42,67)
+MONTABRUPT_SALLE2_D.setNightEncounters(42,67)
+MONTABRUPT_SALLE2_D.setSwarmEncounters(75,219)
+MONTABRUPT_SALLE2_D.setPokeradarEncounters(219,110,74,218)
+MONTABRUPT_SALLE2_D.setGbaEncounters([None], [74,218], [74,218], [74,218], [74,218], [240,240])
+
+
+# PEARL
+ROUTE205_SUD_P = EncounterTables("Route 205 - Sud (Perle)")
+ROUTE205_SUD_P.setBaseEncounters(Encounter(418,20,8), Encounter(422,20,8), Encounter(418,10,9), Encounter(422,10,9), Encounter(399,10,9), Encounter(422,10,9), Encounter(417,5,9), Encounter(417,5,9), Encounter(418,4,10), Encounter(422,4,10), Encounter(418,1,10), Encounter(422,1,10))
+ROUTE205_SUD_P.setDayEncounters(418,422)
+ROUTE205_SUD_P.setNightEncounters(418,422)
+ROUTE205_SUD_P.setSwarmEncounters(418,422)
+ROUTE205_SUD_P.setPokeradarEncounters(187,187,187,187)
+ROUTE205_SUD_P.setGbaEncounters([None], [418,422], [418,422], [418,422], [239,239], [418,422])
+ROUTE205_SUD_P.setSurfEncounters(Encounter(72,60,20,30), Encounter(278,30,20,30), Encounter(73,5,20,40), Encounter(279,4,20,40), Encounter(279,1,20,40))
+ROUTE205_SUD_P.setOldRodEncounters(Encounter(129,40,4,6), Encounter(129,40,3,7), Encounter(129,15,5,10), Encounter(129,4,5,10), Encounter(129,1,5,10))
+ROUTE205_SUD_P.setGoodRodEncounters(Encounter(129,40,15,20), Encounter(456,40,15,20), Encounter(129,15,10,25), Encounter(456,4,10,25), Encounter(456,1,10,25))
+ROUTE205_SUD_P.setSuperRodEncounters(Encounter(130,40,30,40), Encounter(457,40,30,40), Encounter(90,15,20,40), Encounter(457,4,20,50), Encounter(457,1,20,50))
+
+ROUTE213_P = EncounterTables("Route 213 (Perle)")
+ROUTE213_P.setBaseEncounters(Encounter(418,20,20), Encounter(422,20,20), Encounter(418,10,21), Encounter(278,10,20), Encounter(422,10,21), Encounter(278,10,20), Encounter(419,5,22), Encounter(422,5,22), Encounter(419,4,22), Encounter(422,4,22), Encounter(419,1,22), Encounter(422,1,22))
+ROUTE213_P.setDayEncounters(418,278)
+ROUTE213_P.setNightEncounters(418,422)
+ROUTE213_P.setSwarmEncounters(359,359)
+ROUTE213_P.setPokeradarEncounters(277,277,277,277)
+ROUTE213_P.setGbaEncounters([None], [419,422], [419,422], [419,422], [419,422], [419,422])
+ROUTE213_P.setSurfEncounters(Encounter(72,60,20,30), Encounter(278,30,20,30), Encounter(73,5,20,40), Encounter(279,4,20,40), Encounter(279,1,20,40))
+ROUTE213_P.setOldRodEncounters(Encounter(129,40,4,6), Encounter(129,40,3,7), Encounter(129,15,5,10), Encounter(129,4,5,10), Encounter(129,1,5,10))
+ROUTE213_P.setGoodRodEncounters(Encounter(129,40,15,20), Encounter(223,40,15,20), Encounter(129,15,10,25), Encounter(223,4,10,25), Encounter(223,1,10,25))
+ROUTE213_P.setSuperRodEncounters(Encounter(130,40,30,40), Encounter(224,40,30,40), Encounter(319,15,40,55), Encounter(224,4,20,50), Encounter(224,1,20,50))
+
+ROUTE214_P = EncounterTables("Route 214 (Perle)")
+ROUTE214_P.setBaseEncounters(Encounter(77,20,23), Encounter(74,20,22), Encounter(77,10,23), Encounter(75,10,23), Encounter(185,10,23), Encounter(203,10,24), Encounter(402,5,24), Encounter(77,5,24), Encounter(185,4,24), Encounter(75,4,24), Encounter(185,1,24), Encounter(75,1,24))
+ROUTE214_P.setDayEncounters(77,75)
+ROUTE214_P.setNightEncounters(402,402)
+ROUTE214_P.setSwarmEncounters(325,325)
+ROUTE214_P.setPokeradarEncounters(229,229,229,229)
+ROUTE214_P.setGbaEncounters([None], [185,75], [185,75], [207,207], [185,75], [37,37])
+ROUTE214_P.setSurfEncounters(Encounter(54,60,20,30), Encounter(54,30,20,40), Encounter(55,5,30,40), Encounter(55,4,30,40), Encounter(55,1,20,40))
+ROUTE214_P.setOldRodEncounters(Encounter(129,40,4,6), Encounter(129,40,3,7), Encounter(129,15,5,10), Encounter(129,4,5,10), Encounter(129,1,5,10))
+ROUTE214_P.setGoodRodEncounters(Encounter(129,40,15,20), Encounter(118,40,15,20), Encounter(129,15,10,25), Encounter(118,4,10,25), Encounter(118,1,10,25))
+ROUTE214_P.setSuperRodEncounters(Encounter(130,40,30,40), Encounter(119,40,30,40), Encounter(130,15,40,55), Encounter(119,4,20,50), Encounter(119,1,20,50))
+
+ROUTE215_P = EncounterTables("Route 215 (Perle)")
+ROUTE215_P.setBaseEncounters(Encounter(77,20,21), Encounter(74,20,20), Encounter(77,10,22), Encounter(74,10,21), Encounter(63,10,20), Encounter(402,10,20), Encounter(64,5,20), Encounter(64,5,21), Encounter(74,4,22), Encounter(64,4,22), Encounter(74,1,22), Encounter(64,1,22))
+ROUTE215_P.setDayEncounters(77,77)
+ROUTE215_P.setNightEncounters(402,402)
+ROUTE215_P.setSwarmEncounters(96,96)
+ROUTE215_P.setPokeradarEncounters(229,229,229,229)
+ROUTE215_P.setGbaEncounters([None], [74,64], [74,64], [207,207], [74,64], [74,64])
+
+ROUTE218_P = EncounterTables("Route 218 (Perle)")
+ROUTE218_P.setBaseEncounters(Encounter(419,20,28), Encounter(422,20,28), Encounter(419,10,29), Encounter(423,10,28), Encounter(431,10,29), Encounter(278,10,29), Encounter(419,5,30), Encounter(423,5,29), Encounter(431,4,30), Encounter(423,4,30), Encounter(431,1,30), Encounter(423,1,30))
+ROUTE218_P.setDayEncounters(419,423)
+ROUTE218_P.setNightEncounters(419,423)
+ROUTE218_P.setSwarmEncounters(100,100)
+ROUTE218_P.setPokeradarEncounters(132, 132, 132, 132)
+ROUTE218_P.setGbaEncounters([None], [431,423], [431,423], [431,423], [431,423], [431,423])
+ROUTE218_P.setSurfEncounters(Encounter(72,60,20,30), Encounter(278,30,20,30), Encounter(73,5,20,40), Encounter(279,4,20,40), Encounter(279,1,20,40))
+ROUTE218_P.setOldRodEncounters(Encounter(129,40,4,6), Encounter(129,40,3,7), Encounter(129,15,5,10), Encounter(129,4,5,10), Encounter(129,1,5,10))
+ROUTE218_P.setGoodRodEncounters(Encounter(129,40,15,20), Encounter(456,40,15,20), Encounter(129,15,10,25), Encounter(456,4,10,25), Encounter(456,1,10,25))
+ROUTE218_P.setSuperRodEncounters(Encounter(130,40,30,40), Encounter(457,40,30,40), Encounter(130,15,40,55), Encounter(457,4,20,50), Encounter(457,1,20,50))
+
+ROUTE219_P = EncounterTables("Route 219 (Perle)")
+ROUTE219_P.setSurfEncounters(Encounter(72,60,20,30), Encounter(278,30,20,30), Encounter(73,5,20,40), Encounter(279,4,20,40), Encounter(279,1,20,40))
+ROUTE219_P.setOldRodEncounters(Encounter(129,40,4,6), Encounter(129,40,3,7), Encounter(129,15,5,10), Encounter(129,4,5,10), Encounter(129,1,5,10))
+ROUTE219_P.setGoodRodEncounters(Encounter(129,40,15,20), Encounter(456,40,15,20), Encounter(129,15,10,25), Encounter(456,4,10,25), Encounter(456,1,10,25))
+ROUTE219_P.setSuperRodEncounters(Encounter(130,40,30,40), Encounter(457,40,30,40), Encounter(366,15,20,30), Encounter(457,4,20,50), Encounter(457,1,20,50))
+
+ROUTE220_P = EncounterTables("Route 220 (Perle)")
+ROUTE220_P.setSurfEncounters(Encounter(72,60,20,30), Encounter(278,30,20,30), Encounter(73,5,20,40), Encounter(279,4,20,40), Encounter(279,1,20,40))
+ROUTE220_P.setOldRodEncounters(Encounter(129,40,4,6), Encounter(129,40,3,7), Encounter(129,15,5,10), Encounter(129,4,5,10), Encounter(129,1,5,10))
+ROUTE220_P.setGoodRodEncounters(Encounter(129,40,15,20), Encounter(456,40,15,20), Encounter(129,15,10,25), Encounter(456,4,10,25), Encounter(456,1,10,25))
+ROUTE220_P.setSuperRodEncounters(Encounter(130,40,30,40), Encounter(170,40,15,25), Encounter(457,15,30,40), Encounter(171,4,20,45), Encounter(171,1,20,45))
+
+ROUTE221_P = EncounterTables("Route 221 (Perle)")
+ROUTE221_P.setBaseEncounters(Encounter(419,20,28), Encounter(423,20,28), Encounter(315,10,29), Encounter(422,10,28), Encounter(185,10,29), Encounter(278,10,29), Encounter(419,5,30), Encounter(423,5,29), Encounter(185,4,30), Encounter(423,4,30), Encounter(185,1,30), Encounter(423,1,30))
+ROUTE221_P.setDayEncounters(315,422)
+ROUTE221_P.setNightEncounters(315,422)
+ROUTE221_P.setSwarmEncounters(83,83)
+ROUTE221_P.setPokeradarEncounters(33,33,30,30)
+ROUTE221_P.setGbaEncounters([None], [185,423], [185,423], [185,423], [185,423], [185,423])
+ROUTE221_P.setSurfEncounters(Encounter(72,60,20,30), Encounter(278,30,20,30), Encounter(73,5,20,40), Encounter(279,4,20,40), Encounter(279,1,20,40))
+ROUTE221_P.setOldRodEncounters(Encounter(129,40,4,6), Encounter(129,40,3,7), Encounter(129,15,5,10), Encounter(129,4,5,10), Encounter(129,1,5,10))
+ROUTE221_P.setGoodRodEncounters(Encounter(129,40,15,20), Encounter(456,40,15,20), Encounter(129,15,10,25), Encounter(456,4,10,25), Encounter(456,1,10,25))
+ROUTE221_P.setSuperRodEncounters(Encounter(130,40,30,40), Encounter(457,40,30,40), Encounter(366,15,20,30), Encounter(457,4,20,50), Encounter(457,1,20,50))
+
+ROUTE222_P = EncounterTables("Route 222 (Perle)")
+ROUTE222_P.setBaseEncounters(Encounter(419,20,40), Encounter(431,20,40), Encounter(441,10,41), Encounter(441,10,40), Encounter(432,10,41), Encounter(278,10,41), Encounter(419,5,42), Encounter(423,5,41), Encounter(432,4,42), Encounter(423,4,42), Encounter(432,1,42), Encounter(423,1,42))
+ROUTE222_P.setDayEncounters(441,441)
+ROUTE222_P.setNightEncounters(419,423)
+ROUTE222_P.setSwarmEncounters(300,300)
+ROUTE222_P.setPokeradarEncounters(180,180,180,180)
+ROUTE222_P.setGbaEncounters([None], [432,423], [432,423], [432,423], [432,423], [432,423])
+ROUTE222_P.setSurfEncounters(Encounter(72,60,20,30), Encounter(278,30,20,30), Encounter(73,5,20,40), Encounter(279,4,20,40), Encounter(279,1,20,40))
+ROUTE222_P.setOldRodEncounters(Encounter(129,40,4,6), Encounter(129,40,3,7), Encounter(129,15,5,10), Encounter(129,4,5,10), Encounter(129,1,5,10))
+ROUTE222_P.setGoodRodEncounters(Encounter(129,40,15,20), Encounter(223,40,15,20), Encounter(129,15,10,25), Encounter(223,4,10,25), Encounter(223,1,10,25))
+ROUTE222_P.setSuperRodEncounters(Encounter(130,40,30,40), Encounter(224,40,30,40), Encounter(319,15,40,55), Encounter(224,4,20,50), Encounter(224,1,20,50))
+
+ROUTE226_P = EncounterTables("Route 226 (Perle)")
+ROUTE226_D.setBaseEncounters(Encounter(22,20,52), Encounter(20,20,52), Encounter(22,10,53), Encounter(22,10,51), Encounter(20,10,51), Encounter(67,10,53), Encounter(55,5,53), Encounter(55,5,51), Encounter(21,4,20), Encounter(19,4,20), Encounter(21,1,22), Encounter(19,1,22))
+ROUTE226_P.setBaseEncounters(Encounter(22,20,52), Encounter(20,20,52), Encounter(22,10,53), Encounter(22,10,51), Encounter(20,10,51), Encounter(67,10,53), Encounter(55,5,53), Encounter(55,5,51), Encounter(21,4,20), Encounter(19,4,20), Encounter(21,1,22), Encounter(19,1,22))
+ROUTE226_P.setDayEncounters(22,22)
+ROUTE226_P.setNightEncounters(354,354)
+ROUTE226_P.setSwarmEncounters(98,98)
+ROUTE226_P.setPokeradarEncounters(57,57,56,56)
+ROUTE226_P.setGbaEncounters([None], [21,19], [21,19], [21,19], [21,19], [21,19])
+ROUTE226_P.setSurfEncounters(Encounter(279,60,40,55), Encounter(363,30,35,45), Encounter(73,5,40,55), Encounter(364,4,40,55), Encounter(364,1,40,55))
+ROUTE226_P.setOldRodEncounters(Encounter(129,40,4,6), Encounter(129,40,3,7), Encounter(129,15,5,10), Encounter(129,4,5,10), Encounter(129,1,5,10))
+ROUTE226_P.setGoodRodEncounters(Encounter(129,40,15,20), Encounter(116,40,15,20), Encounter(129,15,10,25), Encounter(116,4,10,25), Encounter(116,1,10,25))
+ROUTE226_P.setSuperRodEncounters(Encounter(130,40,30,40), Encounter(117,40,30,40), Encounter(369,15,40,50), Encounter(117,4,35,55), Encounter(117,1,35,55))
+
+ROUTE227_P = EncounterTables("Route 227 (Perle)")
+ROUTE227_P.setBaseEncounters(Encounter(323,20,55), Encounter(112,20,55), Encounter(22,10,54), Encounter(75,10,54), Encounter(22,10,55), Encounter(110,10,55),Encounter(227,5,56), Encounter(75,5,56), Encounter(322,4,22), Encounter(111,4,22), Encounter(322,1,24), Encounter(111,1,24))
+ROUTE227_P.setDayEncounters(22,75)
+ROUTE227_P.setNightEncounters(354,42)
+ROUTE227_P.setSwarmEncounters(327,327)
+ROUTE227_P.setPokeradarEncounters(324,324,324,324)
+ROUTE227_P.setGbaEncounters([None], [322,111], [322,111], [207,207], [322,111], [240,240])
+ROUTE227_P.setSurfEncounters(Encounter(61,60,40,50), Encounter(60,30,20,30), Encounter(61,5,45,55), Encounter(61,4,45,55), Encounter(61,1,45,55))
+ROUTE227_P.setOldRodEncounters(Encounter(129,40,4,6), Encounter(129,40,3,7), Encounter(129,15,5,10), Encounter(129,4,5,10), Encounter(129,1,5,10))
+ROUTE227_P.setGoodRodEncounters(Encounter(129,40,15,20), Encounter(339,40,15,20), Encounter(129,15,10,25), Encounter(339,4,10,25), Encounter(339,1,10,25))
+ROUTE227_P.setSuperRodEncounters(Encounter(130,40,30,40), Encounter(340,40,30,40), Encounter(130,15,40,55), Encounter(340,4,20,50), Encounter(340,1,20,50))
+
+ROUTE228_P = EncounterTables("Route 228 (Perle)")
+ROUTE228_P.setBaseEncounters(Encounter(51,20,53), Encounter(332,20,53), Encounter(450,10,52), Encounter(112,10,52), Encounter(112,10,53), Encounter(450,10,54), Encounter(51,5,52), Encounter(51,5,54), Encounter(50,4,23), Encounter(331,4,23), Encounter(50,1,25), Encounter(331,1,25))
+ROUTE228_P.setDayEncounters(450,112)
+ROUTE228_P.setNightEncounters(332,332)
+ROUTE228_P.setSwarmEncounters(374,374)
+ROUTE228_P.setPokeradarEncounters(329,329,328,328)
+ROUTE228_P.setGbaEncounters([None], [50,331], [50,331], [50,331], [50,331], [28,28])
+ROUTE228_P.setSurfEncounters(Encounter(61,60,40,50), Encounter(60,30,20,30), Encounter(61,5,45,55), Encounter(61,4,45,55), Encounter(61,1,45,55))
+ROUTE228_P.setOldRodEncounters(Encounter(129,40,4,6), Encounter(129,40,3,7), Encounter(129,15,5,10), Encounter(129,4,5,10), Encounter(129,1,5,10))
+ROUTE228_P.setGoodRodEncounters(Encounter(129,40,15,20), Encounter(339,40,15,20), Encounter(129,15,10,25), Encounter(339,4,10,25), Encounter(339,1,10,25))
+ROUTE228_P.setSuperRodEncounters(Encounter(130,40,30,40), Encounter(340,40,30,40), Encounter(130,15,40,55), Encounter(340,4,20,50), Encounter(340,1,20,50))
+
+ROUTE230_P = EncounterTables("Route 230 (Perle)")
+ROUTE230_P.setBaseEncounters(Encounter(70,20,50), Encounter(44,20,50), Encounter(55,10,52), Encounter(269,10,51), Encounter(69,10,18), Encounter(43,10,18), Encounter(419,5,51), Encounter(423,5,51), Encounter(419,4,52), Encounter(419,4,50), Encounter(69,1,23), Encounter(43,1,23))
+ROUTE230_P.setDayEncounters(55,269)
+ROUTE230_P.setNightEncounters(55,269)
+ROUTE230_P.setSwarmEncounters(222,222)
+ROUTE230_P.setPokeradarEncounters(175,175,175,175)
+ROUTE230_P.setGbaEncounters([None], [419,419], [419,419], [419,419], [419,419], [419,419])
+ROUTE230_P.setSurfEncounters(Encounter(279,60,40,55), Encounter(363,30,35,45), Encounter(73,5,40,55), Encounter(364,4,40,55), Encounter(364,1,40,55))
+ROUTE230_P.setOldRodEncounters(Encounter(129,40,4,6), Encounter(129,40,3,7), Encounter(129,15,5,10), Encounter(129,4,5,10), Encounter(129,1,5,10))
+ROUTE230_P.setGoodRodEncounters(Encounter(129,40,15,20), Encounter(223,40,15,20), Encounter(129,15,10,25), Encounter(223,4,10,25), Encounter(223,1,10,25))
+ROUTE230_P.setSuperRodEncounters(Encounter(130,40,30,40), Encounter(320,40,30,40), Encounter(224,15,40,55), Encounter(321,4,35,55), Encounter(321,1,35,55))
+
+LESEOLIENNES_P = EncounterTables("Les Éoliennes (Perle)")
+LESEOLIENNES_P.setBaseEncounters(Encounter(418,20,7), Encounter(417,20,7), Encounter(418,10,8), Encounter(422,10,8), Encounter(399,10,8), Encounter(422,10,7), Encounter(422,5,9), Encounter(417,5,8), Encounter(418,4,9), Encounter(422,4,9), Encounter(418,1,9), Encounter(422,1,9))
+LESEOLIENNES_P.setDayEncounters(418,422)
+LESEOLIENNES_P.setNightEncounters(418,422)
+LESEOLIENNES_P.setSwarmEncounters(309,309)
+LESEOLIENNES_P.setPokeradarEncounters(179,179,179,179)
+LESEOLIENNES_P.setGbaEncounters([None], [418,422], [418,422], [418,422], [239,239], [418,422])
+LESEOLIENNES_P.setSurfEncounters(Encounter(72,60,20,30), Encounter(278,30,20,30), Encounter(73,5,20,40), Encounter(279,4,20,40), Encounter(279,1,20,40))
+LESEOLIENNES_P.setOldRodEncounters(Encounter(129,40,4,6), Encounter(129,40,3,7), Encounter(129,15,5,10), Encounter(129,4,5,10), Encounter(129,1,5,10))
+LESEOLIENNES_P.setGoodRodEncounters(Encounter(129,40,15,20), Encounter(456,40,15,20), Encounter(129,15,10,25), Encounter(456,4,10,25), Encounter(456,1,10,25))
+LESEOLIENNES_P.setSuperRodEncounters(Encounter(130,40,30,40), Encounter(457,40,30,40), Encounter(90,15,20,40), Encounter(457,4,30,50), Encounter(457,1,30,50))
+
+FORETVESTIGION_P = EncounterTables("Forêt Vestigion (Perle)")
+FORETVESTIGION_P.setBaseEncounters(Encounter(265,20,10), Encounter(268,20,10), Encounter(265,10,11), Encounter(406,10,10), Encounter(427,10,10), Encounter(406,10,11), Encounter(427,5,11), Encounter(406,5,12), Encounter(406,4,12), Encounter(427,4,12), Encounter(269,1,12), Encounter(269,1,12))
+FORETVESTIGION_P.setDayEncounters(265,406)
+FORETVESTIGION_P.setNightEncounters(200,200)
+FORETVESTIGION_P.setSwarmEncounters(287,287)
+FORETVESTIGION_P.setPokeradarEncounters(290,290,290,290)
+FORETVESTIGION_P.setGbaEncounters([None], [406,427], [273,273], [204,204], [11,11], [14,14])
+
+FORGEFUEGO_P = EncounterTables("Forge Fuego - Extérieur (Perle)")
+FORGEFUEGO_P.setBaseEncounters(Encounter(419,20,29), Encounter(422,20,28), Encounter(403,10,28), Encounter(278,10,29), Encounter(404,10,29), Encounter(423,10,29), Encounter(417,5,29), Encounter(417,5,29), Encounter(419,4,30), Encounter(423,4,30), Encounter(419,1,30), Encounter(423,1,30))
+FORGEFUEGO_P.setDayEncounters(403,278)
+FORGEFUEGO_P.setNightEncounters(403,278)
+FORGEFUEGO_P.setSwarmEncounters(81,81)
+FORGEFUEGO_P.setPokeradarEncounters(187,187,188,188)
+FORGEFUEGO_P.setGbaEncounters([None], [419,423], [419,423], [419,423], [419,423], [419,423])
+FORGEFUEGO_P.setSurfEncounters(Encounter(72,60,20,30), Encounter(278,30,20,30), Encounter(73,5,20,40), Encounter(279,4,20,40), Encounter(279,1,20,40))
+FORGEFUEGO_P.setOldRodEncounters(Encounter(129,40,4,6), Encounter(129,40,3,7), Encounter(129,15,5,10), Encounter(129,4,5,10), Encounter(129,1,5,10))
+FORGEFUEGO_P.setGoodRodEncounters(Encounter(129,40,15,20), Encounter(456,40,15,20), Encounter(129,15,10,25), Encounter(456,4,10,25), Encounter(456,1,10,25))
+FORGEFUEGO_P.setSuperRodEncounters(Encounter(130,40,30,40), Encounter(457,40,30,40), Encounter(90,15,20,40), Encounter(457,4,20,50), Encounter(457,1,20,50))
+
+TOURPERDUE_REZDECHAUSSEE_P = EncounterTables("Tour Perdue - Rez-de-Chaussée (Perle)")
+TOURPERDUE_REZDECHAUSSEE_P.setBaseEncounters(Encounter(92,20,16), Encounter(41,20,16), Encounter(92,10,17), Encounter(41,10,17), Encounter(92,10,17), Encounter(41,10,17), Encounter(92,5,18), Encounter(41,5,18), Encounter(92,4,18), Encounter(41,4,18), Encounter(92,1,18), Encounter(41,1,18))
+TOURPERDUE_REZDECHAUSSEE_P.setDayEncounters(92,41)
+TOURPERDUE_REZDECHAUSSEE_P.setNightEncounters(200,200)
+TOURPERDUE_REZDECHAUSSEE_P.setSwarmEncounters(92,41)
+TOURPERDUE_REZDECHAUSSEE_P.setPokeradarEncounters(92,41,92,41)
+TOURPERDUE_REZDECHAUSSEE_P.setGbaEncounters([None], [92,41], [92,41], [92,41], [92,41], [92,41])
+
+TOURPERDUE_ETAGE1_P = EncounterTables("Tour Perdue - Étage 1 (Perle)")
+TOURPERDUE_ETAGE1_P.setBaseEncounters(Encounter(92,20,17), Encounter(41,20,17), Encounter(92,10,18), Encounter(41,10,18), Encounter(92,10,18), Encounter(41,10,18), Encounter(92,5,19), Encounter(41,5,19), Encounter(92,4,19), Encounter(41,4,19), Encounter(92,1,19), Encounter(41,1,19))
+TOURPERDUE_ETAGE1_P.setDayEncounters(92,41)
+TOURPERDUE_ETAGE1_P.setNightEncounters(200,200)
+TOURPERDUE_ETAGE1_P.setSwarmEncounters(92,41)
+TOURPERDUE_ETAGE1_P.setPokeradarEncounters(92,41,92,41)
+TOURPERDUE_ETAGE1_P.setGbaEncounters([None], [92,41], [92,41], [92,41], [92,41], [92,41])
+
+TOURPERDUE_ETAGE2_P = EncounterTables("Tour Perdue - Étage 2 (Perle)")
+TOURPERDUE_ETAGE2_P.setBaseEncounters(Encounter(92,20,18), Encounter(41,20,18), Encounter(92,10,19), Encounter(41,10,19), Encounter(92,10,19), Encounter(41,10,19), Encounter(92,5,20), Encounter(41,5,20), Encounter(92,4,20), Encounter(41,4,20), Encounter(92,1,20), Encounter(42,1,19))
+TOURPERDUE_ETAGE2_P.setDayEncounters(92,41)
+TOURPERDUE_ETAGE2_P.setNightEncounters(200,200)
+TOURPERDUE_ETAGE2_P.setSwarmEncounters(92,41)
+TOURPERDUE_ETAGE2_P.setPokeradarEncounters(92,41,92,42)
+TOURPERDUE_ETAGE2_P.setGbaEncounters([None], [92,41], [92,41], [92,41], [92,41], [92,41])
+
+TOURPERDUE_ETAGE3_P = EncounterTables("Tour Perdue - Étage 3 (Perle)")
+TOURPERDUE_ETAGE3_P.setBaseEncounters(Encounter(92,20,19), Encounter(41,20,19), Encounter(92,10,20), Encounter(41,10,20), Encounter(92,10,20), Encounter(41,10,20), Encounter(92,5,21), Encounter(41,5,21), Encounter(92,4,21), Encounter(42,4,20), Encounter(92,1,21), Encounter(42,1,21))
+TOURPERDUE_ETAGE3_P.setDayEncounters(92,41)
+TOURPERDUE_ETAGE3_P.setNightEncounters(200,200)
+TOURPERDUE_ETAGE3_P.setSwarmEncounters(92,41)
+TOURPERDUE_ETAGE3_P.setPokeradarEncounters(92,41,92,42)
+TOURPERDUE_ETAGE3_P.setGbaEncounters([None], [92,42], [92,42], [92,42], [92,42], [92,42])
+
+TOURPERDUE_ETAGE4_P = EncounterTables("Tour Perdue - Étage 4 (Perle)")
+TOURPERDUE_ETAGE4_P.setBaseEncounters(Encounter(92,20,20), Encounter(41,20,20), Encounter(92,10,21), Encounter(41,10,21), Encounter(92,10,21), Encounter(41,10,21), Encounter(92,5,22), Encounter(42,5,21), Encounter(92,4,22), Encounter(42,4,22), Encounter(92,1,22), Encounter(42,1,23))
+TOURPERDUE_ETAGE4_P.setDayEncounters(92,41)
+TOURPERDUE_ETAGE4_P.setNightEncounters(200,200)
+TOURPERDUE_ETAGE4_P.setSwarmEncounters(92,41)
+TOURPERDUE_ETAGE4_P.setPokeradarEncounters(92,41,92,42)
+TOURPERDUE_ETAGE4_P.setGbaEncounters([None], [92,42], [92,42], [92,42], [92,42], [92,42])
+
+MONTABRUPT_EXTERIEUR_P = EncounterTables("Mont Abrupt - Extérieur (Perle)")
+MONTABRUPT_EXTERIEUR_P.setBaseEncounters(Encounter(323,20,55), Encounter(112,20,55), Encounter(22,10,54), Encounter(75,10,54), Encounter(22,10,55), Encounter(110,10,55), Encounter(227,5,56), Encounter(75,5,56), Encounter(322,4,22), Encounter(111,4,22), Encounter(322,1,24), Encounter(111,1,24))
+MONTABRUPT_EXTERIEUR_P.setDayEncounters(22,75)
+MONTABRUPT_EXTERIEUR_P.setNightEncounters(354,42)
+MONTABRUPT_EXTERIEUR_P.setSwarmEncounters(323,112)
+MONTABRUPT_EXTERIEUR_P.setPokeradarEncounters(324,324,324,324)
+MONTABRUPT_EXTERIEUR_P.setGbaEncounters([None], [322,111], [322,111], [207,207], [322,111], [240,240])
+
+MONTABRUPT_SALLE1_P = EncounterTables("Mont Abrupt - Salle 1 (Perle)")
+MONTABRUPT_SALLE1_P.setBaseEncounters(Encounter(75,20,55), Encounter(219,20,55), Encounter(42,10,54), Encounter(67,10,56), Encounter(219,10,56), Encounter(110,10,56), Encounter(95,5,54), Encounter(323,5,56), Encounter(74,4,25), Encounter(218,4,25), Encounter(74,1,27), Encounter(218,1,27))
+MONTABRUPT_SALLE1_P.setDayEncounters(42,67)
+MONTABRUPT_SALLE1_P.setNightEncounters(42,67)
+MONTABRUPT_SALLE1_P.setSwarmEncounters(75,219)
+MONTABRUPT_SALLE1_P.setPokeradarEncounters(219,110,74,218)
+MONTABRUPT_SALLE1_P.setGbaEncounters([None], [74,218], [74,218], [74,218], [74,218], [240,240])
+
+MONTABRUPT_SALLE2_P = EncounterTables("Mont Abrupt - Salle 2 (Perle)")
+MONTABRUPT_SALLE2_P.setBaseEncounters(Encounter(75,20,57), Encounter(219,20,57), Encounter(42,10,56), Encounter(67,10,58), Encounter(219,10,58), Encounter(110,10,58), Encounter(95,5,56), Encounter(323,5,58), Encounter(74,4,27), Encounter(218,4,27), Encounter(74,1,29), Encounter(218,1,29))
+MONTABRUPT_SALLE2_P.setDayEncounters(42,67)
+MONTABRUPT_SALLE2_P.setNightEncounters(42,67)
+MONTABRUPT_SALLE2_P.setSwarmEncounters(75,219)
+MONTABRUPT_SALLE2_P.setPokeradarEncounters(219,110,74,218)
+MONTABRUPT_SALLE2_P.setGbaEncounters([None], [74,218], [74,218], [74,218], [74,218], [240,240])
+
 ENCOUNTERTABLES_DICT = {
     # Cities
     "Bonaugure": BONAUGURE,
@@ -1459,4 +1919,57 @@ ENCOUNTERTABLES_DICT = {
     "Lac Vérité": LACVERITE,
     "Lac Courage": LACCOURAGE,
     "Lac Savoir": LACSAVOIR,
+
+    # Diamond
+	"Route 205 - Sud (Diamant)": ROUTE205_SUD_D,
+	"Route 205 - Nord (Diamant)": ROUTE205_NORD_D,
+	"Route 206 (Diamant)": ROUTE206_D,
+	"Route 213 (Diamant)": ROUTE213_D,
+	"Route 214 (Diamant)": ROUTE214_D,
+	"Route 215 (Diamant)": ROUTE215_D,
+	"Route 219 (Diamant)": ROUTE219_D,
+	"Route 220 (Diamant)": ROUTE220_D,
+	"Route 221 (Diamant)": ROUTE221_D,
+	"Route 222 (Diamant)": ROUTE222_D,
+	"Route 225 (Diamant)": ROUTE225_D,
+	"Route 226 (Diamant)": ROUTE226_D,
+	"Route 227 (Diamant)": ROUTE227_D,
+	"Route 228 (Diamant)": ROUTE228_D,
+	"Route 230 (Diamant)": ROUTE230_D,
+	"Les Éoliennes (Diamant)": LESEOLIENNES_D,
+	"Forêt Vestigion (Diamant)": FORETVESTIGION_D,
+	"Tour Perdue - Rez-de-Chaussée (Diamant)": TOURPERDUE_REZDECHAUSSEE_D,
+	"Tour Perdue - Étage 1 (Diamant)": TOURPERDUE_ETAGE1_D,
+	"Tour Perdue - Étage 2 (Diamant)": TOURPERDUE_ETAGE2_D,
+	"Tour Perdue - Étage 3 (Diamant)": TOURPERDUE_ETAGE3_D,
+	"Tour Perdue - Étage 4 (Diamant)": TOURPERDUE_ETAGE4_D,
+	"Mont Abrupt - Extérieur (Diamant)": MONTABRUPT_EXTERIEUR_D,
+	"Mont Abrupt - Salle 1 (Diamant)": MONTABRUPT_SALLE1_D,
+	"Mont Abrupt - Salle 2 (Diamant)": MONTABRUPT_SALLE2_D,
+
+	# Pearl
+	"Route 205 - Sud (Perle)": ROUTE205_SUD_P,
+	"Route 213 (Perle)": ROUTE213_P,
+	"Route 214 (Perle)": ROUTE214_P,
+	"Route 215 (Perle)": ROUTE215_P,
+	"Route 218 (Perle)": ROUTE218_P,
+	"Route 219 (Perle)": ROUTE219_P,
+	"Route 220 (Perle)": ROUTE220_P,
+	"Route 221 (Perle)": ROUTE221_P,
+	"Route 222 (Perle)": ROUTE222_P,
+	"Route 226 (Perle)": ROUTE226_P,
+	"Route 227 (Perle)": ROUTE227_P,
+	"Route 228 (Perle)": ROUTE228_P,
+	"Route 230 (Perle)": ROUTE230_P,
+	"Les Éoliennes (Perle)": LESEOLIENNES_P,
+	"Forêt Vestigion (Perle)": FORETVESTIGION_P,
+	"Forge Fuego - Extérieur (Perle)": FORGEFUEGO_P,
+	"Tour Perdue - Rez-de-Chaussée (Perle)": TOURPERDUE_REZDECHAUSSEE_P,
+	"Tour Perdue - Étage 1 (Perle)": TOURPERDUE_ETAGE1_P,
+	"Tour Perdue - Étage 2 (Perle)": TOURPERDUE_ETAGE2_P,
+	"Tour Perdue - Étage 3 (Perle)": TOURPERDUE_ETAGE3_P,
+	"Tour Perdue - Étage 4 (Perle)": TOURPERDUE_ETAGE4_P,
+	"Mont Abrupt - Extérieur (Perle)": MONTABRUPT_EXTERIEUR_P,
+	"Mont Abrupt - Salle 1 (Perle)": MONTABRUPT_SALLE1_P,
+	"Mont Abrupt - Salle 2 (Perle)": MONTABRUPT_SALLE2_P,
 }
