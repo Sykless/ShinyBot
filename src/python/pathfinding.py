@@ -234,7 +234,7 @@ class DoorNode():
 def initDoorGraph():
 
     # Iterate on every single Door
-    for zoneObject in zone.ZONELIST:
+    for zoneObject in set(zone.ZONEDICTIONARY.values()):
         for door in zoneObject.doorList:
 
             # Only process doors connected to another door
