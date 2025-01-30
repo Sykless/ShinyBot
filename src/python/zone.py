@@ -2,11 +2,6 @@ import encounter
 
 ZONEDICTIONARY = {}
 
-# Specific zones sharing multiple zoneid
-LIGUEPOKEMON_ID = 172
-PISTECYCLABLE_ID = 350
-ROUTE213_ID = 373
-
 # Overworld zones
 CHARBOURG_ID = 45
 VERCHAMPS_ID = 120
@@ -126,13 +121,6 @@ class Position:
 
         # Provide Zone ID, search for the Zone object in ZONEDICTIONARY
         elif (isinstance(zone, int) and zone in ZONEDICTIONARY):
-
-            # Check exceptions before going in ZONEDICTIONARY
-            if (zone == LIGUEPOKEMON_ID):
-                self.zone = checkLiguePokemon(positionY)
-            elif (zone == ROUTE213_ID):
-                self.zone = checkRoute213(positionX, positionY)
-            else:
                 self.zone = ZONEDICTIONARY[zone]
 
         # Not Zone object nor known ZoneID
@@ -285,14 +273,6 @@ def setConnectingDoors(door1, door2):
     # Then set those doors as connected
     door1.setConnectedDoor(door2)
     door2.setConnectedDoor(door1)
-
-# Separation between Pokemon League and Overword is purely based on Y position
-def checkLiguePokemon(positionY):
-    return LIGUEPOKEMON if (positionY < 592) else EAST
-
-# Directly check on Route 213 map if we're on it
-def checkRoute213(positionX, positionY):
-    return SOUTHEAST if ROUTE213_OUEST.map[positionY][positionX] == " " else ROUTE213_OUEST
 
 # Check if a door is a City Fly location
 def isFlyDoor(door):
@@ -488,20 +468,18 @@ setConnectingDoors(Door(DEFAULT, Position(853,768,EAST), Position(3,11,RIVAMAR_S
 setConnectingDoors(Door(ESCALATOR, Position(2,10,RIVAMAR_CENTREPOKEMON), Position(3,10,RIVAMAR_CENTREPOKEMON_ETAGE)), Door(ESCALATOR, Position(2,10,RIVAMAR_CENTREPOKEMON_ETAGE), Position(3,10,RIVAMAR_CENTREPOKEMON)))
 
 # Ligue Pokémon
-LIGUEPOKEMON = Zone("Ligue Pokémon", 172, "city/liguePokemon-1", True, True, False, False)
-LIGUEPOKEMON.setEncounterTables(encounter.LIGUEPOKEMON_EXTERIEUR)
 LIGUEPOKEMON_EXTERIEUR = SubZone("Ligue Pokémon - Extérieur", 172, (832,544), (863,607))
 LIGUEPOKEMON_EXTERIEUR.setEncounterTables(encounter.LIGUEPOKEMON_EXTERIEUR)
 LIGUEPOKEMON_CENTREPOKEMON = Zone("Route Victoire - Centre Pokémon", 173, "city/liguePokemon-centrePokemon", False, False, False, False)
 LIGUEPOKEMON_CENTREPOKEMON_ETAGE = Zone("Route Victoire - Centre Pokemon - Étage", 174, "city/centrePokemon-etage", False, False, False, False)
 LIGUEPOKEMON_CENTREPOKEMON_ETAGE.setInteractableList(((1,5),PC), ((7,5),UNIONROOM))
 LIGUEPOKEMON_CENTREPOKEMON_DOOR = Door(DEFAULT, Position(842,598,EAST), Position(8,12,LIGUEPOKEMON_CENTREPOKEMON))
-LIGUEPOKEMON_INTERIEUR = Zone("Ligue Pokémon - Intérieur", 175, "city/liguePokemon-2", False, False, False, False)
+LIGUEPOKEMON_INTERIEUR = Zone("Ligue Pokémon - Intérieur", 175, "city/liguePokemon", False, False, False, False)
 LIGUEPOKEMON_INTERIEUR_ETAGE = Zone("Ligue Pokémon - Intérieur - Étage", 495, "city/centrePokemon-etage", False, False, False, False)
 LIGUEPOKEMON_INTERIEUR_ETAGE.setInteractableList(((1,5),PC), ((7,5),UNIONROOM))
-LIGUEPOKEMON_INTERIEUR_DOOR = Door(DEFAULT, Position(847,559,LIGUEPOKEMON), Position(11,11,LIGUEPOKEMON_INTERIEUR))
+LIGUEPOKEMON_INTERIEUR_DOOR = Door(DEFAULT, Position(847,559,EAST), Position(11,11,LIGUEPOKEMON_INTERIEUR))
 setConnectingDoors(LIGUEPOKEMON_CENTREPOKEMON_DOOR, Door(SLIDING_DOOR, Position(8,13,LIGUEPOKEMON_CENTREPOKEMON), Position(842,599,EAST)))
-setConnectingDoors(LIGUEPOKEMON_INTERIEUR_DOOR, Door(WALK, Position(11,12,LIGUEPOKEMON_INTERIEUR), Position(847,560,LIGUEPOKEMON)))
+setConnectingDoors(LIGUEPOKEMON_INTERIEUR_DOOR, Door(WALK, Position(11,12,LIGUEPOKEMON_INTERIEUR), Position(847,560,EAST)))
 setConnectingDoors(Door(ESCALATOR, Position(2,10,LIGUEPOKEMON_CENTREPOKEMON), Position(3,10,LIGUEPOKEMON_CENTREPOKEMON_ETAGE)), Door(ESCALATOR, Position(2,10,LIGUEPOKEMON_CENTREPOKEMON_ETAGE), Position(3,10,LIGUEPOKEMON_CENTREPOKEMON)))
 setConnectingDoors(Door(ESCALATOR, Position(2,12,LIGUEPOKEMON_INTERIEUR), Position(3,10,LIGUEPOKEMON_INTERIEUR_ETAGE)), Door(ESCALATOR, Position(2,10,LIGUEPOKEMON_INTERIEUR_ETAGE), Position(3,12,LIGUEPOKEMON_INTERIEUR)))
 
@@ -560,8 +538,7 @@ ROUTE211_OUEST = SubZone("Route 211 - Ouest", 365, (352,512), (383,543))
 ROUTE211_EST = SubZone("Route 211 - Est", 366, (416,512), (447,543))
 ROUTE212_SUD = SubZone("Route 212 - Sud", 371, (448,832), (575,863))
 ROUTE212_NORD = SubZone("Route 212 - Nord", 367, (448,736), (479,831))
-ROUTE213_OUEST = Zone("Route 213 - Ouest", 373, "route/route213", True, True, False, False)
-ROUTE213_EST = SubZone("Route 213 - Est", 373, (640,800), (735,863))
+ROUTE213 = SubZone("Route 213 - Est", 373, (640,800), (735,863))
 ROUTE214 = SubZone("Route 214", 380, (704,640), (735,735))
 ROUTE215 = SubZone("Route 215", 382, (576,576), (671,607))
 ROUTE216 = SubZone("Route 216", 383, (288,384), (383,415))
@@ -598,7 +575,7 @@ ROUTE211_OUEST.setEncounterTables(encounter.ROUTE211_OUEST)
 ROUTE211_EST.setEncounterTables(encounter.ROUTE211_EST)
 ROUTE212_SUD.setEncounterTables(encounter.ROUTE212_SUD)
 ROUTE212_NORD.setEncounterTables(encounter.ROUTE212_NORD)
-ROUTE213_EST.setEncounterTables(encounter.ROUTE213)
+ROUTE213.setEncounterTables(encounter.ROUTE213)
 ROUTE214.setEncounterTables(encounter.ROUTE214)
 ROUTE215.setEncounterTables(encounter.ROUTE215)
 ROUTE216.setEncounterTables(encounter.ROUTE216)
@@ -653,7 +630,7 @@ setConnectingDoors(Door(WALK, Position(718,639,VOILAROC), Position(5,3,ROUTE214_
 # Passage Route 213 <-> Verchamps
 ROUTE213_PASSAGEVERCHAMPS = Zone("Route 213 - Passage Verchamps", 374, "route/route213-passageVerchamps", True, False, False, False)
 setConnectingDoors(Door(DEFAULT, Position(640,812,SOUTH), Position(1,7,ROUTE213_PASSAGEVERCHAMPS)), Door(WALK, Position(0,7,ROUTE213_PASSAGEVERCHAMPS), Position(639,812,SOUTH)))
-setConnectingDoors(Door(DEFAULT, Position(645,812,ROUTE213_OUEST), Position(10,7,ROUTE213_PASSAGEVERCHAMPS)), Door(WALK, Position(11,7,ROUTE213_PASSAGEVERCHAMPS), Position(646,812,ROUTE213_OUEST)))
+setConnectingDoors(Door(DEFAULT, Position(645,812,SOUTHEAST), Position(10,7,ROUTE213_PASSAGEVERCHAMPS)), Door(WALK, Position(11,7,ROUTE213_PASSAGEVERCHAMPS), Position(646,812,SOUTHEAST)))
 
 # Passage Route 218 <-> Féli-Cité
 ROUTE218_PASSAGEFELICITE = Zone("Route 218 - Passage Féli-Cité", 389, "route/route218-passageFelicite", True, False, False, False)
@@ -906,7 +883,7 @@ setConnectingDoors(Door(DEFAULT, Position(1,18,MONTCOURONNE_PASSAGEFRIMAPIC), Po
 # Hôtel Grand Lac
 HOTELGRANDLAC = Zone("Hôtel Grand Lac", 376, "route/hotelGrandLac", False, False, False, False)
 setConnectingDoors(Door(WALK, Position(706,814,SOUTHEAST), Position(8,3,HOTELGRANDLAC)), Door(WALK, Position(8,2,HOTELGRANDLAC), Position(706,813,SOUTHEAST)))
-setConnectingDoors(Door(DEFAULT, Position(706,818,ROUTE213_OUEST), Position(8,11,HOTELGRANDLAC)), Door(WALK, Position(8,12,HOTELGRANDLAC), Position(706,819,ROUTE213_OUEST)))
+setConnectingDoors(Door(DEFAULT, Position(706,818,SOUTHEAST), Position(8,11,HOTELGRANDLAC)), Door(WALK, Position(8,12,HOTELGRANDLAC), Position(706,819,SOUTHEAST)))
 
 # Manoir Pokémon
 MANOIRPOKEMON = Zone("Manoir Pokémon", 368, "route/manoirPokemon-1", False, False, False, False)
@@ -999,7 +976,7 @@ ROUTEVICTOIRE_PASSAGEROUTE224.setEncounterTables(encounter.ROUTEVICTOIRE_PASSAGE
 PASSAGEMARIN = SubZone("Passage Marin", 472, (896,224), (927,479))
 PARADISFLEURI = SubZone("Paradis Fleuri", 274, (896,192), (927,223))
 setConnectingDoors(Door(WALK, Position(15,79,ROUTEVICTOIRE), Position(851,598,EAST)), Door(DEFAULT, Position(851,597,EAST), Position(15,78,ROUTEVICTOIRE)))
-setConnectingDoors(Door(DEFAULT, Position(33,5,ROUTEVICTOIRE), Position(853,582,LIGUEPOKEMON)), Door(DEFAULT, Position(854,582,LIGUEPOKEMON), Position(34,5,ROUTEVICTOIRE)))
+setConnectingDoors(Door(DEFAULT, Position(33,5,ROUTEVICTOIRE), Position(853,582,EAST)), Door(DEFAULT, Position(854,582,EAST), Position(34,5,ROUTEVICTOIRE)))
 setConnectingDoors(Door(WALK, Position(3,37,ROUTEVICTOIRE), Position(20,16,ROUTEVICTOIRE_SALLEOUEST)), Door(WALK, Position(21,16,ROUTEVICTOIRE_SALLEOUEST), Position(4,37,ROUTEVICTOIRE)))
 setConnectingDoors(Door(WALK, Position(6,47,ROUTEVICTOIRE), Position(23,26,ROUTEVICTOIRE_SALLEOUEST)), Door(WALK, Position(24,26,ROUTEVICTOIRE_SALLEOUEST), Position(7,47,ROUTEVICTOIRE)))
 setConnectingDoors(Door(WALK, Position(3,25,ROUTEVICTOIRE), Position(20,4,ROUTEVICTOIRE_SALLEOUEST)), Door(WALK, Position(21,4,ROUTEVICTOIRE_SALLEOUEST), Position(4,25,ROUTEVICTOIRE)))
@@ -1123,7 +1100,7 @@ NORTHEAST.setSubZones(ROUTE224, PASSAGEMARIN, PARADISFLEURI)
 NORTHWEST.setSubZones(FLORAVILLE, VESTIGION, ROUTE204_NORD, ROUTE205_SUD, ROUTE205_NORD, ROUTE211_OUEST, LESEOLIENNES, FORETVESTIGION_EXTERIEUR, FORGEFUEGO)
 SOUTH.setSubZones(VERCHAMPS, ROUTE212_NORD, ROUTE212_SUD)
 SOUTHCENTER.setSubZones(CHARBOURG, ROUTE206, ROUTE207)
-SOUTHEAST.setSubZones(ROUTE213_EST, ROUTE214, ROUTE222, RIVELACCOURAGE, CHEMINSOURCE)
+SOUTHEAST.setSubZones(ROUTE213, ROUTE214, ROUTE222, RIVELACCOURAGE, CHEMINSOURCE)
 SOUTHWEST.setSubZones(BONAUGURE, LITTORELLA, FELICITE, ROUTE201, ROUTE202, ROUTE203, ROUTE204_SUD, ROUTE219, ROUTE220, ROUTE221, RIVELACVERITE)
 SECTEURCOMBAT_NORTHWEST.setSubZones(AIREDESURVIE, ROUTE225, ROUTE226, ROUTE227, MONTABRUPT_EXTERIEUR)
 SECTEURCOMBAT_SOUTHEAST.setSubZones(AIREDECOMBAT, AIREDEDETENTE, ROUTE228, ROUTE229, ROUTE230, )
@@ -1319,7 +1296,7 @@ ZONEDICTIONARY = {
     166: FRIMAPIC_SHOP,
     168: FRIMAPIC_CENTREPOKEMON,
     169: FRIMAPIC_CENTREPOKEMON_ETAGE,
-    172: [EAST, LIGUEPOKEMON], # Ligue Pokémon - Extérieur
+    172: EAST, # Ligue Pokémon - Extérieur
     173: LIGUEPOKEMON_CENTREPOKEMON,
     174: LIGUEPOKEMON_CENTREPOKEMON_ETAGE,
     175: LIGUEPOKEMON_INTERIEUR,
@@ -1454,7 +1431,7 @@ ZONEDICTIONARY = {
     370: MANOIRPOKEMON_BUREAU,
     371: SOUTH, # Route 212 - Sud
     372: ROUTE212_MAISON,
-    373: [ROUTE213_OUEST, SOUTHEAST], # Route 213
+    373: SOUTHEAST, # Route 213
     374: ROUTE213_PASSAGEVERCHAMPS,
     376: HOTELGRANDLAC,
     380: SOUTHEAST, # Route 214
@@ -1559,7 +1536,7 @@ HONEYTREES_POSITIONS = [
     Position(433,530,NORTHCENTER),
     Position(449,748,SOUTH),
     Position(535,845,SOUTH),
-    Position(646,825,ROUTE213_OUEST),
+    Position(646,825,SOUTHEAST),
     Position(724,722,SOUTHEAST),
     Position(590,580,NORTHCENTER),
     Position(85,753,ROUTE218),
@@ -1601,7 +1578,7 @@ OBSOLETEDOORS = [
     Door(DEFAULT, Position(677,599,VOILAROC), Position(10,7,ROUTE215_PASSAGEVOILAROC)),
     Door(DEFAULT, Position(672,599,NORTHCENTER), Position(1,7,ROUTE215_PASSAGEVOILAROC)),
     Door(DEFAULT, Position(719,645,SOUTHEAST), Position(5,12,ROUTE214_PASSAGEVOILAROC)),
-    Door(DEFAULT, Position(645,813,ROUTE213_OUEST), Position(10,7,ROUTE213_PASSAGEVERCHAMPS)),
+    Door(DEFAULT, Position(645,813,SOUTHEAST), Position(10,7,ROUTE213_PASSAGEVERCHAMPS)),
     Door(DEFAULT, Position(640,813,SOUTH), Position(1,7,ROUTE213_PASSAGEVERCHAMPS)),
     Door(DEFAULT, Position(127,759,SOUTHWEST), Position(1,7,ROUTE218_PASSAGEFELICITE)),
     Door(DEFAULT, Position(122,759,ROUTE218), Position(10,7,ROUTE218_PASSAGEFELICITE)),
@@ -1633,10 +1610,10 @@ OBSOLETEDOORS = [
     Door(DEFAULT, Position(852,597,EAST), Position(15,78,ROUTEVICTOIRE)),
     Door(WALK, Position(14,79,ROUTEVICTOIRE), Position(851,598,EAST)),
     Door(WALK, Position(16,79,ROUTEVICTOIRE), Position(851,598,EAST)),
-    Door(DEFAULT, Position(33,4,ROUTEVICTOIRE), Position(853,582,LIGUEPOKEMON)),
-    Door(DEFAULT, Position(33,6,ROUTEVICTOIRE), Position(853,582,LIGUEPOKEMON)),
-    Door(DEFAULT, Position(854,581,LIGUEPOKEMON), Position(34,5,ROUTEVICTOIRE)),
-    Door(DEFAULT, Position(854,583,LIGUEPOKEMON), Position(34,5,ROUTEVICTOIRE)),
+    Door(DEFAULT, Position(33,4,ROUTEVICTOIRE), Position(853,582,EAST)),
+    Door(DEFAULT, Position(33,6,ROUTEVICTOIRE), Position(853,582,EAST)),
+    Door(DEFAULT, Position(854,581,EAST), Position(34,5,ROUTEVICTOIRE)),
+    Door(DEFAULT, Position(854,583,EAST), Position(34,5,ROUTEVICTOIRE)),
     Door(WALK, Position(13,57,SOURCEADIEU), Position(763,714,SOUTHEAST)),
     Door(DEFAULT, Position(763,713,SOUTHEAST), Position(13,56,SOURCEADIEU)),
     Door(DEFAULT, Position(611,809,SOUTH), Position(5,11,VERCHAMPS_OBSERVATOIRE)),
