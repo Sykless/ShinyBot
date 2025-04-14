@@ -1,3 +1,4 @@
+import copy
 import encounter
 
 ZONEDICTIONARY = {}
@@ -26,10 +27,12 @@ WALK = 25
 DEFAULT = 5
 
 class Zone():
-    def __init__(self, name, zoneId, mapFile, canBike, canFly, canDig, isCave):
+    def __init__(self, name, zoneId, mapFileName, canBike, canFly, canDig, isCave):
         self.name = name
         self.zoneId = zoneId
-        self.map = open('data/map/' + mapFile + '.map').readlines()
+        self.mapFileName = mapFileName
+        self.readMapFile(mapFileName)
+
         self.doorList = []
         self.subzoneList = []
         self.interactableList = []
@@ -39,6 +42,9 @@ class Zone():
         self.canFly = canFly
         self.canDig = canDig
         self.isCave = isCave
+
+    def readMapFile(self, mapFileName):
+        self.map = open('data/map/' + mapFileName + '.map').readlines()
 
     def addDoor(self, door):
         if (door in self.doorList):
@@ -89,9 +95,9 @@ class Zone():
     
     def __str__(self):
         return ("Zone " + str(self.name) + " (" + str(self.zoneId) + ")"
-                + " / can bike" if self.canBike else ""
-                + " / can fly" if self.canFly else ""
-                + " / can dig" if self.canDig else "")
+                + (" / can bike" if self.canBike else "")
+                + (" / can fly" if self.canFly else "")
+                + (" / can dig" if self.canDig else ""))
     
     def __repr__(self):
         return str(self)
@@ -112,8 +118,7 @@ class SubZone():
 
 class Position:
     def __init__(self, positionX, positionY, zone):
-        self.X = positionX
-        self.Y = positionY
+        self.setCoordinates(positionX, positionY)
 
         # Provide actual Zone object
         if isinstance(zone, Zone):
@@ -133,6 +138,10 @@ class Position:
     
     def getDistanceTo(self, position):
         return abs(self.X - position.X) + abs(self.Y - position.Y)
+
+    def setCoordinates(self, positionX, positionY):
+        self.X = positionX
+        self.Y = positionY
 
     def setDistanceTo(self, position):
         self.distance = self.getDistanceTo(position)
@@ -273,13 +282,6 @@ def setConnectingDoors(door1, door2):
     # Then set those doors as connected
     door1.setConnectedDoor(door2)
     door2.setConnectedDoor(door1)
-
-# Check if a door is a City Fly location
-def isFlyDoor(door):
-    for city in CITY_LIST:
-        if (city.flyDoor == door):
-            return True
-    return False
 
 # Overworld
 EAST = Zone("East", RIVAMAR_ID, "overworld/east", True, True, False, False)
@@ -1103,7 +1105,7 @@ SOUTHCENTER.setSubZones(CHARBOURG, ROUTE206, ROUTE207)
 SOUTHEAST.setSubZones(ROUTE213, ROUTE214, ROUTE222, RIVELACCOURAGE, CHEMINSOURCE)
 SOUTHWEST.setSubZones(BONAUGURE, LITTORELLA, FELICITE, ROUTE201, ROUTE202, ROUTE203, ROUTE204_SUD, ROUTE219, ROUTE220, ROUTE221, RIVELACVERITE)
 SECTEURCOMBAT_NORTHWEST.setSubZones(AIREDESURVIE, ROUTE225, ROUTE226, ROUTE227, MONTABRUPT_EXTERIEUR)
-SECTEURCOMBAT_SOUTHEAST.setSubZones(AIREDECOMBAT, AIREDEDETENTE, ROUTE228, ROUTE229, ROUTE230, )
+SECTEURCOMBAT_SOUTHEAST.setSubZones(AIREDECOMBAT, AIREDEDETENTE, ROUTE228, ROUTE229, ROUTE230)
 
 # Cities (used for Fly)
 BONAUGURE_CITY = City("Bonaugure", 411,[[2,21]], BONAUGURE_MAISON_DOOR)
@@ -1135,6 +1137,7 @@ CITY_LIST = [
 ]
 
 ZONEDICTIONARY = {
+    "PL": {
     3: SOUTHWEST, # Féli-Cité
     4: FELICITE_SHOP,
     6: FELICITE_CENTREPOKEMON,
@@ -1409,7 +1412,76 @@ ZONEDICTIONARY = {
     589: MONTCOURONNE_GROTTEREGICE,
     591: ROUTE228_GROTTEREGIROCK,
     1350: PISTECYCLABLE # Route 206 / Piste Cyclable
+    }
 }
+
+# Base Diamond/Pearl zones on Platinum
+ZONEDICTIONARY["DP"] = copy.deepcopy(ZONEDICTIONARY["PL"])
+
+# Zones that are different between Platinum and Diamond/Pearl
+DIAMONDPEARL_EXCLUSIVES = [
+    MONTABRUPT_SALLE1.zoneId,
+
+    NORTH.zoneId,
+    SOUTH.zoneId,
+    SECTEURCOMBAT_NORTHWEST.zoneId,
+    SECTEURCOMBAT_SOUTHEAST.zoneId,
+
+    ROUTE208_PASSAGEUNIONPOLIS.zoneId,
+    ROUTE209_PASSAGEUNIONPOLIS.zoneId,
+    ROUTE212_PASSAGEUNIONPOLIS.zoneId,
+    ROUTE213_PASSAGEVERCHAMPS.zoneId,
+    ROUTE214_PASSAGEVOILAROC.zoneId,
+    ROUTE215_PASSAGEVOILAROC.zoneId,
+    ROUTE218_PASSAGEFELICITE.zoneId,
+    ROUTE218_PASSAGEJOLIBERGES.zoneId,
+    ROUTE222_PASSAGERIVAMAR.zoneId,
+    ROUTE225_PASSAGEAIREDECOMBAT.zoneId,
+    ROUTE226_PASSAGEROUTE228.zoneId
+]
+
+# Updates maps for each Diamond/Pearl exclusive zone
+for exclusiveZoneId in DIAMONDPEARL_EXCLUSIVES:
+    diamondPearlZone = ZONEDICTIONARY["DP"][exclusiveZoneId]
+
+    # Update zone name and map
+    diamondPearlZone.name += " - Diamant/Perle"
+    diamondPearlZone.readMapFile(diamondPearlZone.mapFileName + "-dp")
+
+    # Cannot bike in passage zones in Diamond/Pearl
+    if ("Passage" in diamondPearlZone.name):
+        diamondPearlZone.canBike = False
+    
+    # Update doors zones
+    for door in diamondPearlZone.doorList:
+        door.position.zone = diamondPearlZone
+        door.connectedDoor.destination.zone = diamondPearlZone
+    
+        # Some doors are not even at the same coordinates, update position
+        match door.destination.zone.zoneId:
+            case LACSAVOIR.zoneId:
+                door.position.setCoordinates(310, 239)
+                door.connectedDoor.destination.setCoordinates(310, 240)
+
+            case MONTABRUPT_SALLE1.zoneId:
+                door.position.setCoordinates(747, 234)
+                door.connectedDoor.destination.setCoordinates(747, 235)
+
+            case AIREDECOMBAT_CENTREPOKEMON.zoneId:
+                door.position.setCoordinates(647, 431)
+                door.connectedDoor.destination.setCoordinates(647, 432)
+
+            case AIREDECOMBAT_SHOP.zoneId:
+                door.position.setCoordinates(663, 440)
+                door.connectedDoor.destination.setCoordinates(663, 441)
+
+            case AIREDESURVIE_CENTREPOKEMON.zoneId:
+                door.position.setCoordinates(657, 338)
+                door.connectedDoor.destination.setCoordinates(657, 339)
+
+            case AIREDEDETENTE_CENTREPOKEMON.zoneId:
+                door.position.setCoordinates(807, 457)
+                door.connectedDoor.destination.setCoordinates(807, 458)
 
 HONEYTREES_POSITIONS = [
     Position(212,652,NORTHWEST),
