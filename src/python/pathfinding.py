@@ -2,6 +2,7 @@ from zone import Door, DoorKey, Position
 from astar import Node
 from utils import waitFrames
 from bag import BIKE_ID
+from emu import BIZHAWK
 
 import heapq
 
@@ -232,9 +233,16 @@ class DoorNode():
 # Takes around 50 minutes to generate, so we store it in a pkl file    #
 ########################################################################
 def initDoorGraph():
+    doorGraph = {
+        "PL": {},
+        "DP": {}
+    }
+
+    # Create a graph for Diamond/Pearl and another for Platinum
+    for gameCode in ["PL","DP"]:
 
     # Iterate on every single Door
-    for zoneObject in set(zone.ZONEDICTIONARY.values()):
+        for zoneObject in set(zone.ZONEDICTIONARY[gameCode].values()):
         for door in zoneObject.doorList:
 
             # Only process doors connected to another door
@@ -255,10 +263,10 @@ def initDoorGraph():
 
                 # Only add the door path if there's an actual path
                 if (doorPath):
-                    DOOR_GRAPH.setdefault(doorKey, []).append(DoorNode(door, otherDoorInZone, doorPath))
+                        doorGraph[gameCode].setdefault(doorKey, []).append(DoorNode(door, otherDoorInZone, doorPath))
 
     # Save graph as a file to easily retrieve it at a later execution
-    memory.saveGraph(DOOR_GRAPH, 'data/pkl/graph.pkl')
+        memory.saveGraph(doorGraph[gameCode], "data/pkl/graph-" + gameCode + ".pkl")
 
 
 
@@ -580,7 +588,7 @@ def generateWorldPath(location, skipAllCityProcesses = False):
     locationDoorKey = closestDoor.createDoorKey()
 
     # Check every possible city and keep the closest
-    for city in zone.CITY_LIST:
+    for city in zone.CITY_LIST[BIZHAWK.mainWindow.getGameCode()].values():
         cityDoorKey = city.flyDoor.createDoorKey()
 
         # Get all possible paths from city

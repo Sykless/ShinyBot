@@ -34,15 +34,14 @@ def startShinybot(dashboardData = None):
         BIZHAWK.initEmulator(PLATINE, fullscreen = False)
         action.loadGame()
 
-    startTime = time.time()
-
     # Generate Door Graph that contains every door-to-door path in the map
     if (GENERATE_GRAPH):
+        startTime = time.time()
         pathfinding.initDoorGraph()
         print("Graph generated in " + str(round(time.time() - startTime,2)) + " seconds")
-    else:
-        pathfinding.DOOR_GRAPH = memory.loadGraph('data/pkl/graph.pkl')
-        print("Graph loaded in " + str(round(time.time() - startTime,2)) + " seconds")
+
+    # Load Door Graph from file
+    pathfinding.DOOR_GRAPH = memory.loadGraph("data/pkl/graph-" + BIZHAWK.mainWindow.getGameCode() + ".pkl")
 
     # Free mode : don't let the script interact with the game
     if (FREE_MODE):

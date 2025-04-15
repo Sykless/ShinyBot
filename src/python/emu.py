@@ -53,6 +53,14 @@ class Window(Win32Window):
         self.borderSize = 0
         self.titleBarHeight = 0
 
+    def getGameCode(self):
+        if self.gameName == "Platine":
+            return "PL"
+        elif self.gameName in ["Diamant","Perle"]:
+            return "DP"
+        else:
+            return None
+
     def __eq__(self, other):
         return (isinstance(other, Window) or isinstance(other, Win32Window)) and self._hWnd == other._hWnd
     
