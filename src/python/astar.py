@@ -1,4 +1,5 @@
 from zone import Position
+from emu import BIZHAWK, PLATINE
 import zone
 
 import time
@@ -435,6 +436,10 @@ def astarAlgorithm(start: Position, end: Position, repelActive, zoneMap,  isBelo
 
             # Default cell cost is 999, basically solid block
             cellCost = CELL_COST.get(child.cellType, 999)
+
+            # Surfing is twice as slow in Diamond/Pearl
+            if (child.cellType in ["W","d"] and BIZHAWK.mainWindow.gameName != PLATINE):
+                cellCost *= 2
 
             # If surfing, reduce water cells cost and increase the rest
             if (child.parent.isSurfing):

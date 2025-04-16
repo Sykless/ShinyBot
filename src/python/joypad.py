@@ -1,6 +1,7 @@
 import player
 import memory
 from utils import waitFrames
+from emu import BIZHAWK, PLATINE
 
 FRAMES_RELEASE_TIME = 5
 TURNAROUND_ANIMATION = 6
@@ -140,6 +141,9 @@ def writePathfindingInput(nodeList, strengthUsed = False, destroyedObstacles = [
                 frameByFrameInputSequence += getHmInputs(SURF, inputButton)
                 isOnBike = False
 
+                # Particular case : getting on the Surfing Pokémon is 25 frames slower in Diamond/Pearl
+                frameByFrameInputSequence += (25 * "@" if BIZHAWK.mainWindow.gameName != PLATINE else "")
+                
                 # Prepare to start moving again
                 stopped = True
 
@@ -174,7 +178,8 @@ def writePathfindingInput(nodeList, strengthUsed = False, destroyedObstacles = [
 
                 # Going down : just need to go down and wait for the animation to end
                 else:
-                    frameByFrameInputSequence += INPUTTIME["run"] * inputButton + WATERFALL["animation"] * "@"
+                    frameByFrameInputSequence += (INPUTTIME["run" if BIZHAWK.mainWindow.gameName == PLATINE else "walk"] 
+                                                    * inputButton + WATERFALL["animation"] * "@")
 
                 skipNode = True # Skip next node since we already reached it
                 stopped = True # Prepare to start moving again
@@ -393,6 +398,10 @@ def getInputTime(isOnBike, cellType):
     elif (cellType == "4"):
         return INPUTTIME["deepsnow"]
     
-    # If you're not in a bike nor on a snow cell, you're running (surfing is the same as running)
+    # Surfing in Diamond/Pearl is as slow as walking
+    elif (cellType in ["W","d"] and BIZHAWK.mainWindow.gameName != PLATINE):
+        return INPUTTIME["walk"]
+    
+    # If you're not in a bike nor on a snow cell, you're running (surfing is the same as running in Platinum)
     else:
         return INPUTTIME["run"]
