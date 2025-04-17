@@ -198,19 +198,32 @@ class Window(Win32Window):
         
         # Find menu in screenshot
         screenshot = self.captureWindow()
-        height = screenshot.size[1]
+        menuFirstXPixel = -1
 
-        # Default : menu not present
-        self.menuHeight = 0
+        # We don't know the exact border size since the window is in a temporary state
+        # So we search the 20 first pixels if the menu is present
+        for x in range(20):
+            firstXPixel = screenshot.getpixel((self.borderSize + x, self.titleBarHeight + 10))
 
-        # Iterate on each first pixel until we find a pixel with a different color
-        for y in range(height - self.titleBarHeight):
-            firstPixel = screenshot.getpixel((self.borderSize, y + self.titleBarHeight))
-
-            # Different color : we reached the end of the menu
-            if (firstPixel not in self.parentEmulator.menuColor):
-                self.menuHeight = y
+            # Found a pixel matching the menu color, the X searching
+            if (firstXPixel in self.parentEmulator.menuColor):
+                menuFirstXPixel = self.borderSize + x
+                self.menuHeight = 1
                 break
+
+        # No pixel found with menu color, menu is not present
+        if (menuFirstXPixel == -1):
+            self.menuHeight = 0
+            return
+        
+        # Loop through top/bottom pixels from menuFirstXPixel to get the total menu height
+        for direction in [-1,1]:
+            for y in range(1, self.titleBarHeight):
+                pixelColor = screenshot.getpixel((menuFirstXPixel, self.titleBarHeight + 10 + y * direction))
+                                                 
+                if (pixelColor not in self.parentEmulator.menuColor):
+                    self.menuHeight += y - 1
+                    break
 
 
     #####################################################################
@@ -227,7 +240,7 @@ class Window(Win32Window):
         height = bot - top
 
         # Create a device context (DC)
-        hwndDC = win32gui.GetWindowDC(self._hWnd)
+        hwndDC = win32gui.GetWindowDC(0)
         mfcDC = win32ui.CreateDCFromHandle(hwndDC)
         saveDC = mfcDC.CreateCompatibleDC()
 
