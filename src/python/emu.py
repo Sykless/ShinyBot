@@ -153,14 +153,14 @@ class Window(Win32Window):
                             + self.borderSize # Hide transparent border behind the taskbar
                             + TOPBORDER_SIZE) # Hide the single half-transparent pixel border behind the taskbar
 
-            windowWidth = (int((screenHeight - self.titleBarHeight - self.menuHeight) # Only take game height for ratio calculation
+            windowWidth = (int((windowHeight - self.titleBarHeight - self.menuHeight - TOPBORDER_SIZE) # Only take game height for ratio calculation
                             * GAME_WIDTH / GAME_HEIGHT) # Keep original game ratio
-                            + 2 * self.borderSize) # Add both left/right borders
-            
+                            + 2 * self.borderSize) # Add borders
+
             # Move BizHawk window to the top-left of the screen, make it not stay on top
             win32gui.SetWindowPos(self._hWnd, win32con.HWND_NOTOPMOST, -self.borderSize + (firstInstance.width - 2 * self.borderSize if firstInstance else 0), -TOPBORDER_SIZE, windowWidth, windowHeight, 
                 win32con.SWP_FRAMECHANGED | win32con.SWP_SHOWWINDOW)
-            
+
         # Wait until window is resized
         time.sleep(0.5)
 
@@ -187,7 +187,7 @@ class Window(Win32Window):
 
         # Set window parameters
         self.borderSize = int(((windowRect[2] - windowRect[0]) - clientRect[2]) / 2) # Size of transparent border on each side
-        self.titleBarHeight = ((windowRect[3] - windowRect[1]) - clientRect[3]) - self.borderSize # Size of top window title bar
+        self.titleBarHeight = ((windowRect[3] - windowRect[1]) - clientRect[3]) - TOPBORDER_SIZE # Size of top window title bar
         self.retrieveMenuHeight() # Retrieve menu size from screenshot
     
 
