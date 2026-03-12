@@ -11,6 +11,7 @@ import touchscreen
 
 from bag import ITEMS_SECTION, KEYITEMS_SECTION, OLDROD_ID, GOODROD_ID, SUPERROD_ID
 from zone import MONTCOURONNE_SALLE8, Position
+from pokemon import Pokemon
 from pokedex import POKEDEX
 from data import ITEM_NAMES
 from utils import waitFrames
@@ -621,6 +622,53 @@ def setupFeebasFishingPosition():
     # Make sure we're facing the fishing spot
     if (player.getPlayerData().orientation != orientation[2]):
         joypad.writeInput(orientation[2], wait = True)
+
+
+############################################################
+# Retrieve saved wild PID and determine if we're in battle #
+############################################################
+def getCurrentWildPID():
+    jsonPokemonData = memory.readWildPokemonData()
+    lastWildPID = -1
+    
+    # Valid Pokémon : we're either in battle or still have old PID in memory
+    if (Pokemon(**jsonPokemonData).isValid):
+        newPIDFramesLag = -1
+        framesNotInOverworld = 0
+
+        # Loop until we set lastWildPID
+        while lastWildPID < 0:
+            waitFrames(1)
+
+            # 15 frames animation after a wild Pokémon encounter before Poketch is no longer visible
+            if (0 <= newPIDFramesLag < 15):
+                newPIDFramesLag += 1
+
+            # Check if Poketch is not visible for 3 frames in a row to determine if we're in battle
+            elif (not img.poketch.isOnScreen()):
+
+                if (framesNotInOverworld < 3):
+                    framesNotInOverworld += 1
+
+                # Outside of overworld 15 frames in a row : we're in battle
+                else:
+                    wildPokemon = Pokemon(**jsonPokemonData)
+                    lastWildPID = wildPokemon.pid
+                    battle(wildPokemon)
+                    
+                    # Wait until we exit battle
+                    img.poketch.waitUntilVisible()
+                    waitFrames(5)
+
+            # Poketch visible, wait 15 frames before cheking again
+            elif (newPIDFramesLag == -1):
+                newPIDFramesLag = 0
+
+            # Still in overworld, set lastWildPID
+            else:
+                lastWildPID = jsonPokemonData.get("pid",0)
+    
+    return lastWildPID
 
 
 ######################################################################

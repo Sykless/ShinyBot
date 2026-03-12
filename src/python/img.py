@@ -59,8 +59,28 @@ class Template:
                 self.positionX:self.positionX + self.width]
 
     def isOnScreen(self, screenshot = None):
-        return isTemplateInImage(self.getSubScreenshot(screenshot if screenshot is not None else getScreenshot()),
+        return self.isTemplateInImage(self.getSubScreenshot(screenshot if screenshot is not None else getScreenshot()),
                                  self.image, self.threshold, templatemask = self.mask)[0]
+
+    # Check if an image is present in the screenshot
+    def isTemplateInImage(self, image, templateImage, threshold = 1, templatemask = None):
+
+        # Template matching using TM_SQDIFF : Perfect match -> minimum value around 0.0
+        result = cv2.matchTemplate(image, templateImage, cv2.TM_SQDIFF, mask = templatemask)
+
+        # Get best match
+        min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
+
+        # print(f"{self.name} : {min_val}")
+
+        # Returns a boolean indicating if the template is present in the image, and its location
+        return min_val <= threshold, min_loc
+
+
+    def waitUntilVisible(self):
+        while (not self.isOnScreen()):
+            waitFrames(1)
+
 
     def waitUntilNotVisible(self):
         framesNotVisible = 0
@@ -94,6 +114,9 @@ class GameTemplate:
     def isOnScreen(self, screenshot = None):
         return (self.templates[BIZHAWK.mainWindow.gameName if BIZHAWK.mainWindow else "Platine"]).isOnScreen(screenshot)
     
+    def waitUntilVisible(self):
+        return (self.templates[BIZHAWK.mainWindow.gameName if BIZHAWK.mainWindow else "Platine"]).waitUntilVisible()
+
     def waitUntilNotVisible(self):
         return (self.templates[BIZHAWK.mainWindow.gameName if BIZHAWK.mainWindow else "Platine"]).waitUntilNotVisible()
 
@@ -159,7 +182,7 @@ class PositionTemplate:
             return self.__getMapCursorPosition(screenshot)
         elif (self.name == "menu/menu-selector"):
             return self.__getMenuPosition(screenshot)
-        
+
     # Returns cursor position on the map
     def __getMapCursorPosition(self, screenshot):
         selectorInImage, location = isTemplateInImage(screenshot[0:0+170 , 20:20+216], self.image, 1, self.mask)
@@ -202,7 +225,7 @@ pageThree = Template("battle/page-3", 183, 359, 6, 10, 1)
 pageFour = Template("battle/page-4", 183, 359, 6, 10, 1)
 pokeballLastUsed = Template("battle/pokeball-last-used", 11, 357, 18, 18, 10)
 returnButton = Template("battle/return-button", 223, 352, 26, 26, 10)
-runaway = Template("battle/runaway", 111, 365, 35, 10, 1)
+runaway = Template("battle/runaway", 111, 365, 35, 10, 1, mask = True)
 useItem = Template("battle/use-item", 80, 361, 46, 10, 1, mask = True)
 
 # Dialog

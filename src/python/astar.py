@@ -494,11 +494,10 @@ def astarAlgorithm(start: Position, end: Position, repelActive, zoneMap,  isBelo
 #####################################################################################
 def getMapAtCurrentState(processedNodes, originalMap):
 
-    # Keep track of boulders and obstacles for the input process
-    pushedBoulder = False
+    # Keep track of obstacles for the input process
     destroyedObstacles = []
 
-    # Create a copy of the original map that we can updatz
+    # Create a copy of the original map that we can update
     updatedMap = originalMap[:]
 
     # Check every already processed node for pushed boulders
@@ -508,12 +507,11 @@ def getMapAtCurrentState(processedNodes, originalMap):
         for node in processedNodes:
             if (node.pushBoulder): 
                 updateMapWithPushedBoulders(updatedMap, node.position, node.parent.position)
-                pushedBoulder = True
 
             if (node.cellType in ["r","t"]):
                 destroyedObstacles.append(node.position)
 
-    return updatedMap, pushedBoulder, destroyedObstacles
+    return updatedMap, destroyedObstacles
 
 
 #########################################################

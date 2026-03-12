@@ -18,13 +18,14 @@ FEEBAS_ROCK_POSITIONS = [51, 56, 184, 203, 203, 203, 203, 203, 203, 203, 214, 21
                          449, 455, 455, 471, 471, 477]
 
 class Game:
-    def __init__(self, hourOfDay, repelSteps, selectedBagSection, selectedBagItemId, registeredKeyItem, fogType, feebasSeed, honeyTreesCountdown, swarmPokemon, marshPokemonList, gardenPokemonToday, gardenPokemonYesterday, gbaGame, encounterTables):
+    def __init__(self, hourOfDay, repelSteps, selectedBagSection, selectedBagItemId, registeredKeyItem, fogType, strengthUsed, feebasSeed, honeyTreesCountdown, swarmPokemon, marshPokemonList, gardenPokemonToday, gardenPokemonYesterday, gbaGame, encounterTables):
         self.hourOfDay = hourOfDay
         self.repelSteps = repelSteps
         self.selectedBagSection = None
         self.registeredKeyItem = registeredKeyItem
         self.isFoggy = fogType == FOG_WEATHER
         self.isDark = fogType == DARK_WEATHER
+        self.strengthUsed = bool(strengthUsed)
         self.feebasSeed = feebasSeed
         self.honeyTreeList = []
         self.swarmPokemon = swarmPokemon

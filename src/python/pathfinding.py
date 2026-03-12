@@ -1,6 +1,7 @@
 from zone import Door, DoorKey, Position
 from astar import Node
 from utils import waitFrames
+from pokemon import Pokemon
 from bag import BIKE_ID
 from emu import BIZHAWK
 
@@ -16,6 +17,7 @@ import joypad
 import memory
 import pokemon
 
+END_PATH = -1
 DOOR_GRAPH = {}
 
 ##########################################################################################################
@@ -59,93 +61,115 @@ def checkPathIsFollowed(path):
     gameData = game.getGameData()
     playerPosition = player.getPlayerData().position
 
-    isRepelActive = (gameData.repelSteps > 0)
     pathIndex = 0
+    isRepelActive = (gameData.repelSteps > 0)
+    lastWildPID = action.getCurrentWildPID()
 
-    while memory.readJoypadData() or playerPosition != path[-1].position:
+    # Infinite loop to recalculate path if something wrong happens
+    while True:
 
-        # Don't check memory more than once a frame to avoid overloading the CPU
-        waitFrames(1)
+        # Check current path state every frame
+        while memory.readJoypadData() or playerPosition != path[-1].position:
 
-        # Get current game and player data
-        gameData = game.getGameData()
-        playerPosition = player.getPlayerData().position
+            # Don't check memory more than once a frame to avoid overloading the CPU
+            waitFrames(1)
 
-        # Non-0 PID : we're in a battle - stop pathfinding and let main script take over
-        if (memory.readWildPokemonData().get("pid",0) != 0):
-            print("Encountered wild Pokémon")
-            memory.clearJoypadInputs() # Clear input
-            break
+            # Get current game and player data
+            gameData = game.getGameData()
+            playerPosition = player.getPlayerData().position
+            jsonPokemonData = memory.readWildPokemonData()
 
-        # Repel no longer active, stop moving and use another one
-        elif (isRepelActive and gameData.repelSteps == 0):
-            memory.clearJoypadInputs() # Clear input
-            joypad.writeInput("@@@@A", wait = True) # Wait for the dialogue to be displayed and skip it
-            action.useItem(repel = True) # Use Repel and go back to overworld
-
-        # Reached the end or went to another zone, clear all inputs and go back to main loop
-        elif (playerPosition == path[-1].position or playerPosition.zone.zoneId != path[-1].position.zone.zoneId):
-            memory.clearJoypadInputs() # Clear input
-            break
-
-        # Check character progression through the path
-        elif (path[pathIndex].position != playerPosition):
-
-            # Normal behavior : character went to next position
-            if (path[pathIndex + 1].position == playerPosition):
-                pathIndex += 1
-
-            # Specific case : we don't keep track of Rock Climb positions, false positive
-            elif (playerPosition.zone.map[playerPosition.Y][playerPosition.X] == "C"):
-                continue
-
-            # Specific case : Waterfall position is skipped, false positive
-            elif (path[pathIndex + 1].cellType == "w"):
-                pathIndex += 1
-                continue
-
-            # We could be at a different position because we're in a different zone, go back to main loop
-            elif (path[pathIndex].position.zone != playerPosition.zone):
-                break
-
-            # Wrong path : recalculate from current position
-            else:
+            # Found a new valid wild Pokémon PID
+            if (jsonPokemonData.get("pid",0) not in (0,lastWildPID) and Pokemon(**jsonPokemonData).isValid):
                 memory.clearJoypadInputs() # Clear input
 
-                # Make sure player is not moving anymore before starting moving again
+                # Battle wild Pokémon and save its PID
+                wildPokemon = Pokemon(**jsonPokemonData)
+                lastWildPID = wildPokemon.pid
+                action.battle(wildPokemon)
+                
+                # Wait until we exit battle
+                img.poketch.waitUntilVisible()
+                waitFrames(5)
+                break
+
+            # Repel no longer active, stop moving and use another one
+            elif (isRepelActive and gameData.repelSteps == 0):
+                memory.clearJoypadInputs() # Clear input
+                joypad.writeInput("@@@@A", wait = True) # Wait for the dialogue to be displayed and skip it
+                action.useItem(repel = True) # Use Repel and go back to overworld
+                break
+
+            # Reached the end or went to another zone, clear all inputs and go back to main loop
+            elif (playerPosition == path[-1].position or playerPosition.zone.zoneId != path[-1].position.zone.zoneId):
+                memory.clearJoypadInputs() # Clear input
+                return
+
+            # Check character progression through the path
+            elif (path[pathIndex].position != playerPosition):
+
+                # Normal behavior : character went to next position
+                if (path[pathIndex + 1].position == playerPosition):
+                    pathIndex += 1
+
+                # Specific case : we don't keep track of Rock Climb positions, false positive
+                elif (playerPosition.zone.map[playerPosition.Y][playerPosition.X] == "C"):
+                    continue
+
+                # Specific case : Waterfall position is skipped, false positive
+                elif (path[pathIndex + 1].cellType == "w"):
+                    pathIndex += 1
+                    continue
+
+                # We could be at a different position because we're in a different zone, go back to main loop
+                elif (path[pathIndex].position.zone != playerPosition.zone):
+                    return
+
+                # Wrong path : recalculate from current position
+                else:
+                    memory.clearJoypadInputs() # Clear input
+
+                    # Make sure player is not moving anymore before starting moving again
+                    waitFrames(15) # Wait 15 frames (time needed to completely stop)
+                    break
+
+            # No more inputs left to process
+            elif (not memory.readJoypadData()):
+
+                # Make sure player is not moving anymore before checking his position
                 waitFrames(15) # Wait 15 frames (time needed to completely stop)
+                playerPosition = player.getPlayerData().position
 
-                # Calculate path from new position to the rest of the correct path
-                path = writePathInputsFromCurrentState(path, pathIndex + 1)
-                pathIndex = 0
+                # Poketch not visible, we changed zone, go back to main loop
+                if (not img.poketch.isOnScreen()):
+                    return
+                # Reached the end, go back to main loop
+                elif (playerPosition == path[-1].position):
+                    return
+                # Not at the desired location, calculate path from this position to the rest of the correct path
+                else:
+                    break
 
-        # No more inputs left to process
-        elif (not memory.readJoypadData()):
-
-            # Make sure player is not moving anymore before checking his position
-            waitFrames(15) # Wait 15 frames (time needed to completely stop)
-            playerPosition = player.getPlayerData().position
-
-            # Poketch not visible, we changed zone, go back to main loop
-            if (not img.poketch.isOnScreen()):
+            # Entered a foggy area : use Defog
+            elif (gameData.isFoggy):
+                memory.clearJoypadInputs() # Clear input
+                action.useHM(pokemon.DEFOG_ID) # Use Defog and go back to overworld
                 break
-            # Reached the end, go back to main loop
-            elif (playerPosition == path[-1].position):
+
+            # Entered a dark area : use Flash
+            elif (gameData.isDark):
+                memory.clearJoypadInputs() # Clear input
+                action.useHM(pokemon.FLASH_ID) # Use Flash and go back to overworld
                 break
-            # Not at the desired location, calculate path from this position to the rest of the correct path
-            else:
-                path = writePathInputsFromCurrentState(path, pathIndex + 1)
-                pathIndex = 0
 
-        # Entered a foggy area : use Defog
-        elif (gameData.isFoggy):
-            memory.clearJoypadInputs() # Clear input
-            action.useHM(pokemon.DEFOG_ID) # Use Repel and go back to overworld
+        # Did not rach final position : calculate path from new position to the rest of the correct path
+        if (memory.readJoypadData() or playerPosition != path[-1].position):
+            path = writePathInputsFromCurrentState(path, pathIndex + 1)
+            pathIndex = 0
 
-        # Entered a dark area : use Flash
-        elif (gameData.isDark):
-            memory.clearJoypadInputs() # Clear input
-            action.useHM(pokemon.FLASH_ID) # Use Repel and go back to overworld
+        # Reached final position : exit loop
+        else:
+            return
 
 
 
@@ -179,7 +203,7 @@ def writePathInputsFromCurrentState(nodeList, breakNodeId):
     remainingNodes = nodeList[breakNodeId:]
 
     # Update the map to take into account the pushed boulder and destroyed obstacles
-    updatedMap, strengthUsed, destroyedObstacles = astar.getMapAtCurrentState(processedNodes, nodeList[0].position.zone.map)
+    updatedMap, destroyedObstacles = astar.getMapAtCurrentState(processedNodes, nodeList[0].position.zone.map)
 
     # Go from player position to first node of the remaining nodes
     firstNode = remainingNodes.pop(0)
@@ -187,7 +211,7 @@ def writePathInputsFromCurrentState(nodeList, breakNodeId):
     nodeList.extend(remainingNodes)
 
     # Retrieve all inputs needed to go to specified location
-    joypad.writePathfindingInput(nodeList, strengthUsed, destroyedObstacles)
+    joypad.writePathfindingInput(nodeList, destroyedObstacles)
 
     return nodeList
 
@@ -241,31 +265,31 @@ def initDoorGraph():
     # Create a graph for Diamond/Pearl and another for Platinum
     for gameCode in ["PL","DP"]:
 
-    # Iterate on every single Door
+        # Iterate on every single Door
         for zoneObject in set(zone.ZONEDICTIONARY[gameCode].values()):
-        for door in zoneObject.doorList:
+            for door in zoneObject.doorList:
 
-            # Only process doors connected to another door
-            if (not door.connectedDoor):
-                continue
-
-            # Create tuple object used as key from the door and its connected door
-            doorKey = door.createDoorKey()
-
-            for otherDoorInZone in zoneObject.doorList:
-
-                # Only process the other doors connected to another zone
-                if (not otherDoorInZone.connectedDoor or door == otherDoorInZone):
+                # Only process doors connected to another door
+                if (not door.connectedDoor):
                     continue
 
-                # Calculate A* path from each door to its neigbours 
-                doorPath = getMostEfficientPath(door.connectedDoor.destination, otherDoorInZone.position)
+                # Create tuple object used as key from the door and its connected door
+                doorKey = door.createDoorKey()
 
-                # Only add the door path if there's an actual path
-                if (doorPath):
+                for otherDoorInZone in zoneObject.doorList:
+
+                    # Only process the other doors connected to another zone
+                    if (not otherDoorInZone.connectedDoor or door == otherDoorInZone):
+                        continue
+
+                    # Calculate A* path from each door to its neigbours 
+                    doorPath = getMostEfficientPath(door.connectedDoor.destination, otherDoorInZone.position)
+
+                    # Only add the door path if there's an actual path
+                    if (doorPath):
                         doorGraph[gameCode].setdefault(doorKey, []).append(DoorNode(door, otherDoorInZone, doorPath))
 
-    # Save graph as a file to easily retrieve it at a later execution
+        # Save graph as a file to easily retrieve it at a later execution
         memory.saveGraph(doorGraph[gameCode], "data/pkl/graph-" + gameCode + ".pkl")
 
 
@@ -386,6 +410,7 @@ def processWorldPath(worldPath, endPosition, calculateScore = False):
 
         # Go from starting node to ending node
         processPath(currentPath)
+        print("Path processed")
 
         # Only continue when all inputs have been processed
         while (memory.readJoypadData()):
@@ -407,6 +432,7 @@ def processWorldPath(worldPath, endPosition, calculateScore = False):
 
                 # Spent 2 seconds on the wrong position while on the overworld : start again
                 if (framesOnOverworld > 120):
+                    print("Spent too much time waiting, starting again")
                     return False
 
             # Wait poketch is visible (after transition screen)

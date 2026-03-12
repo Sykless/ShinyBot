@@ -12,6 +12,7 @@ MEMORYADDRESSES = {
         POSITIONX_OFFSET = 0x1240,
         POSITIONY_OFFSET = 0x1244,
         FOGTYPE_OFFSET = 0x129E,
+        STRENGTHUSED_OFFSET = 0X1108,
         HONEYTREES_OFFSET = 0x72DC,
         CYCLINGROAD_OFFSET = 0xFDC,
         REPELSTEPS_OFFSET = 0x73E0,
@@ -36,6 +37,7 @@ MEMORYADDRESSES = {
         POSITIONX_OFFSET = 0x1288,
         POSITIONY_OFFSET = 0x128C,
         FOGTYPE_OFFSET = 0x12E6,
+        STRENGTHUSED_OFFSET = 0x1118,
         HONEYTREES_OFFSET = 0x7F30,
         CYCLINGROAD_OFFSET = 0xFEC,
         REPELSTEPS_OFFSET = 0x8073,
@@ -205,6 +207,7 @@ function retrieveGameData()
         registeredKeyItem = memory.read_u32_le(baseAddress + MEMORYADDRESSES[GAMECODE]["REGISTEREDKEYITEM_OFFSET"]),
 
         fogType = memory.readbyte(baseAddress + MEMORYADDRESSES[GAMECODE]["FOGTYPE_OFFSET"]),
+        strengthUsed = getBits(memory.readbyte(baseAddress + MEMORYADDRESSES[GAMECODE]["STRENGTHUSED_OFFSET"]),2,1),
         feebasSeed = memory.read_u32_le(baseAddress + MEMORYADDRESSES[GAMECODE]["FEEBASSEED_OFFSET"]),
         honeyTreesCountdown = honeyTreesCountdown,
         swarmPokemon = memory.read_u32_le(baseAddress + SWARMPOKEMON_OFFSET) % 22,

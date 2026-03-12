@@ -1,3 +1,4 @@
+import game
 import player
 import memory
 from utils import waitFrames
@@ -54,7 +55,7 @@ def softReset():
 ################################################################
 # Write all the inputs needed to process the node-to-node path #
 ################################################################
-def writePathfindingInput(nodeList, strengthUsed = False, destroyedObstacles = []):
+def writePathfindingInput(nodeList, destroyedObstacles = []):
 
     # Only move if there are at least two nodes
     if (nodeList is not None and len(nodeList) > 1):
@@ -68,6 +69,10 @@ def writePathfindingInput(nodeList, strengthUsed = False, destroyedObstacles = [
         playerData = player.getPlayerData()
         playerDirection = playerData.orientation
         isOnBike = playerData.isOnBike
+
+        # Use strength only if necessary
+        gameData = game.getGameData()
+        strengthUsed = gameData.strengthUsed
 
         frameByFrameInputSequence = ""
         skipTwoNodes = False
@@ -239,6 +244,7 @@ def writePathfindingInput(nodeList, strengthUsed = False, destroyedObstacles = [
                     else:
                         frameByFrameInputSequence += "BB" # Increase bike speed
 
+                # Causes issues because bikeCellCounter can be undeclared (probably if too fast)
                 # Go to momentum cell to build up speed and go back to slope/ramp with max speed
                 if (bikeCellCounter == 1): frameByFrameInputSequence += getInputsToProgressCell(isOnBike, previousNode.cellType, True, inputButton, playerDirection)
                 elif (bikeCellCounter == 2): frameByFrameInputSequence += 12 * inputButton

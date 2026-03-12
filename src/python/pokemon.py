@@ -139,7 +139,7 @@ class Pokemon:
             self.isValid = True
 
         # We might receive invalid data since team memory address is shared with other parameters when you're not in battle/menu
-        except IndexError:
+        except (IndexError, TypeError):
             self.isValid = False
 
     def __eq__(self, other):
@@ -147,7 +147,7 @@ class Pokemon:
         
     def __str__(self):
         return (str(self.name) + " " + ("♀" if self.female else "♂")
-                + " level " + str(self.level) + " (" + self.ability.name + " - " + self.nature.name + ")" + " - PID = " + str(hex(self.pid)) + " - Shiny value : " + str(self.shinyValue)  + "\n"
+                + " level " + str(self.level) + " (" + self.ability.name + " - " + self.nature.name + ")" + " - PID = " + str(hex(self.pid)) + (" - Held Item : " + data.ITEM_NAMES[self.item] if self.item else "") + " - Shiny value : " + str(self.shinyValue)  + "\n"
                 + " - " + self.moves[0].name + " (" + str(self.moves[0].PP) + ")\n"
                 + (" - " + self.moves[1].name + " (" + str(self.moves[1].PP) + ")\n" if len(self.moves) >= 2 else "")
                 + (" - " + self.moves[2].name + " (" + str(self.moves[2].PP) + ")\n" if len(self.moves) >= 3 else "")
